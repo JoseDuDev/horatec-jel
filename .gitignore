@@ -1,0 +1,33 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.pidb
+.vs/
+_ReSharper*/
+*.ReSharper
+*.sln.ide
+
+## Publicação
+/publish/
+*.pubxml
+*.pubxml.user
+
+## Secrets (NUNCA commitar)
+.env
+appsettings.*.local.json
+**/secrets.json
+
+## Logs
+*.log
+logs/
+
+## Docker volumes (desenvolvimento local)
+.docker/
+
+## Rider / VS Code
+.idea/
+.vscode/
+*.DS_Store
