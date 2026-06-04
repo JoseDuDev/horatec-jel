@@ -20,4 +20,8 @@ public interface IBookingRepository : IRepository<Booking>
         DateTimeOffset end,
         Guid? excludeBookingId = null,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Booking>> GetByRecurrenceGroupAsync(
+        Guid recurrenceGroupId,
+        CancellationToken cancellationToken = default);
 }

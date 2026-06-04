@@ -45,4 +45,13 @@ internal sealed class BookingRepository(TenantDbContext context)
             && b.EndsAt > start
             && (excludeBookingId == null || b.Id != excludeBookingId),
             cancellationToken);
+
+    public async Task<IReadOnlyList<Booking>> GetByRecurrenceGroupAsync(
+        Guid recurrenceGroupId,
+        CancellationToken cancellationToken = default) =>
+        await DbSet
+            .AsNoTracking()
+            .Where(b => b.RecurrenceGroupId == recurrenceGroupId)
+            .OrderBy(b => b.ScheduledAt)
+            .ToListAsync(cancellationToken);
 }

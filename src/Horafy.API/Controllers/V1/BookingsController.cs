@@ -2,6 +2,7 @@ using Asp.Versioning;
 using Horafy.API.Controllers.Base;
 using Horafy.Application.Features.Bookings.Commands;
 using Horafy.Application.Features.Bookings.Queries;
+using Horafy.Domain.Entities.Bookings;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -94,9 +95,34 @@ public sealed class BookingsController(ISender sender) : ApiControllerBase(sende
         var result = await Sender.Send(new NoShowBookingCommand(id), cancellationToken);
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
+
+    [HttpPost("recurring")]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreateRecurring(
+        [FromBody] CreateRecurringBookingRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new CreateRecurringBookingCommand(
+                request.ServiceId, request.ResourceId, request.FirstOccurrence,
+                request.Frequency, request.OccurrenceCount, request.Notes),
+            cancellationToken);
+
+        if (result.IsFailure) return ToActionResult(result);
+        return Ok(result.Value);
+    }
 }
 
 public sealed record CreateBookingRequest(
     Guid ServiceId, Guid ResourceId, DateTimeOffset ScheduledAt, string? Notes);
 
 public sealed record CancelBookingRequest(string? Reason);
+
+public sealed record CreateRecurringBookingRequest(
+    Guid ServiceId,
+    Guid ResourceId,
+    DateTimeOffset FirstOccurrence,
+    RecurrenceFrequency Frequency,
+    int OccurrenceCount,
+    string? Notes);
