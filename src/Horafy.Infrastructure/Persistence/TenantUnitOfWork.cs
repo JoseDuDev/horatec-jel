@@ -1,5 +1,6 @@
 using System.Data;
 using Horafy.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Horafy.Infrastructure.Persistence;
 
