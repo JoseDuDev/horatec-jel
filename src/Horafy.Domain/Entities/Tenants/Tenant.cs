@@ -1,4 +1,5 @@
 using Horafy.Domain.Entities.Base;
+using Horafy.Domain.Entities.Payments;
 using Horafy.Domain.Events.Tenants;
 
 namespace Horafy.Domain.Entities.Tenants;
@@ -50,6 +51,7 @@ public sealed class Tenant : BaseEntity
     public DateTimeOffset? TrialEndsAt { get; private set; }
     public DateTimeOffset? PlanRenewsAt { get; private set; }
     public CancellationPolicy CancellationPolicy { get; private set; } = CancellationPolicy.Default;
+    public PaymentSettings PaymentSettings { get; private set; } = PaymentSettings.Default;
 
     public static Tenant Create(
         string name,
@@ -137,6 +139,12 @@ public sealed class Tenant : BaseEntity
     public void UpdateCancellationPolicy(int minHours, decimal feePercent, bool allowCustomer)
     {
         CancellationPolicy = CancellationPolicy.Create(minHours, feePercent, allowCustomer);
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void UpdatePaymentSettings(bool requiresPayment, DepositMode mode, decimal value)
+    {
+        PaymentSettings = PaymentSettings.Create(requiresPayment, mode, value);
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

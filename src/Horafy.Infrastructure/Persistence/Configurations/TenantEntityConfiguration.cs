@@ -1,3 +1,4 @@
+using Horafy.Domain.Entities.Payments;
 using Horafy.Domain.Entities.Tenants;
 using Horafy.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
@@ -87,6 +88,16 @@ public sealed class TenantEntityConfiguration : IEntityTypeConfiguration<Tenant>
                 .HasDefaultValue(0m);
             policyBuilder.Property(p => p.AllowCustomerCancellation)
                 .HasDefaultValue(true);
+        });
+
+        builder.OwnsOne(t => t.PaymentSettings, ps =>
+        {
+            ps.Property(p => p.RequiresPayment).HasDefaultValue(false);
+            ps.Property(p => p.DepositMode)
+              .HasConversion<string>().HasMaxLength(30)
+              .HasDefaultValue(DepositMode.None);
+            ps.Property(p => p.DepositValue)
+              .HasColumnType("numeric(10,2)").HasDefaultValue(0m);
         });
 
         builder.Property(t => t.CreatedAt).IsRequired();
