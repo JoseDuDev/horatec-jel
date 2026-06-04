@@ -9,14 +9,14 @@ namespace Horafy.Infrastructure.Repositories;
 internal sealed class BookingRepository(TenantDbContext context)
     : BaseRepository<Booking, TenantDbContext>(context), IBookingRepository
 {
-    public async Task<IReadOnlyList<Booking>> GetByProfessionalAsync(
-        Guid professionalId,
+    public async Task<IReadOnlyList<Booking>> GetByResourceAsync(
+        Guid resourceId,
         DateTimeOffset from,
         DateTimeOffset to,
         CancellationToken cancellationToken = default) =>
         await DbSet
             .AsNoTracking()
-            .Where(b => b.ProfessionalId == professionalId
+            .Where(b => b.ResourceId == resourceId
                      && b.ScheduledAt >= from
                      && b.ScheduledAt < to)
             .OrderBy(b => b.ScheduledAt)
@@ -32,13 +32,13 @@ internal sealed class BookingRepository(TenantDbContext context)
             .ToListAsync(cancellationToken);
 
     public async Task<bool> HasConflictAsync(
-        Guid professionalId,
+        Guid resourceId,
         DateTimeOffset start,
         DateTimeOffset end,
         Guid? excludeBookingId = null,
         CancellationToken cancellationToken = default) =>
         await DbSet.AnyAsync(b =>
-            b.ProfessionalId == professionalId
+            b.ResourceId == resourceId
             && b.Status != BookingStatus.Cancelled
             && b.Status != BookingStatus.NoShow
             && b.ScheduledAt < end

@@ -1,24 +1,19 @@
 using Horafy.Domain.Entities.Base;
 using Horafy.Domain.Entities.Bookings;
-using Horafy.Domain.Entities.Professionals;
+using Horafy.Domain.Entities.Resources;
 using Horafy.Domain.Entities.Services;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Horafy.Infrastructure.Persistence;
 
-/// <summary>
-/// DbContext para as tabelas do schema tenant_{slug}.
-/// O search_path é configurado via connection string no momento da injeção,
-/// garantindo que todas as queries operem no schema correto do tenant.
-/// </summary>
 public sealed class TenantDbContext : DbContext
 {
     private readonly IPublisher? _publisher;
 
-    public DbSet<Service>      Services      => Set<Service>();
-    public DbSet<Professional> Professionals => Set<Professional>();
-    public DbSet<Booking>      Bookings      => Set<Booking>();
+    public DbSet<Service>  Services  => Set<Service>();
+    public DbSet<Resource> Resources => Set<Resource>();
+    public DbSet<Booking>  Bookings  => Set<Booking>();
 
     public TenantDbContext(
         DbContextOptions<TenantDbContext> options,
@@ -32,12 +27,10 @@ public sealed class TenantDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Aplica as configs de tenant (Service, Professional, Booking)
         modelBuilder.ApplyConfigurationsFromAssembly(
             typeof(TenantDbContext).Assembly,
             t => t.Namespace?.Contains("TenantConfigurations") is true);
 
-        // Global Query Filter: soft-delete
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             var prop = entityType.FindProperty("IsDeleted");

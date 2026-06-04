@@ -21,9 +21,8 @@ internal sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Book
             .HasConversion<string>()
             .HasMaxLength(32);
 
-        // Índices para queries comuns
-        builder.HasIndex(b => new { b.ProfessionalId, b.ScheduledAt })
-            .HasDatabaseName("ix_bookings_professional_scheduled");
+        builder.HasIndex(b => new { b.ResourceId, b.ScheduledAt })
+            .HasDatabaseName("ix_bookings_resource_scheduled");
 
         builder.HasIndex(b => new { b.CustomerId, b.ScheduledAt })
             .HasDatabaseName("ix_bookings_customer_scheduled");
