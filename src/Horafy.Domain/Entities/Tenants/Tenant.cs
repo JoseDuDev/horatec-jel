@@ -49,6 +49,7 @@ public sealed class Tenant : BaseEntity
 
     public DateTimeOffset? TrialEndsAt { get; private set; }
     public DateTimeOffset? PlanRenewsAt { get; private set; }
+    public CancellationPolicy CancellationPolicy { get; private set; } = CancellationPolicy.Default;
 
     public static Tenant Create(
         string name,
@@ -130,6 +131,12 @@ public sealed class Tenant : BaseEntity
     {
         Plan = plan;
         PlanRenewsAt = renewsAt;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void UpdateCancellationPolicy(int minHours, decimal feePercent, bool allowCustomer)
+    {
+        CancellationPolicy = CancellationPolicy.Create(minHours, feePercent, allowCustomer);
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

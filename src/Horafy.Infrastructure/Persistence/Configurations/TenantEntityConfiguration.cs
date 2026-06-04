@@ -78,6 +78,17 @@ public sealed class TenantEntityConfiguration : IEntityTypeConfiguration<Tenant>
             themeBuilder.Property(th => th.SectionsOrder).HasMaxLength(200);
         });
 
+        builder.OwnsOne(t => t.CancellationPolicy, policyBuilder =>
+        {
+            policyBuilder.Property(p => p.MinCancellationHours)
+                .HasDefaultValue(0);
+            policyBuilder.Property(p => p.CancellationFeePercent)
+                .HasColumnType("numeric(5,2)")
+                .HasDefaultValue(0m);
+            policyBuilder.Property(p => p.AllowCustomerCancellation)
+                .HasDefaultValue(true);
+        });
+
         builder.Property(t => t.CreatedAt).IsRequired();
         builder.Property(t => t.IsDeleted).HasDefaultValue(false);
     }

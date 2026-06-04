@@ -32,4 +32,14 @@ public static class BookingErrors
         "Booking.SlotNotAvailable",
         "O horário selecionado não está disponível.",
         ErrorType.Conflict);
+
+    public static readonly Error CancellationWindowClosed = new(
+        "Booking.CancellationWindowClosed",
+        "O prazo mínimo para cancelamento já passou.",
+        ErrorType.Validation);
+
+    public static readonly Error CancellationNotAllowed = new(
+        "Booking.CancellationNotAllowed",
+        "O cancelamento pelo cliente não é permitido neste estabelecimento.",
+        ErrorType.Validation);
 }
