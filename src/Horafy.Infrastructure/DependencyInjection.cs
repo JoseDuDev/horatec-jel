@@ -93,6 +93,7 @@ public static class DependencyInjection
         services.AddScoped<IAvailabilityRepository, AvailabilityRepository>();
         services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IWaitlistRepository, WaitlistRepository>();
+        services.AddScoped<IPaymentRepository, PaymentRepository>();
         services.AddScoped<ITenantUnitOfWork, TenantUnitOfWork>();
 
         // Auth — JWT, OAuth, hashing

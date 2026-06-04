@@ -1,6 +1,7 @@
 using Horafy.Domain.Entities.Availability;
 using Horafy.Domain.Entities.Base;
 using Horafy.Domain.Entities.Bookings;
+using Horafy.Domain.Entities.Payments;
 using Horafy.Domain.Entities.Resources;
 using Horafy.Domain.Entities.Services;
 using MediatR;
@@ -21,6 +22,7 @@ public sealed class TenantDbContext : DbContext
     public DbSet<AvailabilityException> AvailabilityExceptions => Set<AvailabilityException>();
     public DbSet<WaitlistEntry>         WaitlistEntries        => Set<WaitlistEntry>();
     public DbSet<BookingService>        BookingServices        => Set<BookingService>();
+    public DbSet<Payment>              Payments               => Set<Payment>();
 
     public TenantDbContext(
         DbContextOptions<TenantDbContext> options,
