@@ -16,12 +16,12 @@ public sealed class BookingsController(ISender sender) : ApiControllerBase(sende
     [Authorize(Roles = "TenantOwner,TenantAdmin,TenantStaff,PlatformAdmin")]
     [ProducesResponseType(typeof(IReadOnlyList<BookingResult>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
-        [FromQuery] Guid? professionalId,
+        [FromQuery] Guid? resourceId,
         [FromQuery] DateTimeOffset? from,
         [FromQuery] DateTimeOffset? to,
         CancellationToken cancellationToken) =>
         ToActionResult(await Sender.Send(
-            new GetBookingsQuery(professionalId, from, to), cancellationToken));
+            new GetBookingsQuery(resourceId, from, to), cancellationToken));
 
     [HttpGet("{id:guid}", Name = "GetBookingById")]
     [ProducesResponseType(typeof(BookingResult), StatusCodes.Status200OK)]
@@ -39,7 +39,7 @@ public sealed class BookingsController(ISender sender) : ApiControllerBase(sende
     {
         var result = await Sender.Send(
             new CreateBookingCommand(
-                request.ServiceId, request.ProfessionalId,
+                request.ServiceId, request.ResourceId,
                 request.ScheduledAt, request.Notes),
             cancellationToken);
 
@@ -72,6 +72,6 @@ public sealed class BookingsController(ISender sender) : ApiControllerBase(sende
 }
 
 public sealed record CreateBookingRequest(
-    Guid ServiceId, Guid ProfessionalId, DateTimeOffset ScheduledAt, string? Notes);
+    Guid ServiceId, Guid ResourceId, DateTimeOffset ScheduledAt, string? Notes);
 
 public sealed record CancelBookingRequest(string? Reason);
