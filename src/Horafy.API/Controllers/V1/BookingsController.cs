@@ -45,7 +45,7 @@ public sealed class BookingsController(ISender sender) : ApiControllerBase(sende
     {
         var result = await Sender.Send(
             new CreateBookingCommand(
-                request.ServiceId, request.ResourceId,
+                request.ServiceIds, request.ResourceId,
                 request.ScheduledAt, request.Notes),
             cancellationToken);
 
@@ -115,7 +115,10 @@ public sealed class BookingsController(ISender sender) : ApiControllerBase(sende
 }
 
 public sealed record CreateBookingRequest(
-    Guid ServiceId, Guid ResourceId, DateTimeOffset ScheduledAt, string? Notes);
+    IReadOnlyList<Guid> ServiceIds,
+    Guid ResourceId,
+    DateTimeOffset ScheduledAt,
+    string? Notes);
 
 public sealed record CancelBookingRequest(string? Reason);
 

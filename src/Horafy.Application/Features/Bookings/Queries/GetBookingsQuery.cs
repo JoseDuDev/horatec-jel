@@ -10,6 +10,8 @@ public sealed record GetBookingsQuery(
     DateTimeOffset? From,
     DateTimeOffset? To) : IRequest<Result<IReadOnlyList<BookingResult>>>;
 
+public sealed record BookingServiceResult(Guid ServiceId, string ServiceName, int DurationMinutes);
+
 public sealed record BookingResult(
     Guid Id,
     Guid ServiceId,
@@ -22,7 +24,9 @@ public sealed record BookingResult(
     int DurationMinutes,
     string? Notes,
     BookingStatus Status,
-    string? CancellationReason);
+    string? CancellationReason,
+    Guid? RecurrenceGroupId,
+    IReadOnlyList<BookingServiceResult> Services);
 
 internal sealed class GetBookingsQueryHandler(
     IBookingRepository bookingRepository)
@@ -47,5 +51,7 @@ internal sealed class GetBookingsQueryHandler(
     private static BookingResult ToResult(Domain.Entities.Bookings.Booking b) => new(
         b.Id, b.ServiceId, b.ResourceId, b.CustomerId,
         b.CustomerName, b.CustomerEmail, b.ScheduledAt, b.EndsAt,
-        b.DurationMinutes, b.Notes, b.Status, b.CancellationReason);
+        b.DurationMinutes, b.Notes, b.Status, b.CancellationReason,
+        b.RecurrenceGroupId,
+        b.Services.Select(s => new BookingServiceResult(s.ServiceId, s.ServiceName, s.DurationMinutes)).ToList());
 }

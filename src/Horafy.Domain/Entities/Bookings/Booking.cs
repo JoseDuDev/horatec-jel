@@ -6,6 +6,7 @@ namespace Horafy.Domain.Entities.Bookings;
 public sealed class Booking : BaseEntity
 {
     private Booking() { }
+    private readonly List<BookingService> _services = [];
 
     public Guid ServiceId  { get; private set; }
     public Guid ResourceId { get; private set; }
@@ -30,6 +31,54 @@ public sealed class Booking : BaseEntity
     public Guid?           RecurrenceGroupId { get; private set; }
     public DateTimeOffset? ExpiresAt         { get; private set; }
 
+    public IReadOnlyList<BookingService> Services => _services.AsReadOnly();
+
+    public static Booking Create(
+        IReadOnlyList<(Guid ServiceId, string ServiceName, int DurationMinutes)> services,
+        Guid resourceId,
+        Guid customerId,
+        string customerName,
+        string customerEmail,
+        DateTimeOffset scheduledAt,
+        string? notes = null,
+        Guid? recurrenceGroupId = null,
+        DateTimeOffset? expiresAt = null)
+    {
+        if (services.Count == 0)
+            throw new ArgumentException("Pelo menos um serviço é obrigatório.", nameof(services));
+
+        if (scheduledAt <= DateTimeOffset.UtcNow)
+            throw new ArgumentException("A data do agendamento deve ser futura.", nameof(scheduledAt));
+
+        var totalDuration = services.Sum(s => s.DurationMinutes);
+
+        if (totalDuration <= 0)
+            throw new ArgumentException("Duração total deve ser maior que zero.", nameof(services));
+
+        var booking = new Booking
+        {
+            ServiceId         = services[0].ServiceId,
+            ResourceId        = resourceId,
+            CustomerId        = customerId,
+            CustomerName      = customerName.Trim(),
+            CustomerEmail     = customerEmail.ToLowerInvariant().Trim(),
+            ScheduledAt       = scheduledAt,
+            EndsAt            = scheduledAt.AddMinutes(totalDuration),
+            DurationMinutes   = totalDuration,
+            Notes             = notes?.Trim(),
+            RecurrenceGroupId = recurrenceGroupId,
+            ExpiresAt         = expiresAt
+        };
+
+        foreach (var svc in services)
+            booking._services.Add(BookingService.Create(booking.Id, svc.ServiceId, svc.ServiceName, svc.DurationMinutes));
+
+        booking.RaiseDomainEvent(new BookingCreatedEvent(
+            booking.Id, booking.ServiceId, resourceId, customerId, scheduledAt));
+
+        return booking;
+    }
+
     public static Booking Create(
         Guid serviceId,
         Guid resourceId,
@@ -40,34 +89,11 @@ public sealed class Booking : BaseEntity
         int durationMinutes,
         string? notes = null,
         Guid? recurrenceGroupId = null,
-        DateTimeOffset? expiresAt = null)
-    {
-        if (scheduledAt <= DateTimeOffset.UtcNow)
-            throw new ArgumentException("A data do agendamento deve ser futura.", nameof(scheduledAt));
-
-        if (durationMinutes <= 0)
-            throw new ArgumentException("Duração deve ser maior que zero.", nameof(durationMinutes));
-
-        var booking = new Booking
-        {
-            ServiceId         = serviceId,
-            ResourceId        = resourceId,
-            CustomerId        = customerId,
-            CustomerName      = customerName.Trim(),
-            CustomerEmail     = customerEmail.ToLowerInvariant().Trim(),
-            ScheduledAt       = scheduledAt,
-            EndsAt            = scheduledAt.AddMinutes(durationMinutes),
-            DurationMinutes   = durationMinutes,
-            Notes             = notes?.Trim(),
-            RecurrenceGroupId = recurrenceGroupId,
-            ExpiresAt         = expiresAt
-        };
-
-        booking.RaiseDomainEvent(new BookingCreatedEvent(
-            booking.Id, serviceId, resourceId, customerId, scheduledAt));
-
-        return booking;
-    }
+        DateTimeOffset? expiresAt = null) =>
+        Create(
+            new[] { (serviceId, ServiceName: serviceId.ToString(), durationMinutes) },
+            resourceId, customerId, customerName, customerEmail,
+            scheduledAt, notes, recurrenceGroupId, expiresAt);
 
     public void Confirm()
     {

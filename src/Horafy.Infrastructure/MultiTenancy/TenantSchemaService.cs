@@ -156,6 +156,21 @@ internal sealed class TenantSchemaService(
             ON {s}.bookings (recurrence_group_id)
             WHERE recurrence_group_id IS NOT NULL;
 
+        -- ── Serviços por Agendamento ───────────────────────────────────────
+        CREATE TABLE IF NOT EXISTS {s}.booking_services (
+            id               UUID         NOT NULL DEFAULT gen_random_uuid(),
+            booking_id       UUID         NOT NULL,
+            service_id       UUID         NOT NULL,
+            service_name     VARCHAR(200) NOT NULL,
+            duration_minutes INT          NOT NULL,
+            CONSTRAINT pk_booking_services PRIMARY KEY (id),
+            CONSTRAINT fk_booking_services_booking
+                FOREIGN KEY (booking_id) REFERENCES {s}.bookings (id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_booking_services_booking
+            ON {s}.booking_services (booking_id);
+
         -- ── Fila de Espera ─────────────────────────────────────────────────
         CREATE TABLE IF NOT EXISTS {s}.waitlist_entries (
             id             UUID         NOT NULL DEFAULT gen_random_uuid(),

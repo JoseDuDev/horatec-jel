@@ -20,6 +20,7 @@ public sealed class TenantDbContext : DbContext
     public DbSet<AvailabilityRule>      AvailabilityRules      => Set<AvailabilityRule>();
     public DbSet<AvailabilityException> AvailabilityExceptions => Set<AvailabilityException>();
     public DbSet<WaitlistEntry>         WaitlistEntries        => Set<WaitlistEntry>();
+    public DbSet<BookingService>        BookingServices        => Set<BookingService>();
 
     public TenantDbContext(
         DbContextOptions<TenantDbContext> options,
@@ -36,6 +37,16 @@ public sealed class TenantDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(
             typeof(TenantDbContext).Assembly,
             t => t.Namespace?.Contains("TenantConfigurations") is true);
+
+        modelBuilder.Entity<Booking>()
+            .HasMany(b => b.Services)
+            .WithOne()
+            .HasForeignKey(bs => bs.BookingId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Booking>()
+            .Navigation(b => b.Services)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {

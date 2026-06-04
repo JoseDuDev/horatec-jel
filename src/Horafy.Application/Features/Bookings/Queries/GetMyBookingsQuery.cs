@@ -24,7 +24,9 @@ internal sealed class GetMyBookingsQueryHandler(
         var result = bookings.Select(b => new BookingResult(
             b.Id, b.ServiceId, b.ResourceId, b.CustomerId,
             b.CustomerName, b.CustomerEmail, b.ScheduledAt, b.EndsAt,
-            b.DurationMinutes, b.Notes, b.Status, b.CancellationReason))
+            b.DurationMinutes, b.Notes, b.Status, b.CancellationReason,
+            b.RecurrenceGroupId,
+            b.Services.Select(s => new BookingServiceResult(s.ServiceId, s.ServiceName, s.DurationMinutes)).ToList()))
             .ToList();
 
         return Result.Success<IReadOnlyList<BookingResult>>(result);
