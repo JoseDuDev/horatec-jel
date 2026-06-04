@@ -5,10 +5,12 @@ using Horafy.Application.Features.Tenants.Commands.CreateTenant;
 using Horafy.Application.Features.Tenants.Commands.RemoveCustomDomain;
 using Horafy.Application.Features.Tenants.Commands.SetCustomDomain;
 using Horafy.Application.Features.Tenants.Commands.SuspendTenant;
+using Horafy.Application.Features.Tenants.Commands.UpdatePaymentSettings;
 using Horafy.Application.Features.Tenants.Commands.UpdateTenant;
 using Horafy.Application.Features.Tenants.Commands.UpdateTenantTheme;
 using Horafy.Application.Features.Tenants.Queries.GetCurrentTenant;
 using Horafy.Application.Features.Tenants.Queries.GetTenantBySlug;
+using Horafy.Domain.Entities.Payments;
 using Horafy.Domain.Entities.Tenants;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -143,6 +145,22 @@ public sealed class TenantsController(ISender sender) : ApiControllerBase(sender
         var result = await Sender.Send(new ActivateTenantCommand(id), cancellationToken);
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
+
+    /// <summary>Atualiza as configurações de pagamento do tenant.</summary>
+    [HttpPut("payment-settings")]
+    [Authorize(Roles = "TenantOwner,PlatformAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdatePaymentSettings(
+        [FromBody] UpdatePaymentSettingsRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new UpdatePaymentSettingsCommand(
+                request.RequiresPayment, request.DepositMode, request.DepositValue),
+            cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
 }
 
 // ── Request DTOs ─────────────────────────────────────────────────────────────
@@ -166,3 +184,8 @@ public sealed record UpdateTenantThemeRequest(
 
 public sealed record SetCustomDomainRequest(string Domain);
 public sealed record SuspendTenantRequest(string Reason);
+
+public sealed record UpdatePaymentSettingsRequest(
+    bool RequiresPayment,
+    DepositMode DepositMode,
+    decimal DepositValue);
