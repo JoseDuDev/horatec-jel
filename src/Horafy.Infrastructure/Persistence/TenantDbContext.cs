@@ -1,3 +1,4 @@
+using Horafy.Domain.Entities.Availability;
 using Horafy.Domain.Entities.Base;
 using Horafy.Domain.Entities.Bookings;
 using Horafy.Domain.Entities.Resources;
@@ -11,9 +12,13 @@ public sealed class TenantDbContext : DbContext
 {
     private readonly IPublisher? _publisher;
 
-    public DbSet<Service>  Services  => Set<Service>();
-    public DbSet<Resource> Resources => Set<Resource>();
-    public DbSet<Booking>  Bookings  => Set<Booking>();
+    public DbSet<Service>               Services               => Set<Service>();
+    public DbSet<Resource>              Resources              => Set<Resource>();
+    public DbSet<ResourceService>       ResourceServices       => Set<ResourceService>();
+    public DbSet<Booking>               Bookings               => Set<Booking>();
+    public DbSet<BusinessHours>         BusinessHours          => Set<BusinessHours>();
+    public DbSet<AvailabilityRule>      AvailabilityRules      => Set<AvailabilityRule>();
+    public DbSet<AvailabilityException> AvailabilityExceptions => Set<AvailabilityException>();
 
     public TenantDbContext(
         DbContextOptions<TenantDbContext> options,
