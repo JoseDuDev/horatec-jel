@@ -126,6 +126,8 @@ internal sealed class TenantSchemaService(
             confirmed_at         TIMESTAMPTZ,
             cancelled_at         TIMESTAMPTZ,
             completed_at         TIMESTAMPTZ,
+            recurrence_group_id  UUID,
+            expires_at           TIMESTAMPTZ,
             created_at           TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
             updated_at           TIMESTAMPTZ,
             created_by           VARCHAR(256),
@@ -149,6 +151,10 @@ internal sealed class TenantSchemaService(
 
         CREATE INDEX IF NOT EXISTS ix_bookings_status
             ON {s}.bookings (status);
+
+        CREATE INDEX IF NOT EXISTS ix_bookings_recurrence_group
+            ON {s}.bookings (recurrence_group_id)
+            WHERE recurrence_group_id IS NOT NULL;
 
         -- ── Horários do Tenant ─────────────────────────────────────────────
         CREATE TABLE IF NOT EXISTS {s}.business_hours (

@@ -27,6 +27,9 @@ public sealed class Booking : BaseEntity
     public DateTimeOffset? CancelledAt  { get; private set; }
     public DateTimeOffset? CompletedAt  { get; private set; }
 
+    public Guid?           RecurrenceGroupId { get; private set; }
+    public DateTimeOffset? ExpiresAt         { get; private set; }
+
     public static Booking Create(
         Guid serviceId,
         Guid resourceId,
@@ -35,7 +38,9 @@ public sealed class Booking : BaseEntity
         string customerEmail,
         DateTimeOffset scheduledAt,
         int durationMinutes,
-        string? notes = null)
+        string? notes = null,
+        Guid? recurrenceGroupId = null,
+        DateTimeOffset? expiresAt = null)
     {
         if (scheduledAt <= DateTimeOffset.UtcNow)
             throw new ArgumentException("A data do agendamento deve ser futura.", nameof(scheduledAt));
@@ -45,15 +50,17 @@ public sealed class Booking : BaseEntity
 
         var booking = new Booking
         {
-            ServiceId       = serviceId,
-            ResourceId      = resourceId,
-            CustomerId      = customerId,
-            CustomerName    = customerName.Trim(),
-            CustomerEmail   = customerEmail.ToLowerInvariant().Trim(),
-            ScheduledAt     = scheduledAt,
-            EndsAt          = scheduledAt.AddMinutes(durationMinutes),
-            DurationMinutes = durationMinutes,
-            Notes           = notes?.Trim()
+            ServiceId         = serviceId,
+            ResourceId        = resourceId,
+            CustomerId        = customerId,
+            CustomerName      = customerName.Trim(),
+            CustomerEmail     = customerEmail.ToLowerInvariant().Trim(),
+            ScheduledAt       = scheduledAt,
+            EndsAt            = scheduledAt.AddMinutes(durationMinutes),
+            DurationMinutes   = durationMinutes,
+            Notes             = notes?.Trim(),
+            RecurrenceGroupId = recurrenceGroupId,
+            ExpiresAt         = expiresAt
         };
 
         booking.RaiseDomainEvent(new BookingCreatedEvent(
@@ -106,6 +113,7 @@ public sealed class Booking : BaseEntity
 
     public bool OverlapsWith(DateTimeOffset start, DateTimeOffset end) =>
         Status is not (BookingStatus.Cancelled or BookingStatus.NoShow)
+        && (ExpiresAt is null || ExpiresAt > DateTimeOffset.UtcNow)
         && ScheduledAt < end
         && EndsAt > start;
 }

@@ -21,6 +21,13 @@ internal sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Book
             .HasConversion<string>()
             .HasMaxLength(32);
 
+        builder.Property(b => b.RecurrenceGroupId);
+        builder.Property(b => b.ExpiresAt);
+
+        builder.HasIndex(b => b.RecurrenceGroupId)
+            .HasDatabaseName("ix_bookings_recurrence_group")
+            .HasFilter("recurrence_group_id IS NOT NULL");
+
         builder.HasIndex(b => new { b.ResourceId, b.ScheduledAt })
             .HasDatabaseName("ix_bookings_resource_scheduled");
 
