@@ -21,6 +21,11 @@ internal sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Book
             .HasConversion<string>()
             .HasMaxLength(32);
 
+        builder.Property(b => b.PaymentStatus)
+            .HasConversion<string>()
+            .HasMaxLength(32)
+            .HasDefaultValue(BookingPaymentStatus.NotRequired);
+
         builder.Property(b => b.RecurrenceGroupId);
         builder.Property(b => b.ExpiresAt);
 

@@ -31,6 +31,8 @@ public sealed class Booking : BaseEntity
     public Guid?           RecurrenceGroupId { get; private set; }
     public DateTimeOffset? ExpiresAt         { get; private set; }
 
+    public BookingPaymentStatus PaymentStatus { get; private set; } = BookingPaymentStatus.NotRequired;
+
     public IReadOnlyList<BookingService> Services => _services.AsReadOnly();
 
     public static Booking Create(
@@ -136,6 +138,11 @@ public sealed class Booking : BaseEntity
         Status    = BookingStatus.NoShow;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
+
+    public void MarkPaymentPending()  => PaymentStatus = BookingPaymentStatus.Pending;
+    public void MarkPaymentPaid()     { PaymentStatus = BookingPaymentStatus.Paid;          UpdatedAt = DateTimeOffset.UtcNow; }
+    public void MarkPaymentPartial()  { PaymentStatus = BookingPaymentStatus.PartiallyPaid; UpdatedAt = DateTimeOffset.UtcNow; }
+    public void MarkPaymentRefunded() { PaymentStatus = BookingPaymentStatus.Refunded;      UpdatedAt = DateTimeOffset.UtcNow; }
 
     public bool OverlapsWith(DateTimeOffset start, DateTimeOffset end) =>
         Status is not (BookingStatus.Cancelled or BookingStatus.NoShow)

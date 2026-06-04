@@ -171,6 +171,46 @@ internal sealed class TenantSchemaService(
         CREATE INDEX IF NOT EXISTS ix_booking_services_booking
             ON {s}.booking_services (booking_id);
 
+        -- ── Pagamentos ─────────────────────────────────────────────────────
+        CREATE TABLE IF NOT EXISTS {s}.payments (
+            id               UUID          NOT NULL DEFAULT gen_random_uuid(),
+            booking_id       UUID          NOT NULL,
+            preference_id    VARCHAR(100)  NOT NULL,
+            mp_payment_id    VARCHAR(100),
+            method           VARCHAR(32)   NOT NULL,
+            status           VARCHAR(32)   NOT NULL DEFAULT 'Pending',
+            amount           NUMERIC(10,2) NOT NULL,
+            deposit_amount   NUMERIC(10,2) NOT NULL DEFAULT 0,
+            payment_url      VARCHAR(500),
+            paid_at          TIMESTAMPTZ,
+            expires_at       TIMESTAMPTZ,
+            created_at       TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+            updated_at       TIMESTAMPTZ,
+            created_by       VARCHAR(256),
+            updated_by       VARCHAR(256),
+            is_deleted       BOOLEAN       NOT NULL DEFAULT FALSE,
+            deleted_at       TIMESTAMPTZ,
+            deleted_by       VARCHAR(256),
+            CONSTRAINT pk_payments PRIMARY KEY (id),
+            CONSTRAINT fk_payments_bookings
+                FOREIGN KEY (booking_id) REFERENCES {s}.bookings (id)
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_payments_mp_payment_id
+            ON {s}.payments (mp_payment_id)
+            WHERE mp_payment_id IS NOT NULL;
+
+        CREATE INDEX IF NOT EXISTS ix_payments_booking_id
+            ON {s}.payments (booking_id);
+
+        CREATE INDEX IF NOT EXISTS ix_payments_status_created
+            ON {s}.payments (status, created_at DESC)
+            WHERE is_deleted = FALSE;
+
+        -- ── Coluna de status de pagamento nos agendamentos ─────────────────
+        ALTER TABLE {s}.bookings
+            ADD COLUMN IF NOT EXISTS payment_status VARCHAR(32) NOT NULL DEFAULT 'NotRequired';
+
         -- ── Fila de Espera ─────────────────────────────────────────────────
         CREATE TABLE IF NOT EXISTS {s}.waitlist_entries (
             id             UUID         NOT NULL DEFAULT gen_random_uuid(),
