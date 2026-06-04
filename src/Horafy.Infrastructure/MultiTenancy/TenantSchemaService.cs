@@ -156,6 +156,38 @@ internal sealed class TenantSchemaService(
             ON {s}.bookings (recurrence_group_id)
             WHERE recurrence_group_id IS NOT NULL;
 
+        -- ── Fila de Espera ─────────────────────────────────────────────────
+        CREATE TABLE IF NOT EXISTS {s}.waitlist_entries (
+            id             UUID         NOT NULL DEFAULT gen_random_uuid(),
+            service_id     UUID         NOT NULL,
+            resource_id    UUID         NOT NULL,
+            customer_id    UUID         NOT NULL,
+            customer_name  VARCHAR(150) NOT NULL,
+            customer_email VARCHAR(256) NOT NULL,
+            preferred_date DATE         NOT NULL,
+            status         VARCHAR(32)  NOT NULL DEFAULT 'Waiting',
+            created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+            updated_at     TIMESTAMPTZ,
+            created_by     VARCHAR(256),
+            updated_by     VARCHAR(256),
+            is_deleted     BOOLEAN      NOT NULL DEFAULT FALSE,
+            deleted_at     TIMESTAMPTZ,
+            deleted_by     VARCHAR(256),
+            CONSTRAINT pk_waitlist_entries PRIMARY KEY (id),
+            CONSTRAINT fk_waitlist_entries_services
+                FOREIGN KEY (service_id) REFERENCES {s}.services (id),
+            CONSTRAINT fk_waitlist_entries_resources
+                FOREIGN KEY (resource_id) REFERENCES {s}.resources (id)
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_waitlist_service_resource_date
+            ON {s}.waitlist_entries (service_id, resource_id, preferred_date)
+            WHERE is_deleted = FALSE AND status = 'Waiting';
+
+        CREATE INDEX IF NOT EXISTS ix_waitlist_customer
+            ON {s}.waitlist_entries (customer_id)
+            WHERE is_deleted = FALSE;
+
         -- ── Horários do Tenant ─────────────────────────────────────────────
         CREATE TABLE IF NOT EXISTS {s}.business_hours (
             id          UUID        NOT NULL DEFAULT gen_random_uuid(),
