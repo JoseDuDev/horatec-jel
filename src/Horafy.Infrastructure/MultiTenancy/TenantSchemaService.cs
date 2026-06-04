@@ -28,12 +28,16 @@ internal sealed class TenantSchemaService(
         logger.LogInformation("Schema {Schema} provisionado com sucesso.", schemaName);
     }
 
-    private static string BuildSchemaScript(string schema) => $"""
+    private static string BuildSchemaScript(string schema)
+    {
+        // Identifiers with hyphens require double-quoting in PostgreSQL DDL
+        var s = $"\"{schema}\"";
+        return $"""
         -- ── Schema ────────────────────────────────────────────────────────
-        CREATE SCHEMA IF NOT EXISTS {schema};
+        CREATE SCHEMA IF NOT EXISTS {s};
 
         -- ── Serviços ───────────────────────────────────────────────────────
-        CREATE TABLE IF NOT EXISTS {schema}.services (
+        CREATE TABLE IF NOT EXISTS {s}.services (
             id                UUID          NOT NULL DEFAULT gen_random_uuid(),
             name              VARCHAR(200)  NOT NULL,
             description       TEXT,
@@ -52,10 +56,10 @@ internal sealed class TenantSchemaService(
         );
 
         CREATE INDEX IF NOT EXISTS ix_services_name
-            ON {schema}.services (name);
+            ON {s}.services (name);
 
         -- ── Recursos ──────────────────────────────────────────────────────
-        CREATE TABLE IF NOT EXISTS {schema}.resources (
+        CREATE TABLE IF NOT EXISTS {s}.resources (
             id          UUID         NOT NULL DEFAULT gen_random_uuid(),
             name        VARCHAR(150) NOT NULL,
             type        VARCHAR(32)  NOT NULL,
@@ -77,13 +81,13 @@ internal sealed class TenantSchemaService(
         );
 
         CREATE INDEX IF NOT EXISTS ix_resources_type
-            ON {schema}.resources (type);
+            ON {s}.resources (type);
 
         CREATE INDEX IF NOT EXISTS ix_resources_is_active
-            ON {schema}.resources (is_active);
+            ON {s}.resources (is_active);
 
         -- ── Vínculo Recurso × Serviço ─────────────────────────────────────
-        CREATE TABLE IF NOT EXISTS {schema}.resource_services (
+        CREATE TABLE IF NOT EXISTS {s}.resource_services (
             id          UUID        NOT NULL DEFAULT gen_random_uuid(),
             resource_id UUID        NOT NULL,
             service_id  UUID        NOT NULL,
@@ -96,17 +100,17 @@ internal sealed class TenantSchemaService(
             deleted_by  VARCHAR(256),
             CONSTRAINT pk_resource_services PRIMARY KEY (id),
             CONSTRAINT fk_resource_services_resources
-                FOREIGN KEY (resource_id) REFERENCES {schema}.resources (id),
+                FOREIGN KEY (resource_id) REFERENCES {s}.resources (id),
             CONSTRAINT fk_resource_services_services
-                FOREIGN KEY (service_id) REFERENCES {schema}.services (id)
+                FOREIGN KEY (service_id) REFERENCES {s}.services (id)
         );
 
         CREATE UNIQUE INDEX IF NOT EXISTS ix_resource_services_resource_service
-            ON {schema}.resource_services (resource_id, service_id)
+            ON {s}.resource_services (resource_id, service_id)
             WHERE is_deleted = FALSE;
 
         -- ── Agendamentos ───────────────────────────────────────────────────
-        CREATE TABLE IF NOT EXISTS {schema}.bookings (
+        CREATE TABLE IF NOT EXISTS {s}.bookings (
             id                   UUID         NOT NULL DEFAULT gen_random_uuid(),
             service_id           UUID         NOT NULL,
             resource_id          UUID         NOT NULL,
@@ -131,23 +135,23 @@ internal sealed class TenantSchemaService(
             deleted_by           VARCHAR(256),
             CONSTRAINT pk_bookings PRIMARY KEY (id),
             CONSTRAINT fk_bookings_services
-                FOREIGN KEY (service_id) REFERENCES {schema}.services (id),
+                FOREIGN KEY (service_id) REFERENCES {s}.services (id),
             CONSTRAINT fk_bookings_resources
-                FOREIGN KEY (resource_id) REFERENCES {schema}.resources (id)
+                FOREIGN KEY (resource_id) REFERENCES {s}.resources (id)
         );
 
         CREATE INDEX IF NOT EXISTS ix_bookings_resource_scheduled
-            ON {schema}.bookings (resource_id, scheduled_at)
+            ON {s}.bookings (resource_id, scheduled_at)
             WHERE is_deleted = FALSE;
 
         CREATE INDEX IF NOT EXISTS ix_bookings_customer_scheduled
-            ON {schema}.bookings (customer_id, scheduled_at DESC);
+            ON {s}.bookings (customer_id, scheduled_at DESC);
 
         CREATE INDEX IF NOT EXISTS ix_bookings_status
-            ON {schema}.bookings (status);
+            ON {s}.bookings (status);
 
         -- ── Horários do Tenant ─────────────────────────────────────────────
-        CREATE TABLE IF NOT EXISTS {schema}.business_hours (
+        CREATE TABLE IF NOT EXISTS {s}.business_hours (
             id          UUID        NOT NULL DEFAULT gen_random_uuid(),
             day_of_week INT         NOT NULL,
             open_time   TIME        NOT NULL,
@@ -164,11 +168,11 @@ internal sealed class TenantSchemaService(
         );
 
         CREATE UNIQUE INDEX IF NOT EXISTS ix_business_hours_day
-            ON {schema}.business_hours (day_of_week)
+            ON {s}.business_hours (day_of_week)
             WHERE is_deleted = FALSE;
 
         -- ── Regras de Disponibilidade ──────────────────────────────────────
-        CREATE TABLE IF NOT EXISTS {schema}.availability_rules (
+        CREATE TABLE IF NOT EXISTS {s}.availability_rules (
             id                    UUID        NOT NULL DEFAULT gen_random_uuid(),
             resource_id           UUID        NOT NULL,
             day_of_week           INT         NOT NULL,
@@ -185,15 +189,15 @@ internal sealed class TenantSchemaService(
             deleted_by            VARCHAR(256),
             CONSTRAINT pk_availability_rules PRIMARY KEY (id),
             CONSTRAINT fk_availability_rules_resources
-                FOREIGN KEY (resource_id) REFERENCES {schema}.resources (id)
+                FOREIGN KEY (resource_id) REFERENCES {s}.resources (id)
         );
 
         CREATE UNIQUE INDEX IF NOT EXISTS ix_availability_rules_resource_day
-            ON {schema}.availability_rules (resource_id, day_of_week)
+            ON {s}.availability_rules (resource_id, day_of_week)
             WHERE is_deleted = FALSE;
 
         -- ── Exceções de Disponibilidade ────────────────────────────────────
-        CREATE TABLE IF NOT EXISTS {schema}.availability_exceptions (
+        CREATE TABLE IF NOT EXISTS {s}.availability_exceptions (
             id           UUID        NOT NULL DEFAULT gen_random_uuid(),
             resource_id  UUID        NOT NULL,
             date         DATE        NOT NULL,
@@ -210,11 +214,12 @@ internal sealed class TenantSchemaService(
             deleted_by   VARCHAR(256),
             CONSTRAINT pk_availability_exceptions PRIMARY KEY (id),
             CONSTRAINT fk_availability_exceptions_resources
-                FOREIGN KEY (resource_id) REFERENCES {schema}.resources (id)
+                FOREIGN KEY (resource_id) REFERENCES {s}.resources (id)
         );
 
         CREATE UNIQUE INDEX IF NOT EXISTS ix_availability_exceptions_resource_date
-            ON {schema}.availability_exceptions (resource_id, date)
+            ON {s}.availability_exceptions (resource_id, date)
             WHERE is_deleted = FALSE;
         """;
+    }
 }
