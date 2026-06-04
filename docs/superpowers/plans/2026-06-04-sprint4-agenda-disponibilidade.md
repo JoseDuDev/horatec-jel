@@ -20,6 +20,7 @@
 - `src/Horafy.Infrastructure/Repositories/ProfessionalRepository.cs`
 - `src/Horafy.API/Controllers/V1/ProfessionalsController.cs`
 
+
 ### Criar
 | Arquivo | Responsabilidade |
 |---|---|
