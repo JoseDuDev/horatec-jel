@@ -14,14 +14,17 @@ namespace Horafy.Application.Tests.Bookings;
 
 public sealed class CancelBookingCommandHandlerTests
 {
-    private readonly Mock<IBookingRepository>    _bookingRepo   = new();
-    private readonly Mock<ITenantRepository>     _tenantRepo    = new();
-    private readonly Mock<ICurrentUserService>   _currentUser   = new();
-    private readonly Mock<ICurrentTenantService> _currentTenant = new();
-    private readonly Mock<ITenantUnitOfWork>     _unitOfWork    = new();
+    private readonly Mock<IBookingRepository>    _bookingRepo    = new();
+    private readonly Mock<ITenantRepository>     _tenantRepo     = new();
+    private readonly Mock<ICurrentUserService>   _currentUser    = new();
+    private readonly Mock<ICurrentTenantService> _currentTenant  = new();
+    private readonly Mock<ITenantUnitOfWork>     _unitOfWork     = new();
+    private readonly Mock<IPaymentRepository>    _paymentRepo    = new();
+    private readonly Mock<IPaymentGateway>       _paymentGateway = new();
 
     private CancelBookingCommandHandler MakeHandler() =>
-        new(_bookingRepo.Object, _tenantRepo.Object, _currentUser.Object, _currentTenant.Object, _unitOfWork.Object);
+        new(_bookingRepo.Object, _tenantRepo.Object, _currentUser.Object, _currentTenant.Object, _unitOfWork.Object,
+            _paymentRepo.Object, _paymentGateway.Object);
 
     private static Booking MakePendingBooking(Guid customerId) =>
         Booking.Create(

@@ -13,7 +13,9 @@ internal sealed class CancelBookingCommandHandler(
     ITenantRepository tenantRepository,
     ICurrentUserService currentUser,
     ICurrentTenantService currentTenant,
-    ITenantUnitOfWork unitOfWork) : IRequestHandler<CancelBookingCommand, Result>
+    ITenantUnitOfWork unitOfWork,
+    IPaymentRepository paymentRepository,
+    IPaymentGateway paymentGateway) : IRequestHandler<CancelBookingCommand, Result>
 {
     public async Task<Result> Handle(CancelBookingCommand request, CancellationToken cancellationToken)
     {
@@ -37,6 +39,29 @@ internal sealed class CancelBookingCommandHandler(
 
                 if (!tenant.CancellationPolicy.CanCancelAt(booking.ScheduledAt, DateTimeOffset.UtcNow))
                     return Result.Failure(BookingErrors.CancellationWindowClosed);
+            }
+        }
+
+        // Cancellation fee if outside allowed period and there's an approved payment
+        if (currentTenant.TenantId.HasValue)
+        {
+            var tenantForFee = await tenantRepository.GetByIdAsync(currentTenant.TenantId.Value, cancellationToken);
+            if (tenantForFee?.CancellationPolicy.CancellationFeePercent > 0
+                && !tenantForFee.CancellationPolicy.CanCancelAt(booking.ScheduledAt, DateTimeOffset.UtcNow))
+            {
+                var payment = await paymentRepository.GetByBookingIdAsync(booking.Id, cancellationToken);
+                if (payment?.Status == Domain.Entities.Payments.PaymentStatus.Approved && payment.MpPaymentId is not null)
+                {
+                    var feeAmount  = Math.Round(payment.Amount * tenantForFee.CancellationPolicy.CancellationFeePercent / 100, 2);
+                    var netRefund  = payment.Amount - feeAmount;
+                    var refundResult = await paymentGateway.RefundAsync(payment.MpPaymentId, netRefund, cancellationToken);
+                    if (refundResult.Success)
+                    {
+                        payment.Refund();
+                        paymentRepository.Update(payment);
+                        booking.MarkPaymentRefunded();
+                    }
+                }
             }
         }
 
