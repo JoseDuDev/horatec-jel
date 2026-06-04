@@ -1,10 +1,14 @@
 using Horafy.Application;
 using Horafy.Infrastructure;
+using Horafy.Infrastructure.Auth;
 using Horafy.Infrastructure.MultiTenancy;
 using Horafy.API.Middleware;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Asp.Versioning;
 using Scalar.AspNetCore;
+using System.Text;
 
 // ── Serilog bootstrap (antes de qualquer coisa para capturar erros de startup)
 Log.Logger = new LoggerConfiguration()
@@ -94,6 +98,29 @@ try
                 .AllowCredentials();
         });
     });
+
+    // ── JWT Authentication
+    var jwtOpts = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
+        ?? throw new InvalidOperationException("Configuração Jwt não encontrada.");
+
+    builder.Services
+        .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(opts =>
+        {
+            opts.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey        = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOpts.Secret)),
+                ValidateIssuer          = true,
+                ValidIssuer             = jwtOpts.Issuer,
+                ValidateAudience        = true,
+                ValidAudience           = jwtOpts.Audience,
+                ValidateLifetime        = true,
+                ClockSkew               = TimeSpan.Zero
+            };
+        });
+
+    builder.Services.AddAuthorization();
 
     // ── Health Checks
     builder.Services.AddHealthChecks()

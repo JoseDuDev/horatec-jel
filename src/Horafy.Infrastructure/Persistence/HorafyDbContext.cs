@@ -1,6 +1,7 @@
 using Horafy.Application.Interfaces;
 using Horafy.Domain.Entities.Base;
 using Horafy.Domain.Entities.Tenants;
+using Horafy.Domain.Entities.Users;
 using Horafy.Infrastructure.Persistence.Interceptors;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,7 @@ public sealed class HorafyDbContext : DbContext
 
     // Tabelas globais (schema public)
     public DbSet<Tenant> Tenants => Set<Tenant>();
+    public DbSet<User>   Users   => Set<User>();
 
     public HorafyDbContext(
         DbContextOptions<HorafyDbContext> options,

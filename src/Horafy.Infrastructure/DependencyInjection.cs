@@ -1,10 +1,12 @@
 using Horafy.Application.Interfaces;
 using Horafy.Domain.Interfaces;
 using Horafy.Domain.Interfaces.Repositories;
+using Horafy.Infrastructure.Auth;
 using Horafy.Infrastructure.MultiTenancy;
 using Horafy.Infrastructure.Persistence;
 using Horafy.Infrastructure.Persistence.Interceptors;
 using Horafy.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -57,7 +59,25 @@ public static class DependencyInjection
 
         // Repositórios
         services.AddScoped<ITenantRepository, TenantRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // Auth — JWT, OAuth, hashing
+        services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+        services.AddScoped<ITokenService, JwtTokenService>();
+        services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
+        services.AddScoped<IGoogleOAuthService, GoogleOAuthService>();
+        services.AddScoped<IAppleOAuthService, AppleOAuthService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+        // IHttpContextAccessor (necessário para CurrentUserService)
+        services.AddHttpContextAccessor();
+
+        // HttpClient para buscar JWKS da Apple
+        services.AddHttpClient("apple-jwks", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
 
         return services;
     }
