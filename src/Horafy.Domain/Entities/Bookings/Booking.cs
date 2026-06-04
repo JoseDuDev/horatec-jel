@@ -3,19 +3,14 @@ using Horafy.Domain.Events.Bookings;
 
 namespace Horafy.Domain.Entities.Bookings;
 
-/// <summary>
-/// Agendamento de um serviço com um profissional por um cliente.
-/// Reside no schema tenant_{slug}.
-/// </summary>
 public sealed class Booking : BaseEntity
 {
-    private Booking() { } // EF Core
+    private Booking() { }
 
-    public Guid ServiceId      { get; private set; }
-    public Guid ProfessionalId { get; private set; }
-    public Guid CustomerId     { get; private set; }
+    public Guid ServiceId  { get; private set; }
+    public Guid ResourceId { get; private set; }
+    public Guid CustomerId { get; private set; }
 
-    /// <summary>Dados denormalizados do cliente para exibição sem join.</summary>
     public string CustomerName  { get; private set; } = default!;
     public string CustomerEmail { get; private set; } = default!;
 
@@ -32,10 +27,9 @@ public sealed class Booking : BaseEntity
     public DateTimeOffset? CancelledAt  { get; private set; }
     public DateTimeOffset? CompletedAt  { get; private set; }
 
-    // ── Factory ──────────────────────────────────────────────────────
     public static Booking Create(
         Guid serviceId,
-        Guid professionalId,
+        Guid resourceId,
         Guid customerId,
         string customerName,
         string customerEmail,
@@ -52,7 +46,7 @@ public sealed class Booking : BaseEntity
         var booking = new Booking
         {
             ServiceId       = serviceId,
-            ProfessionalId  = professionalId,
+            ResourceId      = resourceId,
             CustomerId      = customerId,
             CustomerName    = customerName.Trim(),
             CustomerEmail   = customerEmail.ToLowerInvariant().Trim(),
@@ -63,12 +57,11 @@ public sealed class Booking : BaseEntity
         };
 
         booking.RaiseDomainEvent(new BookingCreatedEvent(
-            booking.Id, serviceId, professionalId, customerId, scheduledAt));
+            booking.Id, serviceId, resourceId, customerId, scheduledAt));
 
         return booking;
     }
 
-    // ── Comportamentos ───────────────────────────────────────────────
     public void Confirm()
     {
         if (Status != BookingStatus.Pending)
@@ -111,7 +104,6 @@ public sealed class Booking : BaseEntity
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
-    /// <summary>Retorna true se este agendamento sobrepõe o intervalo [start, end).</summary>
     public bool OverlapsWith(DateTimeOffset start, DateTimeOffset end) =>
         Status is not (BookingStatus.Cancelled or BookingStatus.NoShow)
         && ScheduledAt < end

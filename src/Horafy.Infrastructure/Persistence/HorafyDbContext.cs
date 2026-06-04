@@ -42,8 +42,10 @@ public sealed class HorafyDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Aplica todas as configurações do assembly automaticamente
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(HorafyDbContext).Assembly);
+        // Aplica apenas configurações do schema público (exclui TenantConfigurations)
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            typeof(HorafyDbContext).Assembly,
+            t => t.Namespace?.Contains("TenantConfigurations") is not true);
 
         // Global Query Filters: soft-delete — nenhuma entidade deletada retorna em queries
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())

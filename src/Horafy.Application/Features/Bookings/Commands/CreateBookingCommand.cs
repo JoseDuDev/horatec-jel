@@ -9,7 +9,7 @@ namespace Horafy.Application.Features.Bookings.Commands;
 
 public sealed record CreateBookingCommand(
     Guid ServiceId,
-    Guid ProfessionalId,
+    Guid ResourceId,
     DateTimeOffset ScheduledAt,
     string? Notes) : IRequest<Result<Guid>>;
 
@@ -18,7 +18,7 @@ public sealed class CreateBookingCommandValidator : AbstractValidator<CreateBook
     public CreateBookingCommandValidator()
     {
         RuleFor(x => x.ServiceId).NotEmpty();
-        RuleFor(x => x.ProfessionalId).NotEmpty();
+        RuleFor(x => x.ResourceId).NotEmpty();
         RuleFor(x => x.ScheduledAt)
             .GreaterThan(DateTimeOffset.UtcNow)
             .WithMessage("O horário deve ser futuro.");
@@ -27,7 +27,7 @@ public sealed class CreateBookingCommandValidator : AbstractValidator<CreateBook
 
 internal sealed class CreateBookingCommandHandler(
     IServiceRepository serviceRepository,
-    IProfessionalRepository professionalRepository,
+    IResourceRepository resourceRepository,
     IBookingRepository bookingRepository,
     ICurrentUserService currentUser,
     ITenantUnitOfWork unitOfWork) : IRequestHandler<CreateBookingCommand, Result<Guid>>
@@ -38,29 +38,26 @@ internal sealed class CreateBookingCommandHandler(
         if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
             return Result.Failure<Guid>(Error.Unauthorized);
 
-        // Valida serviço
         var service = await serviceRepository.GetByIdAsync(request.ServiceId, cancellationToken);
         if (service is null) return Result.Failure<Guid>(BookingErrors.ServiceNotFound);
 
-        // Valida profissional
-        var professional = await professionalRepository.GetByIdAsync(request.ProfessionalId, cancellationToken);
-        if (professional is null) return Result.Failure<Guid>(BookingErrors.ProfessionalNotFound);
+        var resource = await resourceRepository.GetByIdAsync(request.ResourceId, cancellationToken);
+        if (resource is null) return Result.Failure<Guid>(BookingErrors.ResourceNotFound);
 
-        // Verifica conflito de horário
         var endsAt = request.ScheduledAt.AddMinutes(service.DurationMinutes);
         var hasConflict = await bookingRepository.HasConflictAsync(
-            request.ProfessionalId, request.ScheduledAt, endsAt,
+            request.ResourceId, request.ScheduledAt, endsAt,
             cancellationToken: cancellationToken);
 
         if (hasConflict) return Result.Failure<Guid>(BookingErrors.Conflict);
 
         var booking = Booking.Create(
             request.ServiceId,
-            request.ProfessionalId,
-            customerId:    currentUser.UserId.Value,
-            customerName:  currentUser.Email ?? "Cliente",
-            customerEmail: currentUser.Email ?? string.Empty,
-            scheduledAt:   request.ScheduledAt,
+            request.ResourceId,
+            customerId:      currentUser.UserId.Value,
+            customerName:    currentUser.Email ?? "Cliente",
+            customerEmail:   currentUser.Email ?? string.Empty,
+            scheduledAt:     request.ScheduledAt,
             durationMinutes: service.DurationMinutes,
             notes: request.Notes);
 

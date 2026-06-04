@@ -17,7 +17,7 @@ internal sealed class GetBookingByIdQueryHandler(
         if (b is null) return Result.Failure<BookingResult>(BookingErrors.NotFound);
 
         return Result.Success(new BookingResult(
-            b.Id, b.ServiceId, b.ProfessionalId, b.CustomerId,
+            b.Id, b.ServiceId, b.ResourceId, b.CustomerId,
             b.CustomerName, b.CustomerEmail, b.ScheduledAt, b.EndsAt,
             b.DurationMinutes, b.Notes, b.Status, b.CancellationReason));
     }
