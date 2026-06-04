@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 
 namespace Horafy.Infrastructure;
 
@@ -53,14 +54,43 @@ public static class DependencyInjection
         // Cache em memória para resolução de tenant
         services.AddMemoryCache();
 
-        // Multi-tenancy
+        // Multi-tenancy — TenantDbContext com search_path dinâmico por tenant
         services.AddScoped<ICurrentTenantService, TenantService>();
         services.AddScoped<TenantMigrationService>();
+        services.AddScoped<ITenantSchemaService, TenantSchemaService>();
 
-        // Repositórios
+        // TenantDbContext: connection string com Search Path = tenant_{slug},public
+        services.AddScoped<TenantDbContext>(sp =>
+        {
+            var tenantSvc   = sp.GetRequiredService<ICurrentTenantService>();
+            var searchPath  = tenantSvc.SchemaName is { } s ? $"{s},public" : "public";
+            var tenantConn  = new Npgsql.NpgsqlConnectionStringBuilder(connectionString)
+            {
+                SearchPath = searchPath
+            }.ConnectionString;
+
+            var options = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<TenantDbContext>()
+                .UseNpgsql(tenantConn, npgsql =>
+                {
+                    npgsql.SetPostgresVersion(16, 0);
+                    npgsql.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), null);
+                })
+                .UseSnakeCaseNamingConvention()
+                .Options;
+
+            return new TenantDbContext(options, sp.GetService<MediatR.IPublisher>());
+        });
+
+        // Repositórios globais (public schema)
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // Repositórios de tenant (tenant_{slug} schema)
+        services.AddScoped<IServiceRepository, ServiceRepository>();
+        services.AddScoped<IProfessionalRepository, ProfessionalRepository>();
+        services.AddScoped<IBookingRepository, BookingRepository>();
+        services.AddScoped<ITenantUnitOfWork, TenantUnitOfWork>();
 
         // Auth — JWT, OAuth, hashing
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));

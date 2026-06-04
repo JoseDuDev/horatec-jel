@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Horafy.Infrastructure.Repositories;
 
 internal sealed class UserRepository(HorafyDbContext context)
-    : BaseRepository<User>(context), IUserRepository
+    : BaseRepository<User, HorafyDbContext>(context), IUserRepository
 {
     public async Task<User?> GetByEmailAsync(
         string email,

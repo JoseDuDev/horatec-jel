@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Horafy.Infrastructure.Repositories;
 
 public sealed class TenantRepository(HorafyDbContext context)
-    : BaseRepository<Tenant>(context), ITenantRepository
+    : BaseRepository<Tenant, HorafyDbContext>(context), ITenantRepository
 {
     public async Task<Tenant?> GetBySlugAsync(
         string slug,
@@ -27,4 +27,13 @@ public sealed class TenantRepository(HorafyDbContext context)
         string slug,
         CancellationToken cancellationToken = default) =>
         await DbSet.AnyAsync(t => t.Slug == slug.ToLowerInvariant(), cancellationToken);
+
+    public async Task<bool> IsDomainTakenAsync(
+        string domain,
+        Guid? excludeTenantId = null,
+        CancellationToken cancellationToken = default) =>
+        await DbSet.AnyAsync(t =>
+            t.CustomDomain == domain.ToLowerInvariant()
+            && (excludeTenantId == null || t.Id != excludeTenantId),
+            cancellationToken);
 }

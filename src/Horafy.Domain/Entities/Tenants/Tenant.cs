@@ -76,10 +76,42 @@ public sealed class Tenant : BaseEntity
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>Atualiza dados cadastrais do estabelecimento.</summary>
+    public void UpdateInfo(
+        string name,
+        string? email,
+        string? phone,
+        string? address,
+        string? city,
+        string? state,
+        string? zipCode,
+        string? timeZoneId = null,
+        string? locale = null)
+    {
+        Name      = name.Trim();
+        Email     = email?.Trim();
+        Phone     = phone?.Trim();
+        Address   = address?.Trim();
+        City      = city?.Trim();
+        State     = state?.Trim();
+        ZipCode   = zipCode?.Trim();
+
+        if (!string.IsNullOrWhiteSpace(timeZoneId)) TimeZoneId = timeZoneId;
+        if (!string.IsNullOrWhiteSpace(locale))     Locale     = locale;
+
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public void SetCustomDomain(string domain)
     {
         CustomDomain = domain.ToLowerInvariant().Trim();
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt    = DateTimeOffset.UtcNow;
+    }
+
+    public void RemoveCustomDomain()
+    {
+        CustomDomain = null;
+        UpdatedAt    = DateTimeOffset.UtcNow;
     }
 
     public void Activate()
