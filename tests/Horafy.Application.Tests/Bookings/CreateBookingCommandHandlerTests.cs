@@ -37,9 +37,10 @@ public sealed class CreateBookingCommandHandlerTests
         var scheduled = DateTimeOffset.UtcNow.AddHours(2);
 
         _resourceRepo.Setup(r => r.GetByIdAsync(resource.Id, default)).ReturnsAsync(resource);
-        _serviceRepo.Setup(r => r.GetByIdAsync(service.Id, default)).ReturnsAsync(service);
-        _bookingRepo.Setup(r => r.HasConflictAsync(resource.Id, scheduled,
-            scheduled.AddMinutes(60), null, default)).ReturnsAsync(false);
+        _serviceRepo.Setup(r => r.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), default))
+                    .ReturnsAsync(new List<Service> { service });
+        _bookingRepo.Setup(r => r.HasConflictAsync(
+            resource.Id, scheduled, scheduled.AddMinutes(60), It.IsAny<Guid?>(), default)).ReturnsAsync(false);
         _currentUser.SetupGet(u => u.IsAuthenticated).Returns(true);
         _currentUser.SetupGet(u => u.UserId).Returns(userId);
         _currentUser.SetupGet(u => u.Email).Returns("cliente@test.com");
@@ -56,8 +57,8 @@ public sealed class CreateBookingCommandHandlerTests
     {
         var resource = MakeResource();
         _resourceRepo.Setup(r => r.GetByIdAsync(resource.Id, default)).ReturnsAsync(resource);
-        _serviceRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default))
-                    .ReturnsAsync((Service?)null);
+        _serviceRepo.Setup(r => r.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), default))
+                    .ReturnsAsync(new List<Service>());
         _currentUser.SetupGet(u => u.IsAuthenticated).Returns(true);
         _currentUser.SetupGet(u => u.UserId).Returns(Guid.NewGuid());
 
@@ -94,9 +95,10 @@ public sealed class CreateBookingCommandHandlerTests
         var scheduled = DateTimeOffset.UtcNow.AddHours(2);
 
         _resourceRepo.Setup(r => r.GetByIdAsync(resource.Id, default)).ReturnsAsync(resource);
-        _serviceRepo.Setup(r => r.GetByIdAsync(service.Id, default)).ReturnsAsync(service);
+        _serviceRepo.Setup(r => r.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), default))
+                    .ReturnsAsync(new List<Service> { service });
         _bookingRepo.Setup(r => r.HasConflictAsync(
-            resource.Id, scheduled, scheduled.AddMinutes(60), null, default)).ReturnsAsync(true);
+            resource.Id, scheduled, scheduled.AddMinutes(60), It.IsAny<Guid?>(), default)).ReturnsAsync(true);
         _currentUser.SetupGet(u => u.IsAuthenticated).Returns(true);
         _currentUser.SetupGet(u => u.UserId).Returns(Guid.NewGuid());
 
@@ -119,5 +121,30 @@ public sealed class CreateBookingCommandHandlerTests
 
         result.IsFailure.Should().BeTrue();
         result.Error.Type.Should().Be(Horafy.Shared.ErrorType.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Handle_MultipleServices_UsesTotalDurationForConflictCheck()
+    {
+        var service1  = MakeService();
+        var service2  = Service.Create("Escova", 30, 30m);
+        var resource  = MakeResource();
+        var userId    = Guid.NewGuid();
+        var scheduled = DateTimeOffset.UtcNow.AddHours(2);
+        var expectedEnd = scheduled.AddMinutes(90); // 60 + 30
+
+        _resourceRepo.Setup(r => r.GetByIdAsync(resource.Id, default)).ReturnsAsync(resource);
+        _serviceRepo.Setup(r => r.GetByIdsAsync(It.IsAny<IEnumerable<Guid>>(), default))
+                    .ReturnsAsync(new List<Service> { service1, service2 });
+        _bookingRepo.Setup(r => r.HasConflictAsync(
+            resource.Id, scheduled, expectedEnd, It.IsAny<Guid?>(), default)).ReturnsAsync(false);
+        _currentUser.SetupGet(u => u.IsAuthenticated).Returns(true);
+        _currentUser.SetupGet(u => u.UserId).Returns(userId);
+        _currentUser.SetupGet(u => u.Email).Returns("cliente@test.com");
+
+        var result = await CreateHandler().Handle(
+            new CreateBookingCommand(new[] { service1.Id, service2.Id }, resource.Id, scheduled, null), default);
+
+        result.IsSuccess.Should().BeTrue();
     }
 }

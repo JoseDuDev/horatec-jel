@@ -41,12 +41,14 @@ internal sealed class CreateBookingCommandHandler(
         var resource = await resourceRepository.GetByIdAsync(request.ResourceId, cancellationToken);
         if (resource is null) return Result.Failure<Guid>(BookingErrors.ResourceNotFound);
 
-        var services = new List<(Guid ServiceId, string ServiceName, int DurationMinutes)>();
+        var fetchedServices = await serviceRepository.GetByIdsAsync(request.ServiceIds, cancellationToken);
+        var serviceMap = fetchedServices.ToDictionary(s => s.Id);
 
+        var services = new List<(Guid ServiceId, string ServiceName, int DurationMinutes)>();
         foreach (var serviceId in request.ServiceIds)
         {
-            var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
-            if (service is null) return Result.Failure<Guid>(BookingErrors.ServiceNotFound);
+            if (!serviceMap.TryGetValue(serviceId, out var service))
+                return Result.Failure<Guid>(BookingErrors.ServiceNotFound);
             services.Add((service.Id, service.Name, service.DurationMinutes));
         }
 

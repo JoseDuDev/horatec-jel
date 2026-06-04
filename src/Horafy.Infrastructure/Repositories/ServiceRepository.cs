@@ -20,4 +20,14 @@ internal sealed class ServiceRepository(TenantDbContext context)
     public async Task<bool> ExistsByNameAsync(
         string name, CancellationToken cancellationToken = default) =>
         await DbSet.AnyAsync(s => s.Name == name.Trim(), cancellationToken);
+
+    public async Task<IReadOnlyList<Service>> GetByIdsAsync(
+        IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        var idList = ids.ToList();
+        return await DbSet
+            .AsNoTracking()
+            .Where(s => idList.Contains(s.Id))
+            .ToListAsync(cancellationToken);
+    }
 }
