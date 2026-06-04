@@ -81,4 +81,23 @@ public sealed class PaymentAggregateTests
         var evt = payment.DomainEvents.OfType<Horafy.Domain.Events.Payments.PaymentConfirmedEvent>().Single();
         evt.IsDeposit.Should().BeFalse();
     }
+
+    [Fact]
+    public void Reject_AlreadyRejected_ThrowsInvalidOperation()
+    {
+        var payment = MakePending();
+        payment.Reject("mp_1");
+        var act = () => payment.Reject("mp_2");
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void Refund_RaisesPaymentRefundedEvent()
+    {
+        var payment = MakePending();
+        payment.Approve("mp_1");
+        payment.Refund();
+        payment.DomainEvents.OfType<Horafy.Domain.Events.Payments.PaymentRefundedEvent>()
+            .Should().ContainSingle();
+    }
 }

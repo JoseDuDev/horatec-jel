@@ -64,5 +64,6 @@ public sealed class Payment : BaseEntity
             throw new InvalidOperationException("Apenas pagamentos aprovados podem ser estornados.");
         Status    = PaymentStatus.Refunded;
         UpdatedAt = DateTimeOffset.UtcNow;
+        RaiseDomainEvent(new PaymentRefundedEvent(Id, BookingId));
     }
 }
