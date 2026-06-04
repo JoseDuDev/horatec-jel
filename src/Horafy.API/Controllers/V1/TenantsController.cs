@@ -22,8 +22,7 @@ public sealed class TenantsController(ISender sender) : ApiControllerBase(sender
     // ── Plataforma (sem tenant context) ──────────────────────────────
 
     /// <summary>Onboarding: cria um novo estabelecimento e retorna JWT do proprietário.</summary>
-    [HttpPost]
-    [Route("api/v{version:apiVersion}/platform/tenants")]
+    [HttpPost("/api/v{version:apiVersion}/platform/tenants")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(CreateTenantResult), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -42,8 +41,7 @@ public sealed class TenantsController(ISender sender) : ApiControllerBase(sender
     }
 
     /// <summary>Retorna dados públicos de um tenant pelo slug (landing page).</summary>
-    [HttpGet("{slug}")]
-    [Route("api/v{version:apiVersion}/platform/tenants/{slug}")]
+    [HttpGet("/api/v{version:apiVersion}/platform/tenants/{slug}")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(TenantResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -122,7 +120,7 @@ public sealed class TenantsController(ISender sender) : ApiControllerBase(sender
     // ── Plataforma — ações administrativas ───────────────────────────
 
     /// <summary>Suspende um tenant (PlatformAdmin only).</summary>
-    [HttpPost("api/v{version:apiVersion}/platform/tenants/{id:guid}/suspend")]
+    [HttpPost("/api/v{version:apiVersion}/platform/tenants/{id:guid}/suspend")]
     [Authorize(Roles = "PlatformAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Suspend(
@@ -136,7 +134,7 @@ public sealed class TenantsController(ISender sender) : ApiControllerBase(sender
     }
 
     /// <summary>Reativa um tenant suspenso (PlatformAdmin only).</summary>
-    [HttpPost("api/v{version:apiVersion}/platform/tenants/{id:guid}/activate")]
+    [HttpPost("/api/v{version:apiVersion}/platform/tenants/{id:guid}/activate")]
     [Authorize(Roles = "PlatformAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Activate(
