@@ -2,6 +2,7 @@ using Horafy.Application.Interfaces;
 using Horafy.Domain.Interfaces;
 using Horafy.Domain.Interfaces.Repositories;
 using Horafy.Infrastructure.Auth;
+using Horafy.Infrastructure.Gateways;
 using Horafy.Infrastructure.MultiTenancy;
 using Horafy.Infrastructure.Persistence;
 using Horafy.Infrastructure.Persistence.Interceptors;
@@ -109,6 +110,18 @@ public static class DependencyInjection
         services.AddHttpClient("apple-jwks", client =>
         {
             client.Timeout = TimeSpan.FromSeconds(10);
+        });
+
+        services.Configure<MercadoPagoOptions>(configuration.GetSection(MercadoPagoOptions.SectionName));
+        services.AddHttpClient<IPaymentGateway, MercadoPagoPaymentGateway>(client =>
+        {
+            client.BaseAddress = new Uri("https://api.mercadopago.com");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+        })
+        .AddHttpMessageHandler(sp =>
+        {
+            var token = configuration["MercadoPago:AccessToken"] ?? string.Empty;
+            return new BearerTokenHandler(token);
         });
 
         return services;
