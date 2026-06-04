@@ -69,6 +69,26 @@ public sealed class BookingsController(ISender sender) : ApiControllerBase(sende
             new CancelBookingCommand(id, request.Reason), cancellationToken);
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
+
+    [HttpPost("{id:guid}/complete")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,TenantStaff,PlatformAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Complete(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(new CompleteBookingCommand(id), cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
+
+    [HttpPost("{id:guid}/no-show")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,TenantStaff,PlatformAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> NoShow(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(new NoShowBookingCommand(id), cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
 }
 
 public sealed record CreateBookingRequest(
