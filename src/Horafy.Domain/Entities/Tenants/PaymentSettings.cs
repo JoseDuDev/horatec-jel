@@ -19,6 +19,7 @@ public sealed class PaymentSettings
             throw new ArgumentException("Percentual deve estar entre 0 e 100.", nameof(value));
         if (mode == DepositMode.FixedAmount && value < 0)
             throw new ArgumentException("Valor fixo não pode ser negativo.", nameof(value));
+        if (mode == DepositMode.None) value = 0m;
         return new() { RequiresPayment = requiresPayment, DepositMode = mode, DepositValue = value };
     }
 

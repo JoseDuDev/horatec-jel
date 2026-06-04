@@ -41,4 +41,11 @@ public sealed class PaymentSettingsTests
         var act = () => PaymentSettings.Create(true, DepositMode.Percentage, 150m);
         act.Should().Throw<ArgumentException>();
     }
+
+    [Fact]
+    public void Create_NegativeFixedAmount_ThrowsArgumentException()
+    {
+        var act = () => PaymentSettings.Create(true, DepositMode.FixedAmount, -1m);
+        act.Should().Throw<ArgumentException>();
+    }
 }
