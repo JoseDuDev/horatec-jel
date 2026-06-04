@@ -10,7 +10,7 @@ public class BookingTests
     private static Booking CreateFutureBooking(int minutesFromNow = 60, int duration = 60) =>
         Booking.Create(
             serviceId:       Guid.NewGuid(),
-            professionalId:  Guid.NewGuid(),
+            resourceId:      Guid.NewGuid(),
             customerId:      Guid.NewGuid(),
             customerName:    "João Silva",
             customerEmail:   "joao@gmail.com",

@@ -1,29 +1,24 @@
 using Horafy.Domain.Entities.Base;
 
-namespace Horafy.Domain.Entities.Professionals;
+namespace Horafy.Domain.Entities.Resources;
 
-/// <summary>
-/// Profissional/colaborador do tenant que pode ser associado a agendamentos.
-/// Reside no schema tenant_{slug}.
-/// </summary>
-public sealed class Professional : BaseEntity
+public sealed class Resource : BaseEntity
 {
-    private Professional() { } // EF Core
+    private Resource() { }
 
     public string Name { get; private set; } = default!;
+    public ResourceType Type { get; private set; }
     public string? Email { get; private set; }
     public string? Phone { get; private set; }
     public string? Specialty { get; private set; }
     public string? Bio { get; private set; }
     public string? AvatarUrl { get; private set; }
-
-    /// <summary>Vínculo opcional com um User autenticado na plataforma.</summary>
     public Guid? UserId { get; private set; }
-
     public bool IsActive { get; private set; } = true;
 
-    public static Professional Create(
+    public static Resource Create(
         string name,
+        ResourceType type,
         string? email = null,
         string? phone = null,
         string? specialty = null,
@@ -33,9 +28,10 @@ public sealed class Professional : BaseEntity
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
-        return new Professional
+        return new Resource
         {
             Name      = name.Trim(),
+            Type      = type,
             Email     = email?.ToLowerInvariant().Trim(),
             Phone     = phone?.Trim(),
             Specialty = specialty?.Trim(),

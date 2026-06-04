@@ -4,8 +4,8 @@ namespace Horafy.Domain.Interfaces.Repositories;
 
 public interface IBookingRepository : IRepository<Booking>
 {
-    Task<IReadOnlyList<Booking>> GetByProfessionalAsync(
-        Guid professionalId,
+    Task<IReadOnlyList<Booking>> GetByResourceAsync(
+        Guid resourceId,
         DateTimeOffset from,
         DateTimeOffset to,
         CancellationToken cancellationToken = default);
@@ -15,7 +15,7 @@ public interface IBookingRepository : IRepository<Booking>
         CancellationToken cancellationToken = default);
 
     Task<bool> HasConflictAsync(
-        Guid professionalId,
+        Guid resourceId,
         DateTimeOffset start,
         DateTimeOffset end,
         Guid? excludeBookingId = null,

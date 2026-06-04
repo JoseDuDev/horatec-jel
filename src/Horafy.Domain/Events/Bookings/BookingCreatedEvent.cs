@@ -5,6 +5,6 @@ namespace Horafy.Domain.Events.Bookings;
 public sealed record BookingCreatedEvent(
     Guid BookingId,
     Guid ServiceId,
-    Guid ProfessionalId,
+    Guid ResourceId,
     Guid CustomerId,
     DateTimeOffset ScheduledAt) : DomainEvent;
