@@ -12,6 +12,11 @@ namespace Horafy.API.Controllers.V1;
 [Authorize]
 public sealed class BookingsController(ISender sender) : ApiControllerBase(sender)
 {
+    [HttpGet("my")]
+    [ProducesResponseType(typeof(IReadOnlyList<BookingResult>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMine(CancellationToken cancellationToken) =>
+        ToActionResult(await Sender.Send(new GetMyBookingsQuery(), cancellationToken));
+
     [HttpGet]
     [Authorize(Roles = "TenantOwner,TenantAdmin,TenantStaff,PlatformAdmin")]
     [ProducesResponseType(typeof(IReadOnlyList<BookingResult>), StatusCodes.Status200OK)]
