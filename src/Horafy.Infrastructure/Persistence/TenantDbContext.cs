@@ -4,6 +4,7 @@ using Horafy.Domain.Entities.Bookings;
 using Horafy.Domain.Entities.Notifications;
 using Horafy.Domain.Entities.Payments;
 using Horafy.Domain.Entities.Resources;
+using Horafy.Domain.Entities.Reviews;
 using Horafy.Domain.Entities.Services;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,7 @@ public sealed class TenantDbContext : DbContext
     public DbSet<BookingService>        BookingServices        => Set<BookingService>();
     public DbSet<Payment>               Payments               => Set<Payment>();
     public DbSet<NotificationTemplate>  NotificationTemplates  => Set<NotificationTemplate>();
+    public DbSet<Review>                Reviews                => Set<Review>();
 
     public TenantDbContext(
         DbContextOptions<TenantDbContext> options,

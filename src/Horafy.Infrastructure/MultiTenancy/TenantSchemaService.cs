@@ -336,6 +336,35 @@ internal sealed class TenantSchemaService(
         CREATE INDEX IF NOT EXISTS ix_notification_templates_event_channel
             ON {s}.notification_templates (event_type, channel)
             WHERE is_active = TRUE AND is_deleted = FALSE;
+
+        -- ── Avaliações ─────────────────────────────────────────────────────
+        CREATE TABLE IF NOT EXISTS {s}.reviews (
+            id           UUID         NOT NULL DEFAULT gen_random_uuid(),
+            booking_id   UUID         NOT NULL,
+            resource_id  UUID         NOT NULL,
+            customer_id  UUID         NOT NULL,
+            stars        SMALLINT     NOT NULL CHECK (stars BETWEEN 1 AND 5),
+            comment      VARCHAR(1000),
+            created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+            updated_at   TIMESTAMPTZ,
+            created_by   VARCHAR(256),
+            updated_by   VARCHAR(256),
+            is_deleted   BOOLEAN      NOT NULL DEFAULT FALSE,
+            deleted_at   TIMESTAMPTZ,
+            deleted_by   VARCHAR(256),
+            CONSTRAINT pk_reviews PRIMARY KEY (id),
+            CONSTRAINT fk_reviews_bookings
+                FOREIGN KEY (booking_id) REFERENCES {s}.bookings (id),
+            CONSTRAINT uq_reviews_booking UNIQUE (booking_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_reviews_resource
+            ON {s}.reviews (resource_id)
+            WHERE is_deleted = FALSE;
+
+        CREATE INDEX IF NOT EXISTS ix_reviews_customer
+            ON {s}.reviews (customer_id)
+            WHERE is_deleted = FALSE;
         """;
     }
 }
