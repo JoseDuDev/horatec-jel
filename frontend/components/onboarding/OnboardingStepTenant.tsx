@@ -59,7 +59,7 @@ export function OnboardingStepTenant({ initial, onNext }: Props) {
         <Label htmlFor="timezone">Fuso Horário</Label>
         <Select
           defaultValue={initial?.timezone ?? 'America/Sao_Paulo'}
-          onValueChange={v => setValue('timezone', v)}
+          onValueChange={v => setValue('timezone', v || 'America/Sao_Paulo')}
         >
           <SelectTrigger id="timezone">
             <SelectValue />

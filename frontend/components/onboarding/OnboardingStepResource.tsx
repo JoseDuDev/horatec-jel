@@ -45,7 +45,7 @@ export function OnboardingStepResource({ onNext, onBack }: Props) {
       </div>
       <div>
         <Label htmlFor="res-type">Tipo de Recurso</Label>
-        <Select defaultValue="Professional" onValueChange={v => setValue('type', v)}>
+        <Select defaultValue="Professional" onValueChange={v => setValue('type', v || 'Professional')}>
           <SelectTrigger id="res-type">
             <SelectValue />
           </SelectTrigger>

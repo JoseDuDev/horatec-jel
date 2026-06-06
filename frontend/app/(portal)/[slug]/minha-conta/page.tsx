@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { GoogleSignInButton } from '@/components/portal/GoogleSignInButton'
 import { cn } from '@/lib/utils'
 import { HeartOff } from 'lucide-react'
+import { ReviewForm } from '@/components/portal/ReviewForm'
 
 const STATUS_LABEL: Record<string, string> = {
   Pending: 'Pendente', Confirmed: 'Confirmado', Completed: 'Concluído',
@@ -30,6 +31,7 @@ export default function MinhaContaPage({ params }: Props) {
   const [bookings, setBookings] = useState<CustomerBooking[]>([])
   const [favorites, setFavorites] = useState<FavoriteService[]>([])
   const [loading, setLoading] = useState(true)
+  const [reviewingBookingId, setReviewingBookingId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!accessToken) { setLoading(false); return }
@@ -39,6 +41,16 @@ export default function MinhaContaPage({ params }: Props) {
     ]).then(([b, f]) => { setBookings(b); setFavorites(f) })
       .finally(() => setLoading(false))
   }, [slug, accessToken])
+
+  const handleReviewSubmit = async (data: { bookingId: string; stars: number; comment?: string }) => {
+    if (!accessToken) return
+    try {
+      await portalApi.createReview(slug, accessToken, data.bookingId, data.stars, data.comment)
+      setReviewingBookingId(null)
+    } catch {
+      alert('Erro ao enviar avaliação.')
+    }
+  }
 
   const handleRemoveFavorite = async (serviceId: string) => {
     if (!accessToken) return
@@ -113,14 +125,30 @@ export default function MinhaContaPage({ params }: Props) {
                   <div className="space-y-3">
                     {past.map(b => (
                       <Card key={b.id} className="opacity-80">
-                        <CardContent className="pt-4 flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{b.serviceName}</p>
-                            <p className="text-sm text-slate-500">
-                              {format(new Date(b.scheduledAt), "dd/MM/yyyy", { locale: ptBR })}
-                            </p>
+                        <CardContent className="pt-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <p className="font-medium">{b.serviceName}</p>
+                              <p className="text-sm text-slate-500">
+                                {format(new Date(b.scheduledAt), "dd/MM/yyyy", { locale: ptBR })}
+                              </p>
+                            </div>
+                            <div className="flex flex-col items-end gap-2">
+                              <Badge variant="outline">{STATUS_LABEL[b.status]}</Badge>
+                              {b.status === 'Completed' && reviewingBookingId !== b.id && (
+                                <Button size="sm" variant="outline" onClick={() => setReviewingBookingId(b.id)}>
+                                  Avaliar
+                                </Button>
+                              )}
+                            </div>
                           </div>
-                          <Badge variant="outline">{STATUS_LABEL[b.status]}</Badge>
+                          {b.status === 'Completed' && reviewingBookingId === b.id && (
+                            <ReviewForm
+                              bookingId={b.id}
+                              onSubmit={handleReviewSubmit}
+                              onCancel={() => setReviewingBookingId(null)}
+                            />
+                          )}
                         </CardContent>
                       </Card>
                     ))}

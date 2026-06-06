@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { portalApi } from '@/lib/api/portal'
 import { ReviewCard } from '@/components/portal/ReviewCard'
+import { ServiceCard } from '@/components/portal/ServiceCard'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Clock, DollarSign } from 'lucide-react'
@@ -70,13 +71,33 @@ export default async function ServiceDetailPage({ params }: Props) {
       )}
 
       {reviews.length > 0 && (
-        <section>
+        <section className="mb-12">
           <h2 className="text-xl font-bold mb-4">Avaliações</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {reviews.map(r => <ReviewCard key={r.id} review={r} />)}
           </div>
         </section>
       )}
+
+      {(() => {
+        const related = services
+          .filter(s => s.isActive && s.id !== id)
+          .filter(s => service.categoryId ? s.categoryId === service.categoryId : true)
+          .slice(0, 3)
+
+        if (related.length === 0) return null
+
+        return (
+          <section className="mt-4">
+            <h2 className="text-xl font-bold mb-4">Você também pode gostar</h2>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {related.map(s => (
+                <ServiceCard key={s.id} service={s} slug={slug} />
+              ))}
+            </div>
+          </section>
+        )
+      })()}
     </div>
   )
 }
