@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { portalApi } from '@/lib/api/portal'
 import { ReviewCard } from '@/components/portal/ReviewCard'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { Clock, DollarSign } from 'lucide-react'
 
 interface Props {
@@ -47,9 +48,7 @@ export default async function ServiceDetailPage({ params }: Props) {
         </div>
       </div>
 
-      <Button asChild size="lg" className="mb-12">
-        <Link href={`/${slug}/agendar?serviceId=${id}`}>Agendar este serviço</Link>
-      </Button>
+      <Link href={`/${slug}/agendar?serviceId=${id}`} className={cn(buttonVariants({ size: 'lg' }), 'mb-12')}>Agendar este serviço</Link>
 
       {capableResources.length > 0 && (
         <section className="mb-12">

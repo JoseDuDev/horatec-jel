@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { portalApi } from '@/lib/api/portal'
 import { ServiceCard } from '@/components/portal/ServiceCard'
 import { ReviewCard } from '@/components/portal/ReviewCard'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -34,9 +35,7 @@ export default async function PortalHomePage({ params }: Props) {
           <p className="text-slate-300 mb-8 text-lg">
             Serviços de qualidade, agendamento fácil e rápido.
           </p>
-          <Button asChild size="lg" className="bg-white text-slate-900 hover:bg-slate-100">
-            <Link href={`/${slug}/agendar`}>Agendar agora</Link>
-          </Button>
+          <Link href={`/${slug}/agendar`} className={cn(buttonVariants({ size: 'lg' }), 'bg-white text-slate-900 hover:bg-slate-100')}>Agendar agora</Link>
         </div>
       </section>
 

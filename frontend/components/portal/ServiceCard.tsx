@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import type { Service } from '@/lib/types/service'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { Clock, DollarSign } from 'lucide-react'
 
 interface Props {
@@ -27,9 +28,7 @@ export function ServiceCard({ service, slug }: Props) {
             <DollarSign className="h-4 w-4" /> R$ {service.price.toFixed(2)}
           </span>
         </div>
-        <Button asChild className="w-full">
-          <Link href={`/${slug}/agendar?serviceId=${service.id}`}>Agendar</Link>
-        </Button>
+        <Link href={`/${slug}/agendar?serviceId=${service.id}`} className={cn(buttonVariants(), 'w-full justify-center')}>Agendar</Link>
       </CardContent>
     </Card>
   )

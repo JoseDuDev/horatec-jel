@@ -3,11 +3,11 @@ import { portalApi } from '@/lib/api/portal'
 
 interface Props {
   children: React.ReactNode
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 export default async function PortalLayout({ children, params }: Props) {
-  const { slug } = params
+  const { slug } = await params
   let tenantName = slug
   let logoUrl: string | undefined
 

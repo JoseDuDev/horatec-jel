@@ -9,8 +9,9 @@ import { portalApi } from '@/lib/api/portal'
 import type { CustomerBooking } from '@/lib/types/portal'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import { CheckCircle, Clock, XCircle } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const STATUS_CONFIG = {
   Pending:   { label: 'Aguardando confirmação', icon: Clock,        variant: 'secondary' as const, color: 'text-amber-600' },
@@ -43,7 +44,7 @@ export default function BookingStatusPage({ params }: Props) {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <p className="text-slate-500 mb-4">Agendamento não encontrado ou sessão expirada.</p>
-        <Button asChild variant="outline"><Link href={`/${slug}`}>Voltar ao início</Link></Button>
+        <Link href={`/${slug}`} className={cn(buttonVariants({ variant: 'outline' }))}>Voltar ao início</Link>
       </div>
     )
   }
@@ -78,12 +79,8 @@ export default function BookingStatusPage({ params }: Props) {
       </Card>
 
       <div className="flex gap-3 mt-6">
-        <Button asChild variant="outline" className="flex-1">
-          <Link href={`/${slug}/minha-conta`}>Minha conta</Link>
-        </Button>
-        <Button asChild className="flex-1">
-          <Link href={`/${slug}/agendar`}>Novo agendamento</Link>
-        </Button>
+        <Link href={`/${slug}/minha-conta`} className={cn(buttonVariants({ variant: 'outline' }), 'flex-1 justify-center')}>Minha conta</Link>
+        <Link href={`/${slug}/agendar`} className={cn(buttonVariants({ variant: 'default' }), 'flex-1 justify-center')}>Novo agendamento</Link>
       </div>
     </div>
   )

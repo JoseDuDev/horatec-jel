@@ -9,9 +9,10 @@ import { portalApi } from '@/lib/api/portal'
 import type { CustomerBooking, FavoriteService } from '@/lib/types/portal'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { GoogleSignInButton } from '@/components/portal/GoogleSignInButton'
+import { cn } from '@/lib/utils'
 import { HeartOff } from 'lucide-react'
 
 const STATUS_LABEL: Record<string, string> = {
@@ -130,7 +131,7 @@ export default function MinhaContaPage({ params }: Props) {
               {bookings.length === 0 && (
                 <div className="text-center py-12">
                   <p className="text-slate-500 mb-4">Você ainda não tem agendamentos.</p>
-                  <Button asChild><Link href={`/${slug}/agendar`}>Agendar agora</Link></Button>
+                  <Link href={`/${slug}/agendar`} className={cn(buttonVariants())}>Agendar agora</Link>
                 </div>
               )}
             </div>
@@ -141,7 +142,7 @@ export default function MinhaContaPage({ params }: Props) {
           {loading ? <p className="text-slate-500">Carregando...</p> : favorites.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-slate-500 mb-4">Nenhum serviço favoritado.</p>
-              <Button asChild variant="outline"><Link href={`/${slug}/servicos`}>Ver serviços</Link></Button>
+              <Link href={`/${slug}/servicos`} className={cn(buttonVariants({ variant: 'outline' }))}>Ver serviços</Link>
             </div>
           ) : (
             <div className="space-y-3">
@@ -158,9 +159,7 @@ export default function MinhaContaPage({ params }: Props) {
                       </Link>
                     </div>
                     <div className="flex gap-2">
-                      <Button asChild size="sm" variant="outline">
-                        <Link href={`/${slug}/agendar?serviceId=${fav.serviceId}`}>Agendar</Link>
-                      </Button>
+                      <Link href={`/${slug}/agendar?serviceId=${fav.serviceId}`} className={cn(buttonVariants({ size: 'sm', variant: 'outline' }))}>Agendar</Link>
                       <Button
                         size="sm"
                         variant="ghost"
