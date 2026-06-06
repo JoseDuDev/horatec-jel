@@ -105,6 +105,7 @@ public sealed class Booking : BaseEntity
         Status      = BookingStatus.Confirmed;
         ConfirmedAt = DateTimeOffset.UtcNow;
         UpdatedAt   = DateTimeOffset.UtcNow;
+        RaiseDomainEvent(new BookingConfirmedEvent(Id, CustomerId, CustomerName, CustomerEmail, ScheduledAt));
     }
 
     public void Cancel(string? reason = null)
