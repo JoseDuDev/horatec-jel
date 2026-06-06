@@ -26,6 +26,9 @@ internal sealed class UserEntityConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.AvatarUrl)
             .HasMaxLength(500);
 
+        builder.Property(u => u.Phone)
+            .HasMaxLength(20);
+
         builder.Property(u => u.GoogleId)
             .HasMaxLength(128);
 

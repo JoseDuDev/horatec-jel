@@ -20,6 +20,7 @@ public sealed class User : BaseEntity
     public string Email { get; private set; } = default!;
     public string? Name { get; private set; }
     public string? AvatarUrl { get; private set; }
+    public string? Phone { get; private set; }
 
     // ── Provedores OAuth ─────────────────────────────────────────────
     public string? GoogleId { get; private set; }
@@ -151,6 +152,14 @@ public sealed class User : BaseEntity
     {
         Name      = name;
         AvatarUrl = avatarUrl;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void SetPhone(string? phone)
+    {
+        if (phone is not null && phone.Length > 20)
+            throw new ArgumentException("Telefone deve ter no máximo 20 caracteres.", nameof(phone));
+        Phone     = phone?.Trim();
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

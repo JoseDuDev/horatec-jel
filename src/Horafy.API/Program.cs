@@ -2,6 +2,7 @@ using Horafy.Application;
 using Horafy.Infrastructure;
 using Horafy.Infrastructure.Auth;
 using Horafy.Infrastructure.MultiTenancy;
+using Horafy.Infrastructure.Persistence;
 using Horafy.API.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -154,6 +155,13 @@ try
     app.UseAuthorization();
     app.MapControllers();
     app.MapHealthChecks("/health");
+
+    using (var scope = app.Services.CreateScope())
+    {
+        var db     = scope.ServiceProvider.GetRequiredService<HorafyDbContext>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        await GlobalMigrations.RunAsync(db, logger);
+    }
 
     app.Run();
 }
