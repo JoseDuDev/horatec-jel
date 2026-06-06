@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Horafy.Application\Horafy.Application.csproj" />
     <ProjectReference Include="..\..\src\Horafy.Domain\Horafy.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Horafy.Infrastructure\Horafy.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Horafy.Shared\Horafy.Shared.csproj" />
   </ItemGroup>
 
