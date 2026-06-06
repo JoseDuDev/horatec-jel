@@ -25,7 +25,7 @@ export function RevenueChart({ transactions }: Props) {
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" />
         <YAxis tickFormatter={v => `R$${v}`} />
-        <Tooltip formatter={(v: number) => [`R$ ${v.toFixed(2)}`, 'Receita']} />
+        <Tooltip formatter={(v) => [`R$ ${Number(v).toFixed(2)}`, 'Receita']} />
         <Bar dataKey="total" fill="#6366f1" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>

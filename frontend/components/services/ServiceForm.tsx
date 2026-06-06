@@ -24,8 +24,9 @@ interface Props {
 }
 
 export function ServiceForm({ initial, onSubmit, onCancel }: Props) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: {
       name: initial?.name ?? '',
       description: initial?.description ?? '',
