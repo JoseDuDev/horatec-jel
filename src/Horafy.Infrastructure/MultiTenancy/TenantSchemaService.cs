@@ -365,6 +365,31 @@ internal sealed class TenantSchemaService(
         CREATE INDEX IF NOT EXISTS ix_reviews_customer
             ON {s}.reviews (customer_id)
             WHERE is_deleted = FALSE;
+
+        -- ── Favoritos ──────────────────────────────────────────────────────
+        CREATE TABLE IF NOT EXISTS {s}.favorite_services (
+            id          UUID        NOT NULL DEFAULT gen_random_uuid(),
+            customer_id UUID        NOT NULL,
+            service_id  UUID        NOT NULL,
+            created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at  TIMESTAMPTZ,
+            created_by  VARCHAR(256),
+            updated_by  VARCHAR(256),
+            is_deleted  BOOLEAN     NOT NULL DEFAULT FALSE,
+            deleted_at  TIMESTAMPTZ,
+            deleted_by  VARCHAR(256),
+            CONSTRAINT pk_favorite_services PRIMARY KEY (id),
+            CONSTRAINT fk_favorite_services_services
+                FOREIGN KEY (service_id) REFERENCES {s}.services (id)
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_favorite_services_customer_service
+            ON {s}.favorite_services (customer_id, service_id)
+            WHERE is_deleted = FALSE;
+
+        CREATE INDEX IF NOT EXISTS ix_favorite_services_customer
+            ON {s}.favorite_services (customer_id)
+            WHERE is_deleted = FALSE;
         """;
     }
 }

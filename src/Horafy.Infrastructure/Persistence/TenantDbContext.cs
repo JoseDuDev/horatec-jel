@@ -1,6 +1,7 @@
 using Horafy.Domain.Entities.Availability;
 using Horafy.Domain.Entities.Base;
 using Horafy.Domain.Entities.Bookings;
+using Horafy.Domain.Entities.Favorites;
 using Horafy.Domain.Entities.Notifications;
 using Horafy.Domain.Entities.Payments;
 using Horafy.Domain.Entities.Resources;
@@ -27,6 +28,7 @@ public sealed class TenantDbContext : DbContext
     public DbSet<Payment>               Payments               => Set<Payment>();
     public DbSet<NotificationTemplate>  NotificationTemplates  => Set<NotificationTemplate>();
     public DbSet<Review>                Reviews                => Set<Review>();
+    public DbSet<FavoriteService>       FavoriteServices       => Set<FavoriteService>();
 
     public TenantDbContext(
         DbContextOptions<TenantDbContext> options,
