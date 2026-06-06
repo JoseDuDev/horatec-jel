@@ -2,6 +2,7 @@ using Asp.Versioning;
 using Horafy.API.Controllers.Base;
 using Horafy.Application.Features.Customers.Commands;
 using Horafy.Application.Features.Customers.Queries;
+using Horafy.Domain.Entities.Bookings;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,6 +29,11 @@ public sealed class CustomersController(ISender sender)
         var result = await Sender.Send(new UpdateCustomerPhoneCommand(request.Phone), ct);
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
+
+    [HttpGet("me/bookings")]
+    [ProducesResponseType(typeof(IReadOnlyList<CustomerBookingResult>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetBookings(CancellationToken ct) =>
+        ToActionResult(await Sender.Send(new GetCustomerBookingsQuery(), ct));
 }
 
 public sealed record UpdatePhoneRequest(string? Phone);
