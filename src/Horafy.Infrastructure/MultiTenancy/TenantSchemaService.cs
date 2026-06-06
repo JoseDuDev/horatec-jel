@@ -313,6 +313,28 @@ internal sealed class TenantSchemaService(
         CREATE UNIQUE INDEX IF NOT EXISTS ix_availability_exceptions_resource_date
             ON {s}.availability_exceptions (resource_id, date)
             WHERE is_deleted = FALSE;
+
+        -- ── Templates de Notificação ──────────────────────────────────────
+        CREATE TABLE IF NOT EXISTS {s}.notification_templates (
+            id               UUID         NOT NULL DEFAULT gen_random_uuid(),
+            event_type       VARCHAR(50)  NOT NULL,
+            channel          VARCHAR(20)  NOT NULL,
+            subject_template VARCHAR(300),
+            body_template    TEXT         NOT NULL,
+            is_active        BOOLEAN      NOT NULL DEFAULT TRUE,
+            created_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+            updated_at       TIMESTAMPTZ,
+            created_by       VARCHAR(256),
+            updated_by       VARCHAR(256),
+            is_deleted       BOOLEAN      NOT NULL DEFAULT FALSE,
+            deleted_at       TIMESTAMPTZ,
+            deleted_by       VARCHAR(256),
+            CONSTRAINT pk_notification_templates PRIMARY KEY (id)
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_notification_templates_event_channel
+            ON {s}.notification_templates (event_type, channel)
+            WHERE is_active = TRUE AND is_deleted = FALSE;
         """;
     }
 }
