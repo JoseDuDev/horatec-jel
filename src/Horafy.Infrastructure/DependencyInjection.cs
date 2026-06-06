@@ -2,16 +2,20 @@ using Horafy.Application.Interfaces;
 using Horafy.Domain.Interfaces;
 using Horafy.Domain.Interfaces.Repositories;
 using Horafy.Infrastructure.Auth;
+using Horafy.Infrastructure.Email;
 using Horafy.Infrastructure.Gateways;
+using Horafy.Infrastructure.Messaging;
 using Horafy.Infrastructure.MultiTenancy;
 using Horafy.Infrastructure.Persistence;
 using Horafy.Infrastructure.Persistence.Interceptors;
 using Horafy.Infrastructure.Repositories;
+using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
+using Quartz;
 
 namespace Horafy.Infrastructure;
 
@@ -125,6 +129,64 @@ public static class DependencyInjection
             var token = configuration["MercadoPago:AccessToken"] ?? string.Empty;
             return new BearerTokenHandler(token);
         });
+
+        // Evolution API — WhatsApp
+        services.Configure<EvolutionApiOptions>(
+            configuration.GetSection(EvolutionApiOptions.SectionName));
+        services.AddHttpClient<IWhatsAppService, EvolutionApiWhatsAppService>(client =>
+        {
+            var baseUrl = configuration[$"{EvolutionApiOptions.SectionName}:BaseUrl"];
+            if (!string.IsNullOrEmpty(baseUrl))
+                client.BaseAddress = new Uri(baseUrl);
+            client.DefaultRequestHeaders.Add("apikey",
+                configuration[$"{EvolutionApiOptions.SectionName}:ApiKey"] ?? string.Empty);
+        });
+
+        // SMTP e-mail
+        services.Configure<SmtpOptions>(configuration.GetSection(SmtpOptions.SectionName));
+        services.AddScoped<IEmailService, SmtpEmailService>();
+
+        // MassTransit + RabbitMQ
+        var rabbitOpts = configuration.GetSection(RabbitMqOptions.SectionName)
+                             .Get<RabbitMqOptions>() ?? new RabbitMqOptions();
+
+        services.AddMassTransit(x =>
+        {
+            x.SetKebabCaseEndpointNameFormatter();
+            x.AddConsumers(typeof(DependencyInjection).Assembly);
+
+            x.AddQuartz(q =>
+            {
+                q.UseMicrosoftDependencyInjectionJobFactory();
+
+                var jobKey = new JobKey("booking-reminder");
+                q.AddJob<Horafy.Infrastructure.Messaging.Jobs.BookingReminderJob>(
+                    opts => opts.WithIdentity(jobKey));
+                q.AddTrigger(opts => opts
+                    .ForJob(jobKey)
+                    .WithIdentity("booking-reminder-trigger")
+                    .WithCronSchedule("0 0 * * * ?"));
+            });
+            x.AddQuartzConsumers();
+
+            x.UsingRabbitMq((ctx, cfg) =>
+            {
+                cfg.Host(rabbitOpts.Host, rabbitOpts.VirtualHost, h =>
+                {
+                    h.Username(rabbitOpts.Username);
+                    h.Password(rabbitOpts.Password);
+                });
+
+                cfg.UseMessageRetry(r => r.Exponential(3,
+                    TimeSpan.FromSeconds(5),
+                    TimeSpan.FromSeconds(125),
+                    TimeSpan.FromSeconds(5)));
+
+                cfg.ConfigureEndpoints(ctx);
+            });
+        });
+
+        services.AddHostedService<OutboxProcessorService>();
 
         return services;
     }
