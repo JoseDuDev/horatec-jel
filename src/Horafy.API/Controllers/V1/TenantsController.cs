@@ -2,6 +2,7 @@ using Asp.Versioning;
 using Horafy.API.Controllers.Base;
 using Horafy.Application.Features.Tenants.Commands.ActivateTenant;
 using Horafy.Application.Features.Tenants.Commands.CreateTenant;
+using Horafy.Application.Features.Tenants.Queries.GetAllTenants;
 using Horafy.Application.Features.Tenants.Commands.RemoveCustomDomain;
 using Horafy.Application.Features.Tenants.Commands.SetCustomDomain;
 using Horafy.Application.Features.Tenants.Commands.SuspendTenant;
@@ -41,6 +42,13 @@ public sealed class TenantsController(ISender sender) : ApiControllerBase(sender
         if (result.IsFailure) return ToActionResult(result);
         return StatusCode(StatusCodes.Status201Created, result.Value);
     }
+
+    /// <summary>Lista todos os tenants da plataforma (PlatformAdmin only).</summary>
+    [HttpGet("/api/v{version:apiVersion}/platform/tenants")]
+    [Authorize(Roles = "PlatformAdmin")]
+    [ProducesResponseType(typeof(IReadOnlyList<TenantSummary>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken) =>
+        ToActionResult(await Sender.Send(new GetAllTenantsQuery(), cancellationToken));
 
     /// <summary>Retorna dados públicos de um tenant pelo slug (landing page).</summary>
     [HttpGet("/api/v{version:apiVersion}/platform/tenants/{slug}")]
