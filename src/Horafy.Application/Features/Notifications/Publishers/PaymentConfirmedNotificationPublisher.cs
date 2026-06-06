@@ -37,7 +37,7 @@ internal sealed class PaymentConfirmedNotificationPublisher(
             BookingId:     notification.BookingId,
             CustomerName:  booking.CustomerName,
             CustomerEmail: booking.CustomerEmail,
-            CustomerPhone: null,
+            CustomerPhone: booking.CustomerPhone,
             Amount:        payment.Amount,
             TenantSlug:    tenantSlug,
             TenantName:    tenantName), cancellationToken);

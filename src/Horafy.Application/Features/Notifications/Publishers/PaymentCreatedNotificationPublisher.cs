@@ -37,7 +37,7 @@ internal sealed class PaymentCreatedNotificationPublisher(
             BookingId:     notification.BookingId,
             CustomerName:  booking.CustomerName,
             CustomerEmail: booking.CustomerEmail,
-            CustomerPhone: null,
+            CustomerPhone: booking.CustomerPhone,
             PaymentUrl:    payment.PaymentUrl,
             Amount:        notification.Amount,
             TenantSlug:    tenantSlug,

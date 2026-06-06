@@ -32,7 +32,7 @@ internal sealed class BookingCancelledNotificationPublisher(
             BookingId:     notification.BookingId,
             CustomerName:  "Cliente",
             CustomerEmail: string.Empty,
-            CustomerPhone: null,
+            CustomerPhone: notification.CustomerPhone,
             Reason:        reason,
             TenantSlug:    tenantSlug,
             TenantName:    tenantName), cancellationToken);

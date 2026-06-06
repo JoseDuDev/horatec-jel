@@ -37,7 +37,7 @@ internal sealed class BookingCreatedNotificationPublisher(
             BookingId:     booking.Id,
             CustomerName:  booking.CustomerName,
             CustomerEmail: booking.CustomerEmail,
-            CustomerPhone: null,
+            CustomerPhone: booking.CustomerPhone,
             ServiceName:   serviceName,
             ResourceName:  resource?.Name ?? "Profissional",
             ScheduledAt:   booking.ScheduledAt,

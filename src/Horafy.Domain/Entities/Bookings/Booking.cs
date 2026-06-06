@@ -79,7 +79,7 @@ public sealed class Booking : BaseEntity
             booking._services.Add(BookingService.Create(booking.Id, svc.ServiceId, svc.ServiceName, svc.DurationMinutes));
 
         booking.RaiseDomainEvent(new BookingCreatedEvent(
-            booking.Id, booking.ServiceId, resourceId, customerId, scheduledAt));
+            booking.Id, booking.ServiceId, resourceId, customerId, booking.CustomerPhone, scheduledAt));
 
         return booking;
     }
@@ -109,7 +109,7 @@ public sealed class Booking : BaseEntity
         Status      = BookingStatus.Confirmed;
         ConfirmedAt = DateTimeOffset.UtcNow;
         UpdatedAt   = DateTimeOffset.UtcNow;
-        RaiseDomainEvent(new BookingConfirmedEvent(Id, CustomerId, CustomerName, CustomerEmail, ScheduledAt));
+        RaiseDomainEvent(new BookingConfirmedEvent(Id, CustomerId, CustomerName, CustomerEmail, CustomerPhone, ScheduledAt));
     }
 
     public void Cancel(string? reason = null)
@@ -122,7 +122,7 @@ public sealed class Booking : BaseEntity
         CancelledAt        = DateTimeOffset.UtcNow;
         UpdatedAt          = DateTimeOffset.UtcNow;
 
-        RaiseDomainEvent(new BookingCancelledEvent(Id, CustomerId, reason));
+        RaiseDomainEvent(new BookingCancelledEvent(Id, CustomerId, CustomerPhone, reason));
     }
 
     public void Complete()

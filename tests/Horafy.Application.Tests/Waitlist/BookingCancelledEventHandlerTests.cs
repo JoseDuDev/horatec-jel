@@ -43,7 +43,7 @@ public sealed class BookingCancelledEventHandlerTests
             .Setup(r => r.GetByServiceResourceDateAsync(serviceId, resourceId, date, default))
             .ReturnsAsync(new List<WaitlistEntry> { entry });
 
-        var domainEvent = new BookingCancelledEvent(booking.Id, booking.CustomerId, null);
+        var domainEvent = new BookingCancelledEvent(booking.Id, booking.CustomerId, null, null);
 
         await MakeHandler().Handle(domainEvent, default);
 
@@ -66,7 +66,7 @@ public sealed class BookingCancelledEventHandlerTests
             .Setup(r => r.GetByServiceResourceDateAsync(serviceId, resourceId, date, default))
             .ReturnsAsync(new List<WaitlistEntry>());
 
-        var domainEvent = new BookingCancelledEvent(booking.Id, booking.CustomerId, null);
+        var domainEvent = new BookingCancelledEvent(booking.Id, booking.CustomerId, null, null);
 
         await MakeHandler().Handle(domainEvent, default);
 

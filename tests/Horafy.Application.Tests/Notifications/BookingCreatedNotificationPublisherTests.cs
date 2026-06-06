@@ -55,7 +55,7 @@ public sealed class BookingCreatedNotificationPublisherTests
 
         var evt = new BookingCreatedEvent(
             booking.Id, booking.ServiceId, booking.ResourceId,
-            booking.CustomerId, booking.ScheduledAt);
+            booking.CustomerId, booking.CustomerPhone, booking.ScheduledAt);
 
         await MakeHandler().Handle(evt, default);
 
@@ -77,7 +77,7 @@ public sealed class BookingCreatedNotificationPublisherTests
 
         var evt = new BookingCreatedEvent(
             Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
-            DateTimeOffset.UtcNow.AddHours(2));
+            null, DateTimeOffset.UtcNow.AddHours(2));
 
         await MakeHandler().Handle(evt, default);
 

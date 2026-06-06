@@ -7,4 +7,5 @@ public sealed record BookingConfirmedEvent(
     Guid CustomerId,
     string CustomerName,
     string CustomerEmail,
+    string? CustomerPhone,
     DateTimeOffset ScheduledAt) : DomainEvent;
