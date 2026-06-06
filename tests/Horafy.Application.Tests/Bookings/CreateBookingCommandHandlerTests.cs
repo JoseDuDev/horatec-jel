@@ -15,12 +15,13 @@ public sealed class CreateBookingCommandHandlerTests
     private readonly Mock<IServiceRepository>  _serviceRepo  = new();
     private readonly Mock<IResourceRepository> _resourceRepo = new();
     private readonly Mock<IBookingRepository>  _bookingRepo  = new();
+    private readonly Mock<IUserRepository>     _userRepo     = new();
     private readonly Mock<ICurrentUserService> _currentUser  = new();
     private readonly Mock<ITenantUnitOfWork>   _unitOfWork   = new();
 
     private CreateBookingCommandHandler CreateHandler() =>
         new(_serviceRepo.Object, _resourceRepo.Object,
-            _bookingRepo.Object, _currentUser.Object, _unitOfWork.Object);
+            _bookingRepo.Object, _userRepo.Object, _currentUser.Object, _unitOfWork.Object);
 
     private static Service MakeService() =>
         Service.Create("Corte", 60, 50m);

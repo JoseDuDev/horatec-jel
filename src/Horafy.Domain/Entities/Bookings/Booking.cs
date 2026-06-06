@@ -14,6 +14,7 @@ public sealed class Booking : BaseEntity
 
     public string CustomerName  { get; private set; } = default!;
     public string CustomerEmail { get; private set; } = default!;
+    public string? CustomerPhone { get; private set; }
 
     public DateTimeOffset ScheduledAt     { get; private set; }
     public DateTimeOffset EndsAt          { get; private set; }
@@ -42,6 +43,7 @@ public sealed class Booking : BaseEntity
         string customerName,
         string customerEmail,
         DateTimeOffset scheduledAt,
+        string? customerPhone = null,
         string? notes = null,
         Guid? recurrenceGroupId = null,
         DateTimeOffset? expiresAt = null)
@@ -64,6 +66,7 @@ public sealed class Booking : BaseEntity
             CustomerId        = customerId,
             CustomerName      = customerName.Trim(),
             CustomerEmail     = customerEmail.ToLowerInvariant().Trim(),
+            CustomerPhone     = customerPhone?.Trim(),
             ScheduledAt       = scheduledAt,
             EndsAt            = scheduledAt.AddMinutes(totalDuration),
             DurationMinutes   = totalDuration,
@@ -89,13 +92,14 @@ public sealed class Booking : BaseEntity
         string customerEmail,
         DateTimeOffset scheduledAt,
         int durationMinutes,
+        string? customerPhone = null,
         string? notes = null,
         Guid? recurrenceGroupId = null,
         DateTimeOffset? expiresAt = null) =>
         Create(
             new[] { (serviceId, ServiceName: serviceId.ToString(), durationMinutes) },
             resourceId, customerId, customerName, customerEmail,
-            scheduledAt, notes, recurrenceGroupId, expiresAt);
+            scheduledAt, customerPhone, notes, recurrenceGroupId, expiresAt);
 
     public void Confirm()
     {

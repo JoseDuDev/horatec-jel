@@ -14,6 +14,7 @@ internal sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Book
 
         builder.Property(b => b.CustomerName).IsRequired().HasMaxLength(150);
         builder.Property(b => b.CustomerEmail).IsRequired().HasMaxLength(256);
+        builder.Property(b => b.CustomerPhone).HasMaxLength(20);
         builder.Property(b => b.Notes).HasMaxLength(1000);
         builder.Property(b => b.CancellationReason).HasMaxLength(500);
 

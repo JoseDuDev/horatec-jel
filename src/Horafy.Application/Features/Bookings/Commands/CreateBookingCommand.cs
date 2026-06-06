@@ -29,6 +29,7 @@ internal sealed class CreateBookingCommandHandler(
     IServiceRepository serviceRepository,
     IResourceRepository resourceRepository,
     IBookingRepository bookingRepository,
+    IUserRepository userRepository,
     ICurrentUserService currentUser,
     ITenantUnitOfWork unitOfWork) : IRequestHandler<CreateBookingCommand, Result<Guid>>
 {
@@ -37,6 +38,9 @@ internal sealed class CreateBookingCommandHandler(
     {
         if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
             return Result.Failure<Guid>(Error.Unauthorized);
+
+        var user = await userRepository.GetByIdAsync(currentUser.UserId.Value, cancellationToken);
+        var customerPhone = user?.Phone;
 
         var resource = await resourceRepository.GetByIdAsync(request.ResourceId, cancellationToken);
         if (resource is null) return Result.Failure<Guid>(BookingErrors.ResourceNotFound);
@@ -68,6 +72,7 @@ internal sealed class CreateBookingCommandHandler(
             customerName:  currentUser.Email ?? "Cliente",
             customerEmail: currentUser.Email ?? string.Empty,
             scheduledAt:   request.ScheduledAt,
+            customerPhone: customerPhone,
             notes:         request.Notes);
 
         bookingRepository.Add(booking);

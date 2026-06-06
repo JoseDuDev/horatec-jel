@@ -117,6 +117,7 @@ internal sealed class TenantSchemaService(
             customer_id          UUID         NOT NULL,
             customer_name        VARCHAR(150) NOT NULL,
             customer_email       VARCHAR(256) NOT NULL,
+            customer_phone       VARCHAR(20),
             scheduled_at         TIMESTAMPTZ  NOT NULL,
             ends_at              TIMESTAMPTZ  NOT NULL,
             duration_minutes     INT          NOT NULL,
