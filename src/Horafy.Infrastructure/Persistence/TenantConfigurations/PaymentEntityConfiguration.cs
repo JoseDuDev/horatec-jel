@@ -23,5 +23,8 @@ internal sealed class PaymentEntityConfiguration : IEntityTypeConfiguration<Paym
         builder.Property(p => p.DepositAmount).HasColumnType("numeric(10,2)");
         builder.Property(p => p.PaymentUrl).HasMaxLength(500);
         builder.HasIndex(p => p.BookingId).HasDatabaseName("ix_payments_booking_id");
+        builder.Property(p => p.VoucherCode).HasMaxLength(50);
+        builder.Property(p => p.VoucherDiscountAmount).HasColumnType("numeric(10,2)");
+        builder.Property(p => p.WalletAmount).HasColumnType("numeric(10,2)");
     }
 }
