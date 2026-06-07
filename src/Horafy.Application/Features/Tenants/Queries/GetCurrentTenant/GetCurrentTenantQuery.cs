@@ -26,7 +26,19 @@ public sealed record TenantResult(
     TenantVertical Vertical,
     TenantThemeResult Theme,
     DateTimeOffset? TrialEndsAt,
-    DateTimeOffset? PlanRenewsAt);
+    DateTimeOffset? PlanRenewsAt,
+    CancellationPolicyResult CancellationPolicy,
+    LoyaltySettingsResult    LoyaltySettings);
+
+public sealed record CancellationPolicyResult(
+    int     MinCancellationHours,
+    decimal CancellationFeePercent,
+    bool    AllowCustomerCancellation);
+
+public sealed record LoyaltySettingsResult(
+    bool    IsEnabled,
+    decimal CreditRatePercent,
+    decimal MinBookingAmount);
 
 public sealed record TenantThemeResult(
     string PrimaryColor,
@@ -76,5 +88,13 @@ internal sealed class GetCurrentTenantQueryHandler(
             t.Theme.ShowReviews, t.Theme.ShowTeam, t.Theme.ShowServicePrices,
             t.Theme.InstagramUrl, t.Theme.WhatsAppNumber, t.Theme.FacebookUrl,
             t.Theme.SectionsOrder),
-        t.TrialEndsAt, t.PlanRenewsAt);
+        t.TrialEndsAt, t.PlanRenewsAt,
+        new CancellationPolicyResult(
+            t.CancellationPolicy.MinCancellationHours,
+            t.CancellationPolicy.CancellationFeePercent,
+            t.CancellationPolicy.AllowCustomerCancellation),
+        new LoyaltySettingsResult(
+            t.LoyaltySettings.IsEnabled,
+            t.LoyaltySettings.CreditRatePercent,
+            t.LoyaltySettings.MinBookingAmount));
 }
