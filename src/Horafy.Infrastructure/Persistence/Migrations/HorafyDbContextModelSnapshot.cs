@@ -224,6 +224,11 @@ namespace Horafy.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(256)")
                         .HasColumnName("password_hash");
 
+                    b.Property<string>("Phone")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("phone");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -341,6 +346,39 @@ namespace Horafy.Infrastructure.Persistence.Migrations
                                 .HasColumnType("integer")
                                 .HasDefaultValue(0)
                                 .HasColumnName("cancellation_policy_min_cancellation_hours");
+
+                            b1.HasKey("TenantId");
+
+                            b1.ToTable("tenants", "public");
+
+                            b1.WithOwner()
+                                .HasForeignKey("TenantId")
+                                .HasConstraintName("fk_tenants_tenants_id");
+                        });
+
+                    b.OwnsOne("Horafy.Domain.Entities.Tenants.LoyaltySettings", "LoyaltySettings", b1 =>
+                        {
+                            b1.Property<Guid>("TenantId")
+                                .HasColumnType("uuid")
+                                .HasColumnName("id");
+
+                            b1.Property<decimal>("CreditRatePercent")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("numeric(5,2)")
+                                .HasDefaultValue(0m)
+                                .HasColumnName("loyalty_settings_credit_rate_percent");
+
+                            b1.Property<bool>("IsEnabled")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("boolean")
+                                .HasDefaultValue(false)
+                                .HasColumnName("loyalty_settings_is_enabled");
+
+                            b1.Property<decimal>("MinBookingAmount")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("numeric(10,2)")
+                                .HasDefaultValue(0m)
+                                .HasColumnName("loyalty_settings_min_booking_amount");
 
                             b1.HasKey("TenantId");
 
@@ -485,6 +523,9 @@ namespace Horafy.Infrastructure.Persistence.Migrations
                         });
 
                     b.Navigation("CancellationPolicy")
+                        .IsRequired();
+
+                    b.Navigation("LoyaltySettings")
                         .IsRequired();
 
                     b.Navigation("PaymentSettings")
