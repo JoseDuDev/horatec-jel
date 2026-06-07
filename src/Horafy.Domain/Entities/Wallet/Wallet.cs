@@ -30,4 +30,14 @@ public sealed class Wallet : BaseEntity
         _transactions.Add(WalletTransaction.Create(Id, WalletTransactionType.BookingRefund, amount, description, bookingId));
         return Result.Success();
     }
+
+    public Result DebitPayment(decimal amount, string description, Guid bookingId)
+    {
+        if (amount <= 0) return Result.Failure(WalletErrors.InvalidAmount);
+        if (Balance < amount) return Result.Failure(WalletErrors.InsufficientBalance);
+        Balance -= amount;
+        _transactions.Add(WalletTransaction.Create(
+            Id, WalletTransactionType.BookingPayment, amount, description, bookingId));
+        return Result.Success();
+    }
 }
