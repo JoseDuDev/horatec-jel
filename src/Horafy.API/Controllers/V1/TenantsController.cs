@@ -6,6 +6,8 @@ using Horafy.Application.Features.Tenants.Queries.GetAllTenants;
 using Horafy.Application.Features.Tenants.Commands.RemoveCustomDomain;
 using Horafy.Application.Features.Tenants.Commands.SetCustomDomain;
 using Horafy.Application.Features.Tenants.Commands.SuspendTenant;
+using Horafy.Application.Features.Tenants.Commands.UpdateCancellationPolicy;
+using Horafy.Application.Features.Tenants.Commands.UpdateLoyaltySettings;
 using Horafy.Application.Features.Tenants.Commands.UpdatePaymentSettings;
 using Horafy.Application.Features.Tenants.Commands.UpdateTenant;
 using Horafy.Application.Features.Tenants.Commands.UpdateTenantTheme;
@@ -169,6 +171,38 @@ public sealed class TenantsController(ISender sender) : ApiControllerBase(sender
             cancellationToken);
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
+
+    /// <summary>Atualiza as configurações de fidelidade do tenant.</summary>
+    [HttpPut("loyalty-settings")]
+    [Authorize(Roles = "TenantOwner,PlatformAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateLoyaltySettings(
+        [FromBody] UpdateLoyaltySettingsRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new UpdateLoyaltySettingsCommand(
+                request.IsEnabled, request.CreditRatePercent, request.MinBookingAmount),
+            cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
+
+    /// <summary>Atualiza a política de cancelamento do tenant.</summary>
+    [HttpPut("cancellation-policy")]
+    [Authorize(Roles = "TenantOwner,PlatformAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateCancellationPolicy(
+        [FromBody] UpdateCancellationPolicyRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new UpdateCancellationPolicyCommand(
+                request.MinCancellationHours, request.CancellationFeePercent, request.AllowCustomerCancellation),
+            cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
 }
 
 // ── Request DTOs ─────────────────────────────────────────────────────────────
@@ -197,3 +231,13 @@ public sealed record UpdatePaymentSettingsRequest(
     bool RequiresPayment,
     DepositMode DepositMode,
     decimal DepositValue);
+
+public sealed record UpdateLoyaltySettingsRequest(
+    bool    IsEnabled,
+    decimal CreditRatePercent,
+    decimal MinBookingAmount);
+
+public sealed record UpdateCancellationPolicyRequest(
+    int     MinCancellationHours,
+    decimal CancellationFeePercent,
+    bool    AllowCustomerCancellation);
