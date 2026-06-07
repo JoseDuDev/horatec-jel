@@ -1,5 +1,8 @@
 import { apiFetch } from './client'
-import type { Tenant, UpdateTenantRequest } from '../types/tenant'
+import type {
+  Tenant, UpdateTenantRequest,
+  UpdateLoyaltySettingsRequest, UpdateCancellationPolicyRequest,
+} from '../types/tenant'
 
 export const tenantsApi = {
   me: () => apiFetch<Tenant>('/api/v1/tenants/me'),
@@ -9,5 +12,15 @@ export const tenantsApi = {
     apiFetch<void>('/api/v1/tenants/me/theme', {
       method: 'PUT',
       body: JSON.stringify({ primaryColor, logoUrl }),
+    }),
+  updateLoyaltySettings: (data: UpdateLoyaltySettingsRequest) =>
+    apiFetch<void>('/api/v1/tenants/loyalty-settings', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  updateCancellationPolicy: (data: UpdateCancellationPolicyRequest) =>
+    apiFetch<void>('/api/v1/tenants/cancellation-policy', {
+      method: 'PUT',
+      body: JSON.stringify(data),
     }),
 }
