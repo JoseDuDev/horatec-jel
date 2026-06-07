@@ -22,7 +22,9 @@ public sealed class PaymentsController(ISender sender) : ApiControllerBase(sende
         CancellationToken cancellationToken)
     {
         var result = await Sender.Send(
-            new CreatePaymentCommand(request.BookingId, request.Amount, request.Method, request.BackUrl),
+            new CreatePaymentCommand(
+                request.BookingId, request.Amount, request.Method, request.BackUrl,
+                request.VoucherCode, request.UseWalletCredits),
             cancellationToken);
         return ToActionResult(result);
     }
@@ -47,6 +49,11 @@ public sealed class PaymentsController(ISender sender) : ApiControllerBase(sende
 }
 
 public sealed record CreatePaymentRequest(
-    Guid BookingId, decimal Amount, PaymentMethod Method, string BackUrl);
+    Guid          BookingId,
+    decimal       Amount,
+    PaymentMethod Method,
+    string        BackUrl,
+    string?       VoucherCode      = null,
+    bool          UseWalletCredits = false);
 
 public sealed record RefundRequest(decimal? Amount);
