@@ -14,16 +14,20 @@ namespace Horafy.Application.Tests.Payments;
 
 public sealed class CreatePaymentCommandHandlerTests
 {
-    private readonly Mock<IBookingRepository>    _bookingRepo = new();
-    private readonly Mock<ITenantRepository>     _tenantRepo  = new();
-    private readonly Mock<IPaymentRepository>    _paymentRepo = new();
-    private readonly Mock<IPaymentGateway>       _gateway     = new();
-    private readonly Mock<ICurrentTenantService> _tenantSvc   = new();
-    private readonly Mock<ITenantUnitOfWork>     _unitOfWork  = new();
+    private readonly Mock<IBookingRepository>    _bookingRepo  = new();
+    private readonly Mock<ITenantRepository>     _tenantRepo   = new();
+    private readonly Mock<IPaymentRepository>    _paymentRepo  = new();
+    private readonly Mock<IPaymentGateway>       _gateway      = new();
+    private readonly Mock<ICurrentTenantService> _tenantSvc    = new();
+    private readonly Mock<ITenantUnitOfWork>     _unitOfWork   = new();
+    private readonly Mock<IVoucherRepository>    _voucherRepo  = new();
+    private readonly Mock<IWalletRepository>     _walletRepo   = new();
+    private readonly Mock<ICurrentUserService>   _currentUser  = new();
 
     private CreatePaymentCommandHandler MakeHandler() =>
         new(_bookingRepo.Object, _tenantRepo.Object, _paymentRepo.Object,
-            _gateway.Object, _tenantSvc.Object, _unitOfWork.Object);
+            _gateway.Object, _tenantSvc.Object, _unitOfWork.Object,
+            _voucherRepo.Object, _walletRepo.Object, _currentUser.Object);
 
     private static Booking MakeBooking()
     {
