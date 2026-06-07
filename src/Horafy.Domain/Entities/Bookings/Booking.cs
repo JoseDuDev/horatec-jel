@@ -133,6 +133,7 @@ public sealed class Booking : BaseEntity
         Status      = BookingStatus.Completed;
         CompletedAt = DateTimeOffset.UtcNow;
         UpdatedAt   = DateTimeOffset.UtcNow;
+        RaiseDomainEvent(new BookingCompletedEvent(Id, CustomerId));
     }
 
     public void MarkNoShow()
