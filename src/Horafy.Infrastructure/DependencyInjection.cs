@@ -101,6 +101,8 @@ public static class DependencyInjection
         services.AddScoped<INotificationTemplateRepository, NotificationTemplateRepository>();
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<IFavoriteServiceRepository, FavoriteServiceRepository>();
+        services.AddScoped<IWalletRepository, WalletRepository>();
+        services.AddScoped<IVoucherRepository, VoucherRepository>();
         services.AddScoped<ITenantUnitOfWork, TenantUnitOfWork>();
 
         // Auth — JWT, OAuth, hashing

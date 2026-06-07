@@ -7,8 +7,11 @@ using Horafy.Domain.Entities.Payments;
 using Horafy.Domain.Entities.Resources;
 using Horafy.Domain.Entities.Reviews;
 using Horafy.Domain.Entities.Services;
+using Horafy.Domain.Entities.Vouchers;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using WalletEntity = Horafy.Domain.Entities.Wallet.Wallet;
+using WalletTransaction = Horafy.Domain.Entities.Wallet.WalletTransaction;
 
 namespace Horafy.Infrastructure.Persistence;
 
@@ -29,6 +32,9 @@ public sealed class TenantDbContext : DbContext
     public DbSet<NotificationTemplate>  NotificationTemplates  => Set<NotificationTemplate>();
     public DbSet<Review>                Reviews                => Set<Review>();
     public DbSet<FavoriteService>       FavoriteServices       => Set<FavoriteService>();
+    public DbSet<WalletEntity>          Wallets                => Set<WalletEntity>();
+    public DbSet<WalletTransaction>     WalletTransactions     => Set<WalletTransaction>();
+    public DbSet<Voucher>               Vouchers               => Set<Voucher>();
 
     public TenantDbContext(
         DbContextOptions<TenantDbContext> options,
