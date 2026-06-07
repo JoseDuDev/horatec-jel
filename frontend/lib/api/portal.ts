@@ -69,6 +69,12 @@ export const portalApi = {
       body: JSON.stringify(data),
     }, token),
 
+  cancelBooking: (slug: string, token: string, bookingId: string, reason?: string) =>
+    portalFetch<void>(`/api/v1/bookings/${bookingId}/cancel`, slug, {
+      method: 'POST',
+      body: JSON.stringify({ reason: reason ?? null }),
+    }, token),
+
   myFavorites: (slug: string, token: string) =>
     portalFetch<FavoriteService[]>('/api/v1/customers/favorites', slug, {}, token),
 

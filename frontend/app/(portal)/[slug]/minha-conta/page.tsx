@@ -33,6 +33,8 @@ export default function MinhaContaPage({ params }: Props) {
   const [favorites, setFavorites] = useState<FavoriteService[]>([])
   const [loading, setLoading] = useState(true)
   const [reviewingBookingId, setReviewingBookingId] = useState<string | null>(null)
+  const [cancellingId, setCancellingId] = useState<string | null>(null)
+  const [cancelError, setCancelError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!accessToken) { setLoading(false); return }
@@ -50,6 +52,25 @@ export default function MinhaContaPage({ params }: Props) {
       setReviewingBookingId(null)
     } catch {
       alert('Erro ao enviar avaliação.')
+    }
+  }
+
+  const handleCancel = async (bookingId: string) => {
+    if (!accessToken) return
+    setCancelError(null)
+    try {
+      await portalApi.cancelBooking(slug, accessToken, bookingId)
+      setBookings(prev => prev.filter(b => b.id !== bookingId))
+      setCancellingId(null)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Erro ao cancelar'
+      setCancelError(
+        msg.includes('CancellationNotAllowed')
+          ? 'Cancelamentos não são permitidos por este estabelecimento.'
+          : msg.includes('CancellationWindowClosed')
+            ? 'O prazo para cancelamento gratuito já encerrou.'
+            : msg
+      )
     }
   }
 
@@ -113,6 +134,38 @@ export default function MinhaContaPage({ params }: Props) {
                             <Link href={`/${slug}/agendar/${b.id}/status`} className="text-xs text-indigo-600 hover:underline">
                               Ver detalhes
                             </Link>
+                            {cancellingId === b.id ? (
+                              <div className="flex flex-col items-end gap-1">
+                                {cancelError && (
+                                  <p className="text-xs text-red-500 text-right max-w-[180px]">{cancelError}</p>
+                                )}
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => handleCancel(b.id)}
+                                  >
+                                    Confirmar cancelamento
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => { setCancellingId(null); setCancelError(null) }}
+                                  >
+                                    Voltar
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-xs text-red-500 hover:text-red-700 h-auto p-0"
+                                onClick={() => { setCancellingId(b.id); setCancelError(null) }}
+                              >
+                                Cancelar
+                              </Button>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
