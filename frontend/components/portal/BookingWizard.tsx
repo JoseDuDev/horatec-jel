@@ -8,7 +8,7 @@ import type { Resource } from '@/lib/types/resource'
 import { WizardStepService } from './WizardStepService'
 import { WizardStepResource } from './WizardStepResource'
 import { WizardStepSlot } from './WizardStepSlot'
-import { WizardStepConfirm } from './WizardStepConfirm'
+import { WizardStepConfirm, type CheckoutOptions } from './WizardStepConfirm'
 import { portalApi } from '@/lib/api/portal'
 import { usePortalAuthStore } from '@/store/portal-auth'
 import { Button } from '@/components/ui/button'
@@ -65,7 +65,7 @@ export function BookingWizard({ slug, services, resources, initialServiceId }: P
     if (step < STEPS.length - 1) setStep(s => s + 1)
   }
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (opts: CheckoutOptions) => {
     if (!serviceId || !resourceId || !selectedSlot) return
     if (!customer || !accessToken) {
       alert('Você precisa entrar com Google para agendar.')
@@ -73,13 +73,35 @@ export function BookingWizard({ slug, services, resources, initialServiceId }: P
     }
     setSubmitting(true)
     try {
-      const result = await portalApi.createBooking(slug, accessToken, {
+      const booking = await portalApi.createBooking(slug, accessToken, {
         serviceId,
         resourceId,
         scheduledAt: selectedSlot,
         notes: notes || undefined,
       })
-      router.push(`/${slug}/agendar/${result.id}/status`)
+
+      const service = activeServices.find(s => s.id === serviceId)
+      if (service) {
+        const backUrl = `${window.location.origin}/${slug}/agendar/${booking.id}/status`
+        try {
+          const payment = await portalApi.createPayment(slug, accessToken, {
+            bookingId: booking.id,
+            amount: service.price,
+            method: 'Pix',
+            backUrl,
+            voucherCode: opts.voucherCode,
+            useWalletCredits: opts.useWalletCredits,
+          })
+          if (payment.paymentUrl) {
+            window.location.href = payment.paymentUrl
+            return
+          }
+        } catch {
+          // pagamento falhou — vai para status de qualquer forma
+        }
+      }
+
+      router.push(`/${slug}/agendar/${booking.id}/status`)
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Erro ao criar agendamento.')
     } finally {
