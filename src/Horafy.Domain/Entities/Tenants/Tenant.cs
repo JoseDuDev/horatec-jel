@@ -52,6 +52,7 @@ public sealed class Tenant : BaseEntity
     public DateTimeOffset? PlanRenewsAt { get; private set; }
     public CancellationPolicy CancellationPolicy { get; private set; } = CancellationPolicy.Default;
     public PaymentSettings PaymentSettings { get; private set; } = PaymentSettings.Default;
+    public LoyaltySettings LoyaltySettings { get; private set; } = LoyaltySettings.Default;
 
     public static Tenant Create(
         string name,
@@ -145,6 +146,12 @@ public sealed class Tenant : BaseEntity
     public void UpdatePaymentSettings(bool requiresPayment, DepositMode mode, decimal value)
     {
         PaymentSettings = PaymentSettings.Create(requiresPayment, mode, value);
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void UpdateLoyaltySettings(bool isEnabled, decimal ratePercent, decimal minAmount)
+    {
+        LoyaltySettings = LoyaltySettings.Create(isEnabled, ratePercent, minAmount);
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 }

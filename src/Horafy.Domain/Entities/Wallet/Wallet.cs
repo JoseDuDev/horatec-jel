@@ -40,4 +40,13 @@ public sealed class Wallet : BaseEntity
             Id, WalletTransactionType.BookingPayment, amount, description, bookingId));
         return Result.Success();
     }
+
+    public Result AddLoyaltyBonus(decimal amount, string description, Guid bookingId)
+    {
+        if (amount <= 0) return Result.Failure(WalletErrors.InvalidAmount);
+        Balance += amount;
+        _transactions.Add(WalletTransaction.Create(
+            Id, WalletTransactionType.LoyaltyBonus, amount, description, bookingId));
+        return Result.Success();
+    }
 }
