@@ -1,0 +1,38 @@
+# Caddyfile — Horafy production reverse proxy
+# Substitua horafy.com.br pelo domínio real
+
+{
+  email ops@horafy.com.br
+}
+
+horafy.com.br {
+  # API: rota /api/* e /health para o backend .NET
+  handle /api/* {
+    reverse_proxy api:8080
+  }
+
+  handle /health {
+    reverse_proxy api:8080
+  }
+
+  # Scalar UI e webhooks também vão para o backend
+  handle /scalar/* {
+    reverse_proxy api:8080
+  }
+
+  handle /webhooks/* {
+    reverse_proxy api:8080
+  }
+
+  # Tudo mais vai para o Next.js
+  handle {
+    reverse_proxy frontend:3000
+  }
+
+  log {
+    output file /var/log/caddy/horafy.log {
+      roll_size 10mb
+      roll_keep 5
+    }
+  }
+}

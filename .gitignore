@@ -17,6 +17,7 @@ _ReSharper*/
 
 ## Secrets (NUNCA commitar)
 .env
+.env.prod
 appsettings.*.local.json
 **/secrets.json
 

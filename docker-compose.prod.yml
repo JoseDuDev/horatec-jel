@@ -1,0 +1,124 @@
+# docker-compose.prod.yml — Produção (VPS Hetzner/DigitalOcean)
+# Uso: docker compose -f docker-compose.prod.yml up -d
+name: horafy-prod
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: horafy-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - horafy-net
+    depends_on:
+      - api
+      - frontend
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: horafy-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: horafy
+      POSTGRES_USER: horafy
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U horafy -d horafy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - horafy-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: horafy-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - horafy-net
+
+  rabbitmq:
+    image: rabbitmq:3.13-alpine
+    container_name: horafy-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: horafy
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: horafy
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - horafy-net
+
+  api:
+    image: ghcr.io/${GITHUB_REPOSITORY}/horafy-api:${IMAGE_TAG:-latest}
+    container_name: horafy-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=horafy;Username=horafy;Password=${POSTGRES_PASSWORD}"
+      Redis__ConnectionString: "redis:6379,password=${REDIS_PASSWORD}"
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__Username: horafy
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD}
+      JWT__Secret: ${JWT_SECRET}
+      JWT__Issuer: ${JWT_ISSUER}
+      JWT__Audience: ${JWT_AUDIENCE}
+      MercadoPago__AccessToken: ${MERCADOPAGO_ACCESS_TOKEN}
+      Google__ClientId: ${GOOGLE_CLIENT_ID}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - horafy-net
+
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY}/horafy-frontend:${IMAGE_TAG:-latest}
+    container_name: horafy-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://${DOMAIN}
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+    networks:
+      - horafy-net
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  horafy-net:
+    driver: bridge
