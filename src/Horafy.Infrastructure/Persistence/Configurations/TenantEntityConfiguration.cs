@@ -100,6 +100,15 @@ public sealed class TenantEntityConfiguration : IEntityTypeConfiguration<Tenant>
               .HasColumnType("numeric(10,2)").HasDefaultValue(0m);
         });
 
+        builder.OwnsOne(t => t.LoyaltySettings, ls =>
+        {
+            ls.Property(l => l.IsEnabled).HasDefaultValue(false);
+            ls.Property(l => l.CreditRatePercent)
+              .HasColumnType("numeric(5,2)").HasDefaultValue(0m);
+            ls.Property(l => l.MinBookingAmount)
+              .HasColumnType("numeric(10,2)").HasDefaultValue(0m);
+        });
+
         builder.Property(t => t.CreatedAt).IsRequired();
         builder.Property(t => t.IsDeleted).HasDefaultValue(false);
     }
