@@ -15,6 +15,7 @@ import { GoogleSignInButton } from '@/components/portal/GoogleSignInButton'
 import { cn } from '@/lib/utils'
 import { HeartOff } from 'lucide-react'
 import { ReviewForm } from '@/components/portal/ReviewForm'
+import { WalletWidget } from '@/components/portal/WalletWidget'
 
 const STATUS_LABEL: Record<string, string> = {
   Pending: 'Pendente', Confirmed: 'Confirmado', Completed: 'Concluído',
@@ -87,6 +88,7 @@ export default function MinhaContaPage({ params }: Props) {
         <TabsList className="mb-6">
           <TabsTrigger value="agendamentos">Agendamentos</TabsTrigger>
           <TabsTrigger value="favoritos">Favoritos</TabsTrigger>
+          <TabsTrigger value="carteira">Carteira</TabsTrigger>
         </TabsList>
 
         <TabsContent value="agendamentos">
@@ -201,6 +203,10 @@ export default function MinhaContaPage({ params }: Props) {
               ))}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="carteira">
+          <WalletWidget token={accessToken ?? ''} />
         </TabsContent>
       </Tabs>
     </div>
