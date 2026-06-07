@@ -22,15 +22,15 @@ type IdentityForm = z.infer<typeof identitySchema>
 
 const loyaltySchema = z.object({
   isEnabled: z.boolean(),
-  creditRatePercent: z.coerce.number().min(0).max(100),
-  minBookingAmount: z.coerce.number().min(0),
+  creditRatePercent: z.number().min(0).max(100),
+  minBookingAmount: z.number().min(0),
 })
 type LoyaltyForm = z.infer<typeof loyaltySchema>
 
 const cancellationSchema = z.object({
   allowCustomerCancellation: z.boolean(),
-  minCancellationHours: z.coerce.number().int().min(0),
-  cancellationFeePercent: z.coerce.number().min(0).max(100),
+  minCancellationHours: z.number().int().min(0),
+  cancellationFeePercent: z.number().min(0).max(100),
 })
 type CancellationForm = z.infer<typeof cancellationSchema>
 
@@ -153,7 +153,7 @@ export default function ConfiguracoesPage() {
                     id="minCancellationHours"
                     type="number"
                     min={0}
-                    {...cancelForm.register('minCancellationHours')}
+                    {...cancelForm.register('minCancellationHours', { valueAsNumber: true })}
                     placeholder="Ex: 24"
                   />
                   <p className="text-xs text-slate-500 mt-1">
@@ -168,7 +168,7 @@ export default function ConfiguracoesPage() {
                     min={0}
                     max={100}
                     step="0.01"
-                    {...cancelForm.register('cancellationFeePercent')}
+                    {...cancelForm.register('cancellationFeePercent', { valueAsNumber: true })}
                     placeholder="Ex: 20"
                   />
                   <p className="text-xs text-slate-500 mt-1">
@@ -206,7 +206,7 @@ export default function ConfiguracoesPage() {
                     min={0}
                     max={100}
                     step="0.1"
-                    {...loyaltyForm.register('creditRatePercent')}
+                    {...loyaltyForm.register('creditRatePercent', { valueAsNumber: true })}
                     placeholder="Ex: 5"
                   />
                   <p className="text-xs text-slate-500 mt-1">
@@ -220,7 +220,7 @@ export default function ConfiguracoesPage() {
                     type="number"
                     min={0}
                     step="0.01"
-                    {...loyaltyForm.register('minBookingAmount')}
+                    {...loyaltyForm.register('minBookingAmount', { valueAsNumber: true })}
                     placeholder="Ex: 0"
                   />
                   <p className="text-xs text-slate-500 mt-1">
