@@ -62,3 +62,18 @@ export interface BookingCreatedResult {
   status: string
   paymentUrl?: string
 }
+
+export interface CreatePaymentPortalRequest {
+  bookingId: string
+  amount: number
+  method: 'Pix' | 'CreditCard' | 'DebitCard' | 'Boleto'
+  backUrl: string
+  voucherCode?: string
+  useWalletCredits?: boolean
+}
+
+export interface PaymentPortalResult {
+  paymentId: string
+  preferenceId: string
+  paymentUrl?: string
+}

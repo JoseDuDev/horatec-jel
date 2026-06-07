@@ -27,7 +27,8 @@ async function portalFetch<T>(
 
 import type {
   TenantPublicInfo, CustomerProfile, CustomerBooking,
-  PortalReview, FavoriteService, CreateBookingRequest, BookingCreatedResult
+  PortalReview, FavoriteService, CreateBookingRequest, BookingCreatedResult,
+  CreatePaymentPortalRequest, PaymentPortalResult,
 } from '../types/portal'
 import type { Service } from '../types/service'
 import type { Resource } from '../types/resource'
@@ -58,6 +59,12 @@ export const portalApi = {
 
   createBooking: (slug: string, token: string, data: CreateBookingRequest) =>
     portalFetch<BookingCreatedResult>('/api/v1/bookings', slug, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, token),
+
+  createPayment: (slug: string, token: string, data: CreatePaymentPortalRequest) =>
+    portalFetch<PaymentPortalResult>('/api/v1/payments', slug, {
       method: 'POST',
       body: JSON.stringify(data),
     }, token),
