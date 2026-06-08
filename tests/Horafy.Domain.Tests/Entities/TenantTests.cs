@@ -113,7 +113,7 @@ public sealed class TenantTests
     }
 
     [Fact]
-    public void CompleteOnboarding_SetsOnboardingCompletedAt()
+    public void CompleteOnboarding_DeveDefinirOnboardingCompletedAt()
     {
         var tenant = Tenant.Create("Barbearia", "barbearia", TenantVertical.Barbershop);
         tenant.ClearDomainEvents();
@@ -126,7 +126,7 @@ public sealed class TenantTests
     }
 
     [Fact]
-    public void IsOnboardingCompleted_ReturnsFalseForNewTenant()
+    public void IsOnboardingCompleted_DeveRetornarFalseParaNovoTenant()
     {
         var tenant = Tenant.Create("Barbearia", "barbearia", TenantVertical.Barbershop);
 
