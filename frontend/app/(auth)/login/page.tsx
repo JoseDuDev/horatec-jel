@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { authApi } from '@/lib/api/auth'
+import { tenantsApi } from '@/lib/api/tenants'
 import { useAuthStore } from '@/store/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,10 +39,19 @@ function LoginForm() {
       document.cookie = `tenant_slug=${data.tenantSlug}; path=/`
       const tokens = await authApi.login(data.email, data.password)
       document.cookie = `access_token=${tokens.accessToken}; path=/; max-age=${60 * 60 * 24}`
-      const user = await authApi.me()
+      const [user, tenant] = await Promise.all([authApi.me(), tenantsApi.me()])
       setAuth(user, tokens, data.tenantSlug)
-      const redirect = searchParams.get('redirect') ?? '/admin/dashboard'
-      router.replace(redirect)
+
+      const needsOnboarding =
+        !tenant.isOnboardingCompleted &&
+        (user.role === 'TenantOwner' || user.role === 'TenantAdmin')
+
+      if (needsOnboarding) {
+        router.replace('/admin/onboarding')
+      } else {
+        const redirect = searchParams.get('redirect') ?? '/admin/dashboard'
+        router.replace(redirect)
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erro ao fazer login')
     } finally {
