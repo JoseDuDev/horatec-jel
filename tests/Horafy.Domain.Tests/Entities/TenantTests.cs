@@ -111,4 +111,25 @@ public sealed class TenantTests
         tenant.Plan.Should().Be(TenantPlan.Professional);
         tenant.PlanRenewsAt.Should().Be(renewsAt);
     }
+
+    [Fact]
+    public void CompleteOnboarding_SetsOnboardingCompletedAt()
+    {
+        var tenant = Tenant.Create("Barbearia", "barbearia", TenantVertical.Barbershop);
+        tenant.ClearDomainEvents();
+
+        tenant.CompleteOnboarding();
+
+        tenant.OnboardingCompletedAt.Should().NotBeNull();
+        tenant.IsOnboardingCompleted.Should().BeTrue();
+        tenant.UpdatedAt.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void IsOnboardingCompleted_ReturnsFalseForNewTenant()
+    {
+        var tenant = Tenant.Create("Barbearia", "barbearia", TenantVertical.Barbershop);
+
+        tenant.IsOnboardingCompleted.Should().BeFalse();
+    }
 }

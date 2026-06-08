@@ -53,6 +53,8 @@ public sealed class Tenant : BaseEntity
     public CancellationPolicy CancellationPolicy { get; private set; } = CancellationPolicy.Default;
     public PaymentSettings PaymentSettings { get; private set; } = PaymentSettings.Default;
     public LoyaltySettings LoyaltySettings { get; private set; } = LoyaltySettings.Default;
+    public DateTimeOffset? OnboardingCompletedAt { get; private set; }
+    public bool IsOnboardingCompleted => OnboardingCompletedAt.HasValue;
 
     public static Tenant Create(
         string name,
@@ -153,6 +155,12 @@ public sealed class Tenant : BaseEntity
     {
         LoyaltySettings = LoyaltySettings.Create(isEnabled, ratePercent, minAmount);
         UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void CompleteOnboarding()
+    {
+        OnboardingCompletedAt = DateTimeOffset.UtcNow;
+        UpdatedAt             = DateTimeOffset.UtcNow;
     }
 }
 
