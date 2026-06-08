@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { onboardingApi } from '@/lib/api/onboarding'
+import { tenantsApi } from '@/lib/api/tenants'
 import type {
   OnboardingTenantData,
   OnboardingThemeData,
@@ -89,6 +90,7 @@ export default function OnboardingPage() {
           onboardingApi.setBusinessHours(d.dayOfWeek, d.isOpen, d.openTime, d.closeTime)
         )
       )
+      await tenantsApi.completeOnboarding()
       router.push('/admin/dashboard')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erro ao salvar')
