@@ -190,8 +190,8 @@ public sealed class TenantsController(ISender sender) : ApiControllerBase(sender
     }
 
     /// <summary>Marca o onboarding do tenant como concluído.</summary>
-    [HttpPost("/api/v{version:apiVersion}/tenants/me/onboarding-complete")]
-    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [HttpPost("me/onboarding-complete")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> CompleteOnboarding(CancellationToken cancellationToken)
     {

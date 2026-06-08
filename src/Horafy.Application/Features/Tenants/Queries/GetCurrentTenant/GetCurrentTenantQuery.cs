@@ -27,9 +27,9 @@ public sealed record TenantResult(
     TenantThemeResult Theme,
     DateTimeOffset? TrialEndsAt,
     DateTimeOffset? PlanRenewsAt,
+    bool                     IsOnboardingCompleted,
     CancellationPolicyResult CancellationPolicy,
-    LoyaltySettingsResult    LoyaltySettings,
-    bool IsOnboardingCompleted);
+    LoyaltySettingsResult    LoyaltySettings);
 
 public sealed record CancellationPolicyResult(
     int     MinCancellationHours,
@@ -90,6 +90,7 @@ internal sealed class GetCurrentTenantQueryHandler(
             t.Theme.InstagramUrl, t.Theme.WhatsAppNumber, t.Theme.FacebookUrl,
             t.Theme.SectionsOrder),
         t.TrialEndsAt, t.PlanRenewsAt,
+        t.IsOnboardingCompleted,
         new CancellationPolicyResult(
             t.CancellationPolicy.MinCancellationHours,
             t.CancellationPolicy.CancellationFeePercent,
@@ -97,6 +98,5 @@ internal sealed class GetCurrentTenantQueryHandler(
         new LoyaltySettingsResult(
             t.LoyaltySettings.IsEnabled,
             t.LoyaltySettings.CreditRatePercent,
-            t.LoyaltySettings.MinBookingAmount),
-        t.IsOnboardingCompleted);
+            t.LoyaltySettings.MinBookingAmount));
 }
