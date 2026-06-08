@@ -23,4 +23,6 @@ export const tenantsApi = {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
+  completeOnboarding: () =>
+    apiFetch<void>('/api/v1/tenants/me/onboarding-complete', { method: 'POST' }),
 }

@@ -21,6 +21,7 @@ export interface Tenant {
   plan: string
   cancellationPolicy: CancellationPolicy
   loyaltySettings: LoyaltySettings
+  isOnboardingCompleted: boolean
 }
 
 export interface UpdateTenantRequest {
