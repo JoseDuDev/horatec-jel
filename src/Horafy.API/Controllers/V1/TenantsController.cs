@@ -7,6 +7,7 @@ using Horafy.Application.Features.Tenants.Commands.RemoveCustomDomain;
 using Horafy.Application.Features.Tenants.Commands.SetCustomDomain;
 using Horafy.Application.Features.Tenants.Commands.SuspendTenant;
 using Horafy.Application.Features.Tenants.Commands.UpdateCancellationPolicy;
+using Horafy.Application.Features.Tenants.Commands.CompleteOnboarding;
 using Horafy.Application.Features.Tenants.Commands.UpdateLoyaltySettings;
 using Horafy.Application.Features.Tenants.Commands.UpdatePaymentSettings;
 using Horafy.Application.Features.Tenants.Commands.UpdateTenant;
@@ -185,6 +186,16 @@ public sealed class TenantsController(ISender sender) : ApiControllerBase(sender
             new UpdateLoyaltySettingsCommand(
                 request.IsEnabled, request.CreditRatePercent, request.MinBookingAmount),
             cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
+
+    /// <summary>Marca o onboarding do tenant como concluído.</summary>
+    [HttpPost("/api/v{version:apiVersion}/tenants/me/onboarding-complete")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> CompleteOnboarding(CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(new CompleteOnboardingCommand(), cancellationToken);
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
 

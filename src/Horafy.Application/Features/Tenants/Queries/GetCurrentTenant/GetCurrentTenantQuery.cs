@@ -28,7 +28,8 @@ public sealed record TenantResult(
     DateTimeOffset? TrialEndsAt,
     DateTimeOffset? PlanRenewsAt,
     CancellationPolicyResult CancellationPolicy,
-    LoyaltySettingsResult    LoyaltySettings);
+    LoyaltySettingsResult    LoyaltySettings,
+    bool IsOnboardingCompleted);
 
 public sealed record CancellationPolicyResult(
     int     MinCancellationHours,
@@ -96,5 +97,6 @@ internal sealed class GetCurrentTenantQueryHandler(
         new LoyaltySettingsResult(
             t.LoyaltySettings.IsEnabled,
             t.LoyaltySettings.CreditRatePercent,
-            t.LoyaltySettings.MinBookingAmount));
+            t.LoyaltySettings.MinBookingAmount),
+        t.IsOnboardingCompleted);
 }
