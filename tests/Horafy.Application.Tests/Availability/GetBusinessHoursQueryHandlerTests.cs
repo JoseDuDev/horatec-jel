@@ -17,7 +17,7 @@ public sealed class GetBusinessHoursQueryHandlerTests
     [Fact]
     public async Task Handle_NenhumHorarioCadastrado_RetornaSeteDiasComPadraoFechado()
     {
-        _repo.Setup(r => r.GetBusinessHoursAsync(default))
+        _repo.Setup(r => r.GetBusinessHoursAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<BusinessHours>());
 
         var result = await MakeHandler().Handle(new GetBusinessHoursQuery(), default);
@@ -32,7 +32,7 @@ public sealed class GetBusinessHoursQueryHandlerTests
     {
         var segunda = BusinessHours.Create(
             DayOfWeek.Monday, new TimeOnly(8, 0), new TimeOnly(17, 0), isOpen: true);
-        _repo.Setup(r => r.GetBusinessHoursAsync(default))
+        _repo.Setup(r => r.GetBusinessHoursAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<BusinessHours> { segunda });
 
         var result = await MakeHandler().Handle(new GetBusinessHoursQuery(), default);
@@ -46,6 +46,11 @@ public sealed class GetBusinessHoursQueryHandlerTests
         seg.CloseTime.Should().Be(new TimeOnly(17, 0));
 
         result.Value.Where(b => b.DayOfWeek != DayOfWeek.Monday)
-            .Should().AllSatisfy(b => b.IsOpen.Should().BeFalse());
+            .Should().AllSatisfy(b =>
+            {
+                b.IsOpen.Should().BeFalse();
+                b.OpenTime.Should().Be(new TimeOnly(9, 0));
+                b.CloseTime.Should().Be(new TimeOnly(18, 0));
+            });
     }
 }

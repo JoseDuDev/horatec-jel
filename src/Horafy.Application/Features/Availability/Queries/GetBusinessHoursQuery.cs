@@ -16,6 +16,9 @@ internal sealed class GetBusinessHoursQueryHandler(
     IAvailabilityRepository repository)
     : IRequestHandler<GetBusinessHoursQuery, Result<IReadOnlyList<BusinessHoursResult>>>
 {
+    private static readonly TimeOnly DefaultOpenTime  = new(9, 0);
+    private static readonly TimeOnly DefaultCloseTime = new(18, 0);
+
     public async Task<Result<IReadOnlyList<BusinessHoursResult>>> Handle(
         GetBusinessHoursQuery request, CancellationToken cancellationToken)
     {
@@ -27,7 +30,7 @@ internal sealed class GetBusinessHoursQueryHandler(
                 var bh = stored.FirstOrDefault(b => b.DayOfWeek == day);
                 return bh is not null
                     ? new BusinessHoursResult(bh.DayOfWeek, bh.OpenTime, bh.CloseTime, bh.IsOpen)
-                    : new BusinessHoursResult(day, new TimeOnly(9, 0), new TimeOnly(18, 0), false);
+                    : new BusinessHoursResult(day, DefaultOpenTime, DefaultCloseTime, false);
             })
             .ToList();
 
