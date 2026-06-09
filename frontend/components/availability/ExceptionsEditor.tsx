@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { format, addDays } from 'date-fns'
 import { availabilityApi } from '@/lib/api/availability'
 import type { AvailabilityExceptionDto } from '@/lib/types/availability'
@@ -42,15 +42,15 @@ export function ExceptionsEditor({ resources }: Props) {
   })
   const [saving, setSaving] = useState(false)
 
-  const loadExceptions = (id: string) => {
+  const loadExceptions = useCallback((id: string) => {
     const from = format(new Date(), 'yyyy-MM-dd')
     const to = format(addDays(new Date(), 90), 'yyyy-MM-dd')
     availabilityApi.getResourceExceptions(id, from, to).then(setExceptions)
-  }
+  }, [])
 
   useEffect(() => {
     if (resourceId) loadExceptions(resourceId)
-  }, [resourceId])
+  }, [resourceId, loadExceptions])
 
   const handleAdd = async () => {
     if (!resourceId) return

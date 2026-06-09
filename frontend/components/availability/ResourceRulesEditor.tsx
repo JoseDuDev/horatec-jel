@@ -158,7 +158,7 @@ export function ResourceRulesEditor({ resources }: Props) {
                       max={480}
                       value={d.slotDurationMinutes}
                       onChange={e =>
-                        update(d.dayOfWeek, 'slotDurationMinutes', parseInt(e.target.value))
+                        update(d.dayOfWeek, 'slotDurationMinutes', parseInt(e.target.value, 10) || 60)
                       }
                     />
                     <Input
@@ -167,7 +167,7 @@ export function ResourceRulesEditor({ resources }: Props) {
                       max={120}
                       value={d.breakAfterMinutes}
                       onChange={e =>
-                        update(d.dayOfWeek, 'breakAfterMinutes', parseInt(e.target.value))
+                        update(d.dayOfWeek, 'breakAfterMinutes', parseInt(e.target.value, 10) || 0)
                       }
                     />
                   </>
