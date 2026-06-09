@@ -24,6 +24,12 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
         ToActionResult(await Sender.Send(
             new GetAvailableSlotsQuery(resourceId, date, serviceId), cancellationToken));
 
+    [HttpGet("business-hours")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [ProducesResponseType(typeof(IReadOnlyList<BusinessHoursResult>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetBusinessHours(CancellationToken cancellationToken) =>
+        ToActionResult(await Sender.Send(new GetBusinessHoursQuery(), cancellationToken));
+
     [HttpPut("business-hours")]
     [Authorize(Roles = "TenantOwner,TenantAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -55,6 +61,13 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
 
+    [HttpGet("resources/{resourceId:guid}/rules")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [ProducesResponseType(typeof(IReadOnlyList<AvailabilityRuleResult>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetResourceRules(
+        Guid resourceId, CancellationToken cancellationToken) =>
+        ToActionResult(await Sender.Send(new GetResourceRulesQuery(resourceId), cancellationToken));
+
     [HttpPut("resources/{resourceId:guid}/exceptions")]
     [Authorize(Roles = "TenantOwner,TenantAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -69,6 +82,31 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
                 resourceId, request.Date, request.IsBlocked,
                 request.CustomStart, request.CustomEnd, request.Reason),
             cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
+
+    [HttpGet("resources/{resourceId:guid}/exceptions")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [ProducesResponseType(typeof(IReadOnlyList<AvailabilityExceptionResult>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetResourceExceptions(
+        Guid resourceId,
+        [FromQuery] DateOnly from,
+        [FromQuery] DateOnly to,
+        CancellationToken cancellationToken) =>
+        ToActionResult(await Sender.Send(
+            new GetResourceExceptionsQuery(resourceId, from, to), cancellationToken));
+
+    [HttpDelete("resources/{resourceId:guid}/exceptions/{date}")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteException(
+        Guid resourceId,
+        DateOnly date,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new DeleteAvailabilityExceptionCommand(resourceId, date), cancellationToken);
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
 
