@@ -8,10 +8,18 @@ import type { Service } from '@/lib/types/service'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
+const RESOURCE_TYPES = [
+  { value: 'Professional', label: 'Profissional' },
+  { value: 'PhysicalSpace', label: 'Espaço Físico' },
+  { value: 'Equipment', label: 'Equipamento' },
+  { value: 'Court', label: 'Quadra' },
+] as const
 
 const schema = z.object({
   name: z.string().min(1, 'Nome obrigatório'),
-  type: z.string().min(1, 'Tipo obrigatório'),
+  type: z.enum(['Professional', 'PhysicalSpace', 'Equipment', 'Court']),
   serviceIds: z.array(z.string()),
 })
 
@@ -29,7 +37,7 @@ export function ResourceForm({ initial, services, onSubmit, onCancel }: Props) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: initial?.name ?? '',
-      type: initial?.type ?? '',
+      type: initial?.type ?? 'Professional',
       serviceIds: initial?.serviceIds ?? [],
     },
   })
@@ -42,8 +50,23 @@ export function ResourceForm({ initial, services, onSubmit, onCancel }: Props) {
         {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>}
       </div>
       <div>
-        <Label htmlFor="type">Tipo</Label>
-        <Input id="type" {...register('type')} placeholder="Sala, Profissional, Mesa..." />
+        <Label>Tipo</Label>
+        <Controller
+          name="type"
+          control={control}
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Selecione o tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                {RESOURCE_TYPES.map(t => (
+                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
         {errors.type && <p className="text-sm text-red-500 mt-1">{errors.type.message}</p>}
       </div>
       <div>
@@ -53,6 +76,9 @@ export function ResourceForm({ initial, services, onSubmit, onCancel }: Props) {
           control={control}
           render={({ field }) => (
             <div className="space-y-2 mt-1">
+              {services.length === 0 && (
+                <p className="text-sm text-slate-400">Nenhum serviço cadastrado.</p>
+              )}
               {services.map(s => (
                 <label key={s.id} className="flex items-center gap-2 text-sm cursor-pointer">
                   <input

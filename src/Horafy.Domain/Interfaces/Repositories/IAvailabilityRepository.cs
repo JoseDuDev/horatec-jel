@@ -15,6 +15,7 @@ public interface IAvailabilityRepository
     Task<AvailabilityException?> GetExceptionAsync(Guid resourceId, DateOnly date, CancellationToken ct = default);
 
     Task<IReadOnlyList<ResourceService>> GetResourceServicesAsync(Guid resourceId, CancellationToken ct = default);
+    Task<IReadOnlyList<ResourceService>> GetServicesByResourcesAsync(IEnumerable<Guid> resourceIds, CancellationToken ct = default);
     Task<bool> ResourceServiceExistsAsync(Guid resourceId, Guid serviceId, CancellationToken ct = default);
 
     void Add<T>(T entity) where T : BaseEntity;

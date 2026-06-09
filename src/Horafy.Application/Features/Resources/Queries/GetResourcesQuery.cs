@@ -18,10 +18,12 @@ public sealed record ResourceResult(
     string? Specialty,
     string? Bio,
     string? AvatarUrl,
-    bool IsActive);
+    bool IsActive,
+    IReadOnlyList<Guid> ServiceIds);
 
 internal sealed class GetResourcesQueryHandler(
-    IResourceRepository resourceRepository)
+    IResourceRepository resourceRepository,
+    IAvailabilityRepository availabilityRepository)
     : IRequestHandler<GetResourcesQuery, Result<IReadOnlyList<ResourceResult>>>
 {
     public async Task<Result<IReadOnlyList<ResourceResult>>> Handle(
@@ -33,10 +35,17 @@ internal sealed class GetResourcesQueryHandler(
                 ? await resourceRepository.GetActiveAsync(cancellationToken)
                 : await resourceRepository.GetAllAsync(cancellationToken);
 
-        var result = resources.Select(ToResult).ToList();
+        var resourceIds = resources.Select(r => r.Id).ToList();
+        var services = await availabilityRepository.GetServicesByResourcesAsync(resourceIds, cancellationToken);
+        var servicesByResource = services.ToLookup(rs => rs.ResourceId, rs => rs.ServiceId);
+
+        var result = resources
+            .Select(r => ToResult(r, servicesByResource[r.Id].ToList()))
+            .ToList();
+
         return Result.Success<IReadOnlyList<ResourceResult>>(result);
     }
 
-    private static ResourceResult ToResult(Resource r) => new(
-        r.Id, r.Name, r.Type, r.Email, r.Phone, r.Specialty, r.Bio, r.AvatarUrl, r.IsActive);
+    private static ResourceResult ToResult(Resource r, IReadOnlyList<Guid> serviceIds) => new(
+        r.Id, r.Name, r.Type, r.Email, r.Phone, r.Specialty, r.Bio, r.AvatarUrl, r.IsActive, serviceIds);
 }

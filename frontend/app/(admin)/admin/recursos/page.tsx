@@ -11,6 +11,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 
+const RESOURCE_TYPE_LABELS: Record<string, string> = {
+  Professional: 'Profissional',
+  PhysicalSpace: 'Espaço Físico',
+  Equipment: 'Equipamento',
+  Court: 'Quadra',
+}
+
 export default function RecursosPage() {
   const [resources, setResources] = useState<Resource[]>([])
   const [services, setServices] = useState<Service[]>([])
@@ -25,8 +32,24 @@ export default function RecursosPage() {
   useEffect(() => { load() }, [])
 
   const handleSubmit = async (data: UpsertResourceRequest) => {
-    if (editing === 'new') await resourcesApi.create(data)
-    else if (editing) await resourcesApi.update(editing.id, data)
+    let resourceId: string
+    const currentIds = editing !== 'new' && editing !== null ? editing.serviceIds : []
+
+    if (editing === 'new') {
+      resourceId = await resourcesApi.create(data)
+    } else if (editing) {
+      await resourcesApi.update(editing.id, data)
+      resourceId = editing.id
+    } else return
+
+    const toAdd = data.serviceIds.filter(id => !currentIds.includes(id))
+    const toRemove = currentIds.filter(id => !data.serviceIds.includes(id))
+
+    await Promise.all([
+      ...toAdd.map(sId => resourcesApi.addService(resourceId, sId)),
+      ...toRemove.map(sId => resourcesApi.removeService(resourceId, sId)),
+    ])
+
     setEditing(null)
     load()
   }
@@ -56,7 +79,9 @@ export default function RecursosPage() {
               <CardTitle className="text-base">{r.name}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-slate-500">Tipo: {r.type}</p>
+              <p className="text-sm text-slate-500">
+                Tipo: {RESOURCE_TYPE_LABELS[r.type] ?? r.type}
+              </p>
               {r.serviceIds.length > 0 && (
                 <p className="text-xs text-slate-400 mt-1">
                   Serviços: {getServiceNames(r.serviceIds)}
