@@ -13,6 +13,8 @@ public interface IAvailabilityRepository
     Task<AvailabilityRule?> GetRuleAsync(Guid resourceId, DayOfWeek day, CancellationToken ct = default);
 
     Task<AvailabilityException?> GetExceptionAsync(Guid resourceId, DateOnly date, CancellationToken ct = default);
+    Task<IReadOnlyList<AvailabilityException>> GetExceptionsByResourceAsync(
+        Guid resourceId, DateOnly from, DateOnly to, CancellationToken ct = default);
 
     Task<IReadOnlyList<ResourceService>> GetResourceServicesAsync(Guid resourceId, CancellationToken ct = default);
     Task<IReadOnlyList<ResourceService>> GetServicesByResourcesAsync(IEnumerable<Guid> resourceIds, CancellationToken ct = default);

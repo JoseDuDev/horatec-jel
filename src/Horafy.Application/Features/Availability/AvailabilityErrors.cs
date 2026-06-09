@@ -19,4 +19,7 @@ public static class AvailabilityErrors
         "Availability.ServiceNotLinked",
         "O serviço não está vinculado a este recurso.",
         ErrorType.NotFound);
+
+    public static readonly Error ExceptionNotFound = new(
+        "Availability.ExceptionNotFound", "Exceção não encontrada.", ErrorType.NotFound);
 }

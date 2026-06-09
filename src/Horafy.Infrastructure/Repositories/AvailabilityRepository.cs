@@ -38,6 +38,14 @@ internal sealed class AvailabilityRepository(TenantDbContext context) : IAvailab
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.ResourceId == resourceId && e.Date == date, ct);
 
+    public async Task<IReadOnlyList<AvailabilityException>> GetExceptionsByResourceAsync(
+        Guid resourceId, DateOnly from, DateOnly to, CancellationToken ct = default) =>
+        await context.Set<AvailabilityException>()
+            .AsNoTracking()
+            .Where(e => e.ResourceId == resourceId && e.Date >= from && e.Date <= to)
+            .OrderBy(e => e.Date)
+            .ToListAsync(ct);
+
     public async Task<IReadOnlyList<ResourceService>> GetResourceServicesAsync(
         Guid resourceId, CancellationToken ct = default) =>
         await context.Set<ResourceService>()
