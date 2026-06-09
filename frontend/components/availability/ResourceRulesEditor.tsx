@@ -102,7 +102,7 @@ export function ResourceRulesEditor({ resources }: Props) {
     <div className="space-y-6 max-w-3xl">
       <div className="max-w-xs">
         <Label>Recurso</Label>
-        <Select value={resourceId} onValueChange={setResourceId}>
+        <Select value={resourceId} onValueChange={v => setResourceId(v ?? '')}>
           <SelectTrigger className="mt-1">
             <SelectValue placeholder="Selecione um recurso..." />
           </SelectTrigger>
