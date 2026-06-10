@@ -16,3 +16,13 @@ export interface Booking {
   totalAmount: number
   createdAt: string
 }
+
+export interface AdminCreateBookingRequest {
+  serviceIds: string[]
+  resourceId: string
+  scheduledAt: string   // ISO 8601 — ex: "2026-06-10T14:00:00Z"
+  customerName: string
+  customerEmail?: string
+  customerPhone?: string
+  notes?: string
+}

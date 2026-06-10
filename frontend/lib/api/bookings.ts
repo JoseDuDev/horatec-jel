@@ -1,5 +1,5 @@
 import { apiFetch } from './client'
-import type { Booking, BookingStatus } from '../types/booking'
+import type { Booking, BookingStatus, AdminCreateBookingRequest } from '../types/booking'
 
 export const bookingsApi = {
   list: (params: { resourceId?: string; from?: string; to?: string; status?: BookingStatus }) => {
@@ -23,4 +23,10 @@ export const bookingsApi = {
 
   noShow: (id: string) =>
     apiFetch<void>(`/api/v1/bookings/${id}/no-show`, { method: 'POST' }),
+
+  adminCreate: (data: AdminCreateBookingRequest) =>
+    apiFetch<string>('/api/v1/bookings/admin', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 }

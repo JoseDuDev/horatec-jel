@@ -49,4 +49,14 @@ export const availabilityApi = {
       `/api/v1/availability/resources/${resourceId}/exceptions/${date}`,
       { method: 'DELETE' }
     ),
+
+  getSlots: (resourceId: string, date: string, serviceId?: string) => {
+    const qs = new URLSearchParams({
+      date,
+      ...(serviceId ? { serviceId } : {}),
+    }).toString()
+    return apiFetch<string[]>(
+      `/api/v1/availability/resources/${resourceId}/slots?${qs}`
+    )
+  },
 }
