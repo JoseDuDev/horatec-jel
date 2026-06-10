@@ -65,13 +65,15 @@ export function AdminBookingModal({ open, onOpenChange, onCreated }: Props) {
 
   useEffect(() => {
     if (!resourceId || !date) return
+    let cancelled = false
     setLoadingSlots(true)
     setSlots([])
     setSelectedSlot('')
     availabilityApi
       .getSlots(resourceId, date, serviceId || undefined)
-      .then(setSlots)
-      .finally(() => setLoadingSlots(false))
+      .then(data => { if (!cancelled) setSlots(data) })
+      .finally(() => { if (!cancelled) setLoadingSlots(false) })
+    return () => { cancelled = true }
   }, [resourceId, date, serviceId])
 
   const reset = () => {
@@ -81,10 +83,12 @@ export function AdminBookingModal({ open, onOpenChange, onCreated }: Props) {
     setDate(format(new Date(), 'yyyy-MM-dd'))
     setSlots([])
     setSelectedSlot('')
+    setLoadingSlots(false)
     setCustomerName('')
     setCustomerEmail('')
     setCustomerPhone('')
     setNotes('')
+    setSaving(false)
   }
 
   const handleOpenChange = (open: boolean) => {
