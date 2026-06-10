@@ -53,6 +53,30 @@ public sealed class BookingsController(ISender sender) : ApiControllerBase(sende
         return CreatedAtRoute("GetBookingById", new { id = result.Value }, result.Value);
     }
 
+    [HttpPost("admin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,TenantStaff,PlatformAdmin")]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> AdminCreate(
+        [FromBody] AdminCreateBookingRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new AdminCreateBookingCommand(
+                request.ServiceIds,
+                request.ResourceId,
+                request.ScheduledAt,
+                request.CustomerName,
+                request.CustomerEmail,
+                request.CustomerPhone,
+                request.Notes),
+            cancellationToken);
+
+        if (result.IsFailure) return ToActionResult(result);
+        return CreatedAtRoute("GetBookingById", new { id = result.Value }, result.Value);
+    }
+
     [HttpPost("{id:guid}/confirm")]
     [Authorize(Roles = "TenantOwner,TenantAdmin,TenantStaff,PlatformAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -94,30 +118,6 @@ public sealed class BookingsController(ISender sender) : ApiControllerBase(sende
     {
         var result = await Sender.Send(new NoShowBookingCommand(id), cancellationToken);
         return result.IsSuccess ? NoContent() : ToActionResult(result);
-    }
-
-    [HttpPost("admin")]
-    [Authorize(Roles = "TenantOwner,TenantAdmin,TenantStaff,PlatformAdmin")]
-    [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> AdminCreate(
-        [FromBody] AdminCreateBookingRequest request,
-        CancellationToken cancellationToken)
-    {
-        var result = await Sender.Send(
-            new AdminCreateBookingCommand(
-                request.ServiceIds,
-                request.ResourceId,
-                request.ScheduledAt,
-                request.CustomerName,
-                request.CustomerEmail,
-                request.CustomerPhone,
-                request.Notes),
-            cancellationToken);
-
-        if (result.IsFailure) return ToActionResult(result);
-        return CreatedAtRoute("GetBookingById", new { id = result.Value }, result.Value);
     }
 
     [HttpPost("recurring")]
