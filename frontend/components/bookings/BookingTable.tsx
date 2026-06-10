@@ -61,20 +61,37 @@ export function BookingTable({ bookings, onAction }: Props) {
             </TableCell>
             <TableCell>R$ {b.totalAmount.toFixed(2)}</TableCell>
             <TableCell>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {b.status === 'Pending' && (
                   <Button size="sm" onClick={() => onAction('confirm', b.id)}>
                     Confirmar
                   </Button>
                 )}
                 {(b.status === 'Pending' || b.status === 'Confirmed') && (
-                  <Button size="sm" variant="outline" onClick={() => onAction('cancel', b.id)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onAction('cancel', b.id)}
+                  >
                     Cancelar
                   </Button>
                 )}
                 {b.status === 'Confirmed' && (
-                  <Button size="sm" variant="secondary" onClick={() => onAction('complete', b.id)}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => onAction('complete', b.id)}
+                  >
                     Concluir
+                  </Button>
+                )}
+                {b.status === 'Confirmed' && (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => onAction('noshow', b.id)}
+                  >
+                    Não Compareceu
                   </Button>
                 )}
               </div>
