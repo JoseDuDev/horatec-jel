@@ -24,6 +24,11 @@ internal sealed class CustomerTestLoginCommandHandler(
             return Result.Failure<TokenPair>(AuthErrors.TenantNotFound);
 
         var user = await userRepository.GetByEmailAsync(request.Email, cancellationToken);
+
+        // If user belongs to a different tenant, create a fresh one for this tenant
+        if (user is not null && user.TenantId != tenant.Id)
+            user = null;
+
         if (user is null)
         {
             user = User.CreateWithEmail(
@@ -34,8 +39,10 @@ internal sealed class CustomerTestLoginCommandHandler(
                 role: UserRole.Customer);
 
             userRepository.Add(user);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
+
+        user.RecordLogin();
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(tokenService.GenerateTokens(user));
     }
