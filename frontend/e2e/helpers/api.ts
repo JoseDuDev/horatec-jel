@@ -193,7 +193,10 @@ export async function confirmBooking(
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}`, 'X-Tenant-Slug': slug },
   })
-  if (!res.ok) throw new Error(`confirmBooking → ${res.status}`)
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`confirmBooking → ${res.status}: ${text}`)
+  }
 }
 
 /** Marca agendamento como Concluído (ação de admin/staff). */
@@ -206,7 +209,10 @@ export async function completeBooking(
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}`, 'X-Tenant-Slug': slug },
   })
-  if (!res.ok) throw new Error(`completeBooking → ${res.status}`)
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`completeBooking → ${res.status}: ${text}`)
+  }
 }
 
 // ── StorageState helpers ──────────────────────────────────────────────────────
@@ -216,8 +222,12 @@ export async function completeBooking(
  * Injeta o Zustand store `horafy-auth` no localStorage.
  */
 export function adminStorageState(setup: TenantSetup): object {
+  // Decode JWT to get real owner ID (same approach as customerTestLogin)
+  const payload = JSON.parse(
+    Buffer.from(setup.ownerToken.split('.')[1], 'base64url').toString('utf-8')
+  )
   const state = {
-    user: { id: 'e2e-owner', name: setup.ownerName, email: setup.ownerEmail, role: 'TenantOwner' },
+    user: { id: payload.sub, name: setup.ownerName, email: setup.ownerEmail, role: 'TenantOwner' },
     accessToken: setup.ownerToken,
     refreshToken: '',
     tenantSlug: setup.slug,
