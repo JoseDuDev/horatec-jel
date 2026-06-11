@@ -123,16 +123,23 @@ public static class DependencyInjection
         });
 
         services.Configure<MercadoPagoOptions>(configuration.GetSection(MercadoPagoOptions.SectionName));
-        services.AddHttpClient<IPaymentGateway, MercadoPagoPaymentGateway>(client =>
+        if (Environment.GetEnvironmentVariable("PAYMENT_GATEWAY") == "fake")
         {
-            client.BaseAddress = new Uri("https://api.mercadopago.com");
-            client.DefaultRequestHeaders.Add("Accept", "application/json");
-        })
-        .AddHttpMessageHandler(sp =>
+            services.AddScoped<IPaymentGateway, FakePaymentGateway>();
+        }
+        else
         {
-            var token = configuration["MercadoPago:AccessToken"] ?? string.Empty;
-            return new BearerTokenHandler(token);
-        });
+            services.AddHttpClient<IPaymentGateway, MercadoPagoPaymentGateway>(client =>
+            {
+                client.BaseAddress = new Uri("https://api.mercadopago.com");
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+            })
+            .AddHttpMessageHandler(sp =>
+            {
+                var token = configuration["MercadoPago:AccessToken"] ?? string.Empty;
+                return new BearerTokenHandler(token);
+            });
+        }
 
         // Evolution API — WhatsApp
         services.Configure<EvolutionApiOptions>(
