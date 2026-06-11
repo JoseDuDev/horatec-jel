@@ -44,23 +44,21 @@ test.describe('Portal booking flow', () => {
     await page.getByText('João Barbeiro').click()
     await page.getByRole('button', { name: 'Próximo' }).click()
 
-    // 3. Step 2 — escolhe horário (primeiro slot disponível na semana)
+    // 3. Step 2 — escolhe horário
     await expect(page.getByText('Escolha a data e horário')).toBeVisible()
 
-    // Encontra o primeiro slot disponível (percorre os 14 dias se necessário)
-    let slotButton = page.getByRole('button', { name: /^\d{2}:\d{2}$/ }).first()
-    let attempts = 0
-    while (attempts < 14) {
+    // Date strip: click each day until slots appear (handles weekends with no business hours)
+    const dayBtns = page.locator('.overflow-x-auto').locator('button')
+    let slotFound = false
+    for (let i = 0; i < 14 && !slotFound; i++) {
+      await dayBtns.nth(i).click()
+      await page.waitForTimeout(600)
       const count = await page.getByRole('button', { name: /^\d{2}:\d{2}$/ }).count()
-      if (count > 0) break
-      // Avança para o próximo dia
-      const dateButtons = page.locator('button').filter({ hasText: /^(Dom|Seg|Ter|Qua|Qui|Sex|Sáb)/ })
-      // Na ausência de slots, tenta o próximo dia disponível
-      // O fallback é aguardar um slot aparecer em algum dia
-      attempts++
-      await page.waitForTimeout(500)
+      if (count > 0) slotFound = true
     }
-    await expect(slotButton).toBeVisible({ timeout: 15_000 })
+
+    const slotButton = page.getByRole('button', { name: /^\d{2}:\d{2}$/ }).first()
+    await expect(slotButton).toBeVisible({ timeout: 10_000 })
     await slotButton.click()
     await page.getByRole('button', { name: 'Próximo' }).click()
 
