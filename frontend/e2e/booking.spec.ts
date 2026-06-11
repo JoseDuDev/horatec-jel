@@ -32,6 +32,7 @@ test.describe('Portal booking flow', () => {
       storageState: customerStorageState(customerSetup) as any,
     })
     const page = await ctx.newPage()
+    try {
 
     // 1. Abre portal e step 0 — escolhe serviço
     await page.goto(`/${slug}/agendar`)
@@ -86,6 +87,8 @@ test.describe('Portal booking flow', () => {
     await page.reload()
     await expect(page.getByRole('heading', { name: 'Confirmado' })).toBeVisible({ timeout: 10_000 })
 
-    await ctx.close()
+    } finally {
+      await ctx.close()
+    }
   })
 })
