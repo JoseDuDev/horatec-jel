@@ -1,0 +1,115 @@
+name: horafy-e2e
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: horafy-e2e-postgres
+    environment:
+      POSTGRES_DB: horafy
+      POSTGRES_USER: horafy
+      POSTGRES_PASSWORD: horafy_e2e_pass
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U horafy -d horafy"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - horafy-e2e-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: horafy-e2e-redis
+    command: redis-server --requirepass horafy_e2e_redis --maxmemory 128mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6381:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "horafy_e2e_redis", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - horafy-e2e-net
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: horafy-e2e-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: horafy
+      RABBITMQ_DEFAULT_PASS: horafy_e2e_rabbit
+      RABBITMQ_DEFAULT_VHOST: horafy
+    ports:
+      - "5674:5672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - horafy-e2e-net
+
+  api:
+    build:
+      context: .
+      dockerfile: src/Horafy.API/Dockerfile
+    container_name: horafy-e2e-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: E2ETest
+      PAYMENT_GATEWAY: fake
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=horafy;Username=horafy;Password=horafy_e2e_pass"
+      Jwt__Secret: "e2e-test-secret-key-at-least-32-chars!!"
+      Jwt__Issuer: "horafy-e2e"
+      Jwt__Audience: "horafy-e2e"
+      Jwt__ExpirationMinutes: "60"
+      Jwt__RefreshTokenExpirationDays: "7"
+      Redis__ConnectionString: "redis:6379,password=horafy_e2e_redis"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__VirtualHost: "horafy"
+      RabbitMq__Username: "horafy"
+      RabbitMq__Password: "horafy_e2e_rabbit"
+      MercadoPago__AccessToken: "fake-token"
+    ports:
+      - "8084:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+    networks:
+      - horafy-e2e-net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8084
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: e2e-fake-client-id
+    container_name: horafy-e2e-frontend
+    ports:
+      - "3001:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:3000 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+    networks:
+      - horafy-e2e-net
+
+networks:
+  horafy-e2e-net:
+    driver: bridge
