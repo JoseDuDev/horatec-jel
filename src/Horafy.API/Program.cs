@@ -160,6 +160,8 @@ try
     {
         var db     = scope.ServiceProvider.GetRequiredService<HorafyDbContext>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        if (!app.Environment.IsProduction())
+            await db.Database.MigrateAsync();
         await GlobalMigrations.RunAsync(db, logger);
     }
 
