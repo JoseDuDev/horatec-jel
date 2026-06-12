@@ -1,5 +1,6 @@
 using Horafy.Application;
 using Horafy.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Horafy.Infrastructure.Auth;
 using Horafy.Infrastructure.MultiTenancy;
 using Horafy.Infrastructure.Persistence;
