@@ -24,6 +24,8 @@ RUN dotnet publish "Horafy.API.csproj" -c Release -o /app/publish /p:UseAppHost=
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
 # Usuário não-root por segurança
 RUN adduser --disabled-password --gecos "" appuser && chown -R appuser /app
 USER appuser
