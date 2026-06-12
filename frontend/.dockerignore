@@ -1,0 +1,8 @@
+node_modules
+.next
+e2e
+playwright-report
+test-results
+.playwright
+*.output
+e2e-output*.txt

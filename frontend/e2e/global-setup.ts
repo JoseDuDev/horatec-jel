@@ -7,7 +7,7 @@ export default async function globalSetup() {
   console.log('[E2E] Subindo docker-compose.e2e.yml...')
   execSync('docker compose -f docker-compose.e2e.yml up -d --build --wait', {
     stdio: 'inherit',
-    timeout: 600_000,   // 10 min — primeira run faz download das layers do Docker
+    timeout: 1_200_000, // 20 min — primeira run: build Next.js (~6min) + .NET (~3min) + health checks
     cwd: ROOT,
   })
   console.log('[E2E] Stack pronto.')

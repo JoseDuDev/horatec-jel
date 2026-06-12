@@ -1,0 +1,11 @@
+frontend/
+.git/
+docs/
+**/bin/
+**/obj/
+*.md
+docker-compose*.yml
+.github/
+playwright-report/
+test-results/
+e2e-output*.txt
