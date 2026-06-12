@@ -1,0 +1,684 @@
+[E2E] Subindo docker-compose.e2e.yml...
+#1 [internal] load local bake definitions
+#1 reading from stdin 823B 0.1s done
+#1 DONE 0.1s
+
+#2 [frontend internal] load build definition from Dockerfile
+#2 transferring dockerfile:
+#2 transferring dockerfile: 814B 0.1s done
+#2 DONE 0.3s
+
+#3 [api internal] load build definition from Dockerfile
+#3 transferring dockerfile: 1.25kB 0.0s done
+#3 DONE 0.3s
+
+#4 [frontend internal] load metadata for docker.io/library/node:20-alpine
+#4 DONE 1.0s
+
+#5 [api internal] load metadata for mcr.microsoft.com/dotnet/sdk:8.0
+#5 ...
+
+#6 [frontend internal] load .dockerignore
+#6 transferring context: 2B 0.0s done
+#6 DONE 0.1s
+
+#7 [api internal] load metadata for mcr.microsoft.com/dotnet/aspnet:8.0
+#7 DONE 1.2s
+
+#5 [api internal] load metadata for mcr.microsoft.com/dotnet/sdk:8.0
+#5 ...
+
+#8 [frontend internal] load build context
+#8 DONE 0.0s
+
+#9 [frontend deps 1/4] FROM docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+#9 resolve docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+#9 resolve docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 0.2s done
+#9 DONE 0.3s
+
+#8 [frontend internal] load build context
+#8 ...
+
+#5 [api internal] load metadata for mcr.microsoft.com/dotnet/sdk:8.0
+#5 DONE 4.9s
+
+#8 [frontend internal] load build context
+#8 ...
+
+#10 [api internal] load .dockerignore
+#10 transferring context: 2B 0.1s done
+#10 DONE 0.7s
+
+#8 [frontend internal] load build context
+#8 ...
+
+#11 [api internal] load build context
+#11 DONE 0.0s
+
+#8 [frontend internal] load build context
+#8 ...
+
+#12 [api final 1/4] FROM mcr.microsoft.com/dotnet/aspnet:8.0@sha256:6d40ae71165cb8a4427477ae3b447b05c080330cabae08b0dae672552bcd34d8
+#12 resolve mcr.microsoft.com/dotnet/aspnet:8.0@sha256:6d40ae71165cb8a4427477ae3b447b05c080330cabae08b0dae672552bcd34d8 0.3s done
+#12 DONE 0.3s
+
+#8 [frontend internal] load build context
+#8 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 resolve mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd 0.4s done
+#13 DONE 0.5s
+
+#8 [frontend internal] load build context
+#8 transferring context: 462.84kB 8.8s
+#8 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:9fbd49e50e615a3edde67e9ea47b07728c85cf83f40004029aa3780ce6a90c15 2.70kB / 2.70kB 0.7s done
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 2.10MB / 17.04MB 4.1s
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 1.05MB / 31.09MB 3.9s
+#13 sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5 0B / 11.10MB 3.8s
+#13 sha256:500572c96576b8137ee5cdcbe1f4a4baa9fef4dfd1852e80f928368ac1b3bcea 165B / 165B 1.2s done
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 2.10MB / 32.26MB 2.1s
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 4.05MB / 32.26MB 3.5s
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 3.15MB / 17.04MB 6.3s
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 6.29MB / 32.26MB 4.7s
+#13 ...
+
+#11 [api internal] load build context
+#11 transferring context: 168.06kB 9.9s
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 3.15MB / 31.09MB 7.2s
+#13 sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5 1.05MB / 11.10MB 7.5s
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 8.39MB / 32.26MB 5.9s
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 10.49MB / 32.26MB 7.4s
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 4.19MB / 17.04MB 10.4s
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 12.58MB / 32.26MB 8.6s
+#13 sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5 2.10MB / 11.10MB 10.8s
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 5.24MB / 31.09MB 11.1s
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 14.68MB / 32.26MB 9.8s
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 16.78MB / 32.26MB 11.3s
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 5.24MB / 17.04MB 14.3s
+#13 ...
+
+#8 [frontend internal] load build context
+#8 transferring context: 946.99kB 21.9s
+#8 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5 3.15MB / 11.10MB 14.1s
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 18.87MB / 32.26MB 12.5s
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 7.34MB / 31.09MB 14.6s
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 20.97MB / 32.26MB 14.3s
+#13 ...
+
+#11 [api internal] load build context
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5 4.19MB / 11.10MB 17.4s
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 9.44MB / 31.09MB 17.6s
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 22.86MB / 32.26MB 15.8s
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 6.29MB / 17.04MB 18.9s
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 25.17MB / 32.26MB 17.4s
+#13 sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5 5.24MB / 11.10MB 20.4s
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 11.53MB / 31.09MB 20.6s
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 27.26MB / 32.26MB 19.1s
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 7.34MB / 17.04MB 23.7s
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 29.36MB / 32.26MB 21.8s
+#13 sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5 6.29MB / 11.10MB 23.6s
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 13.63MB / 31.09MB 24.2s
+#13 ...
+
+#8 [frontend internal] load build context
+#8 transferring context: 1.42MB 32.2s
+#8 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 31.46MB / 32.26MB 23.7s
+#13 sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5 7.34MB / 11.10MB 26.3s
+#13 sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 32.26MB / 32.26MB 24.7s done
+#13 sha256:5384cf2b6d5f431bc51377074c7fa587f61ef15e11d1ab92dd5a1a5aa82623ea 0B / 3.33kB 0.2s
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 15.42MB / 31.09MB 27.0s
+#13 sha256:5384cf2b6d5f431bc51377074c7fa587f61ef15e11d1ab92dd5a1a5aa82623ea 3.33kB / 3.33kB 0.5s done
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 8.39MB / 17.04MB 27.3s
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 0B / 177.82MB 0.2s
+#13 ...
+
+#11 [api internal] load build context
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5 8.39MB / 11.10MB 28.2s
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 17.83MB / 31.09MB 29.9s
+#13 sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5 9.44MB / 11.10MB 30.8s
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 9.44MB / 17.04MB 31.4s
+#13 sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5 10.49MB / 11.10MB 32.0s
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 3.15MB / 177.82MB 5.3s
+#13 sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5 11.10MB / 11.10MB 33.0s
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 19.92MB / 31.09MB 33.3s
+#13 sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5 11.10MB / 11.10MB 33.2s done
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 0B / 18.74MB 0.2s
+#13 ...
+
+#8 [frontend internal] load build context
+#8 transferring context: 1.70MB 42.5s
+#8 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 21.93MB / 31.09MB 35.6s
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 10.49MB / 17.04MB 35.9s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 954.37kB / 18.74MB 2.3s
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 6.29MB / 177.82MB 10.4s
+#13 ...
+
+#11 [api internal] load build context
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 2.10MB / 18.74MB 6.0s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 3.15MB / 18.74MB 6.8s
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 24.12MB / 31.09MB 40.5s
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 10.49MB / 17.04MB 41.0s
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 9.11MB / 177.82MB 15.5s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 4.19MB / 18.74MB 9.6s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 5.24MB / 18.74MB 11.0s
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 26.21MB / 31.09MB 44.9s
+#13 ...
+
+#8 [frontend internal] load build context
+#8 transferring context: 1.83MB 52.7s
+#8 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 11.53MB / 17.04MB 45.5s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 6.29MB / 18.74MB 12.6s
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 12.58MB / 177.82MB 20.6s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 7.34MB / 18.74MB 14.1s
+#13 ...
+
+#11 [api internal] load build context
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 28.31MB / 31.09MB 49.1s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 8.39MB / 18.74MB 15.5s
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 11.53MB / 17.04MB 50.6s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 9.44MB / 18.74MB 17.3s
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 12.58MB / 17.04MB 51.6s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 10.42MB / 18.74MB 18.6s
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 15.73MB / 177.82MB 25.7s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 11.53MB / 18.74MB 20.1s
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 29.36MB / 31.09MB 54.2s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 12.58MB / 18.74MB 21.5s
+#13 ...
+
+#8 [frontend internal] load build context
+#8 transferring context: 2.04MB 63.0s
+#8 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 12.58MB / 17.04MB 56.9s
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 18.87MB / 177.82MB 30.8s
+#13 ...
+
+#11 [api internal] load build context
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 31.09MB / 31.09MB 58.5s
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 13.63MB / 17.04MB 59.3s
+#13 sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 31.09MB / 31.09MB 59.2s done
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 13.63MB / 18.74MB 25.8s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 14.68MB / 18.74MB 27.3s
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 20.97MB / 177.82MB 35.9s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 15.73MB / 18.74MB 29.9s
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 14.64MB / 17.04MB 64.1s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 16.78MB / 18.74MB 31.2s
+#13 ...
+
+#8 [frontend internal] load build context
+#8 transferring context: 2.18MB 73.1s
+#8 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 17.83MB / 18.74MB 32.1s
+#13 sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 18.74MB / 18.74MB 33.2s done
+#13 extracting sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 15.73MB / 17.04MB 67.5s
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 25.17MB / 177.82MB 41.0s
+#13 ...
+
+#11 [api internal] load build context
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 16.78MB / 17.04MB 71.8s
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 28.31MB / 177.82MB 46.0s
+#13 sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 17.04MB / 17.04MB 73.6s done
+#13 ...
+
+#8 [frontend internal] load build context
+#8 transferring context: 2.66MB 83.7s
+#8 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 29.36MB / 177.82MB 51.2s
+#13 ...
+
+#11 [api internal] load build context
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 32.51MB / 177.82MB 56.3s
+#13 ...
+
+#8 [frontend internal] load build context
+#8 transferring context: 2.86MB 94.0s
+#8 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 39.85MB / 177.82MB 61.3s
+#13 ...
+
+#11 [api internal] load build context
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 40.89MB / 177.82MB 66.4s
+#13 extracting sha256:27e5bf507b865c7fbe19090076dfa2416e4ce6233ea690bf68e28ec2a5bb963f 27.7s done
+#13 extracting sha256:5384cf2b6d5f431bc51377074c7fa587f61ef15e11d1ab92dd5a1a5aa82623ea
+#13 extracting sha256:5384cf2b6d5f431bc51377074c7fa587f61ef15e11d1ab92dd5a1a5aa82623ea 1.5s done
+#13 extracting sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65
+#13 ...
+
+#8 [frontend internal] load build context
+#8 transferring context: 2.99MB 104.3s
+#8 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 41.94MB / 177.82MB 71.5s
+#13 ...
+
+#11 [api internal] load build context
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 extracting sha256:8f66032dd06928bee2ba130a4b35bb93fc08806c218e7c9dbf2c4f2f31f00d65 7.2s done
+#13 extracting sha256:500572c96576b8137ee5cdcbe1f4a4baa9fef4dfd1852e80f928368ac1b3bcea
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 46.14MB / 177.82MB 76.6s
+#13 extracting sha256:500572c96576b8137ee5cdcbe1f4a4baa9fef4dfd1852e80f928368ac1b3bcea 0.2s done
+#13 extracting sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5
+#13 ...
+
+#11 [api internal] load build context
+#11 transferring context: 1.25MB 109.3s
+#11 ...
+
+#8 [frontend internal] load build context
+#8 ...
+
+#11 [api internal] load build context
+#11 transferring context: 1.36MB 114.4s
+#11 ...
+
+#8 [frontend internal] load build context
+#8 ...
+
+#11 [api internal] load build context
+#11 transferring context: 1.46MB 119.5s
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 72.35MB / 177.82MB 89.5s
+#13 extracting sha256:ce5dcbc528e05611caecaad264b4a3105fcfb2675a39137a4003b12133ae7cc5 3.8s done
+#13 extracting sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f
+#13 ...
+
+#11 [api internal] load build context
+#11 transferring context: 1.57MB 124.6s
+#11 ...
+
+#8 [frontend internal] load build context
+#8 ...
+
+#11 [api internal] load build context
+#11 transferring context: 1.62MB 129.6s
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 89.13MB / 177.82MB 99.6s
+#13 ...
+
+#8 [frontend internal] load build context
+#8 transferring context: 4.65MB 139.6s
+#8 transferring context: 4.69MB 144.9s
+#8 ...
+
+#11 [api internal] load build context
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 97.47MB / 177.82MB 110.2s
+#13 ...
+
+#8 [frontend internal] load build context
+#8 transferring context: 4.80MB 149.9s
+#8 transferring context: 4.89MB 155.0s
+#8 ...
+
+#11 [api internal] load build context
+#11 ...
+
+#8 [frontend internal] load build context
+#8 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 113.25MB / 177.82MB 120.3s
+#13 ...
+
+#11 [api internal] load build context
+#11 transferring context: 1.91MB 155.3s
+#11 ...
+
+#8 [frontend internal] load build context
+#8 transferring context: 5.01MB 165.2s
+#8 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 128.97MB / 177.82MB 130.8s
+#13 ...
+
+#8 [frontend internal] load build context
+#8 transferring context: 5.13MB 170.2s
+#8 ...
+
+#11 [api internal] load build context
+#11 transferring context: 2.13MB 170.4s
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 147.85MB / 177.82MB 141.0s
+#13 ...
+
+#11 [api internal] load build context
+#11 transferring context: 2.18MB 175.4s
+#11 ...
+
+#8 [frontend internal] load build context
+#8 transferring context: 5.26MB 185.2s done
+#8 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 162.01MB / 177.82MB 151.9s
+#13 extracting sha256:8e39c9f85df4b872e611875e016aff64fc7409919308356c95d0797d0e3c811f 70.3s done
+#13 ...
+
+#11 [api internal] load build context
+#11 transferring context: 2.39MB 185.5s
+#11 transferring context: 2.47MB 190.5s
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 176.16MB / 177.82MB 162.4s
+#13 ...
+
+#11 [api internal] load build context
+#11 transferring context: 2.69MB 195.5s
+#11 ...
+
+#8 [frontend internal] load build context
+#8 DONE 204.6s
+
+#11 [api internal] load build context
+#11 ...
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 177.82MB / 177.82MB 163.5s done
+#13 extracting sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c
+#13 ...
+
+#11 [api internal] load build context
+#11 transferring context: 3.18MB 200.7s
+#11 ...
+
+#14 [frontend runner 4/6] COPY --from=builder /app/public ./public
+#14 CACHED
+
+#15 [frontend deps 4/4] RUN npm ci
+#15 CACHED
+
+#16 [frontend builder 5/5] RUN npm run build
+#16 CACHED
+
+#17 [frontend deps 3/4] COPY package.json package-lock.json ./
+#17 CACHED
+
+#18 [frontend builder 3/5] COPY --from=deps /app/node_modules ./node_modules
+#18 CACHED
+
+#19 [frontend runner 5/6] COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+#19 CACHED
+
+#20 [frontend deps 2/4] WORKDIR /app
+#20 CACHED
+
+#21 [frontend runner 3/6] RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+#21 CACHED
+
+#22 [frontend builder 4/5] COPY . .
+#22 CACHED
+
+#23 [frontend runner 6/6] COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+#23 CACHED
+
+#11 [api internal] load build context
+#11 transferring context: 3.40MB 205.8s
+#11 ...
+
+#24 [frontend] exporting to image
+#24 exporting layers 0.4s done
+#24 exporting manifest sha256:53d965ec7b43be37a93d60e161290b0a7aeaccead47d641a703daf682c0f693b 0.3s done
+#24 exporting config sha256:9a2e3da8e1ae879081f1d55eae9a990dda084fba8baab8a75a636dae96678282 0.2s done
+#24 exporting attestation manifest sha256:6c64b35839a370b7417541aea847ee27a4e9b9d37848a2d229f73b2261f76041 0.8s done
+#24 exporting manifest list sha256:4c0d1c491b23ea76ead03bd9842c8166ad7b9519b06f2aae5c740b71fccc5196 0.3s done
+#24 naming to docker.io/library/horafy-e2e-frontend:latest 0.7s done
+#24 unpacking to docker.io/library/horafy-e2e-frontend:latest 0.6s done
+#24 DONE 5.2s
+
+#11 [api internal] load build context
+#11 transferring context: 3.58MB 210.8s
+#11 ...
+
+#25 [frontend] resolving provenance for metadata file
+#25 DONE 0.8s
+
+#11 [api internal] load build context
+#11 transferring context: 3.81MB 215.8s
+#11 transferring context: 4.00MB 220.9s
+#11 transferring context: 4.35MB 226.0s
+#11 transferring context: 4.76MB 231.0s
+#11 transferring context: 5.32MB 236.1s
+#11 transferring context: 5.61MB 241.1s
+#11 transferring context: 5.98MB 246.2s
+#11 transferring context: 6.26MB 251.2s
+#11 transferring context: 6.30MB 252.8s done
+Error: spawnSync C:\WINDOWS\system32\cmd.exe ETIMEDOUT
+
+   at global-setup.ts:8
+
+   6 | export default async function globalSetup() {
+   7 |   console.log('[E2E] Subindo docker-compose.e2e.yml...')
+>  8 |   execSync('docker compose -f docker-compose.e2e.yml up -d --build --wait', {
+     |           ^
+   9 |     stdio: 'inherit',
+  10 |     timeout: 300_000,   // 5 min — next build pode ser lento
+  11 |     cwd: ROOT,
+    at globalSetup (C:\Projetos\JEL\JEL\Horafy\frontend\e2e\global-setup.ts:8:11)
+[E2E] Derrubando docker-compose.e2e.yml...
+ Container horafy-e2e-frontend  Stopping
+ Container horafy-e2e-frontend  Stopped
+ Container horafy-e2e-frontend  Removing
+#11 DONE 265.3s
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+ Container horafy-e2e-frontend  Removed
+ Container horafy-e2e-api  Stopping
+ Container horafy-e2e-api  Stopped
+ Container horafy-e2e-api  Removing
+ Container horafy-e2e-api  Removed
+ Container horafy-e2e-postgres  Stopping
+ Container horafy-e2e-redis  Stopping
+ Container horafy-e2e-rabbitmq  Stopping
+ Container horafy-e2e-rabbitmq  Stopped
+ Container horafy-e2e-rabbitmq  Removing
+ Container horafy-e2e-rabbitmq  Removed
+ Container horafy-e2e-redis  Stopped
+ Container horafy-e2e-redis  Removing
+ Container horafy-e2e-postgres  Stopped
+ Container horafy-e2e-postgres  Removing
+ Container horafy-e2e-redis  Removed
+ Container horafy-e2e-postgres  Removed
+ Network horafy-e2e_horafy-e2e-net  Removing
+ Network horafy-e2e_horafy-e2e-net  Removed
+[E2E] Stack removido.
+
+#13 extracting sha256:a3e8cd5d1ed49a37c25071eba2bc65966755ef818195ecc0eb0def61045bad6c 114.4s done
+#13 DONE 308.6s
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 extracting sha256:9fbd49e50e615a3edde67e9ea47b07728c85cf83f40004029aa3780ce6a90c15
+#13 extracting sha256:9fbd49e50e615a3edde67e9ea47b07728c85cf83f40004029aa3780ce6a90c15 0.2s done
+#13 DONE 308.8s
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 extracting sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01
+#13 extracting sha256:45688ff2ae95364bef1b2079768155519b4159d8eafc40019764dd8c78624b01 8.2s done
+#13 DONE 317.0s
+
+#26 [api build  2/11] WORKDIR /src
+#26 DONE 1.5s
+
+#27 [api build  3/11] COPY [src/Horafy.API/Horafy.API.csproj, src/Horafy.API/]
+#27 DONE 0.3s
+
+#28 [api build  4/11] COPY [src/Horafy.Application/Horafy.Application.csproj, src/Horafy.Application/]
+#28 DONE 0.4s
+
+#29 [api build  5/11] COPY [src/Horafy.Domain/Horafy.Domain.csproj, src/Horafy.Domain/]
+#29 DONE 0.8s
+
+#30 [api build  6/11] COPY [src/Horafy.Infrastructure/Horafy.Infrastructure.csproj, src/Horafy.Infrastructure/]
+#30 DONE 0.3s
+
+#31 [api build  7/11] COPY [src/Horafy.Shared/Horafy.Shared.csproj, src/Horafy.Shared/]
+#31 DONE 0.5s
+
+#32 [api build  8/11] RUN dotnet restore "src/Horafy.API/Horafy.API.csproj"
+#32 31.98   Determining projects to restore...
+#32 52.95   Restored /src/src/Horafy.Shared/Horafy.Shared.csproj (in 2.19 sec).
+#32 69.58   Restored /src/src/Horafy.Domain/Horafy.Domain.csproj (in 18.87 sec).
+#32 78.95   Restored /src/src/Horafy.Application/Horafy.Application.csproj (in 28.46 sec).
+#32 168.2 /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj : warning NU1902: Package 'MailKit' 4.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr [/src/src/Horafy.API/Horafy.API.csproj]
+#32 169.5   Restored /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj (in 1.99 min).
+#32 173.4   Restored /src/src/Horafy.API/Horafy.API.csproj (in 2.05 min).
+#32 DONE 177.1s
+
+#33 [api build  9/11] COPY . .
+#33 DONE 1391.7s
+
+#34 [api build 10/11] WORKDIR /src/src/Horafy.API
+#34 DONE 12.3s
+
+#35 [api build 11/11] RUN dotnet build "Horafy.API.csproj" -c Release -o /app/build
+#35 33.30   Determining projects to restore...
+#35 57.18   Restored /src/src/Horafy.Shared/Horafy.Shared.csproj (in 1.51 sec).
+#35 58.28 /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj : warning NU1902: Package 'MailKit' 4.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr [/src/src/Horafy.API/Horafy.API.csproj]
+#35 58.98   Restored /src/src/Horafy.Domain/Horafy.Domain.csproj (in 3.56 sec).
+#35 58.98   Restored /src/src/Horafy.Application/Horafy.Application.csproj (in 3.56 sec).
+#35 61.89   Restored /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj (in 5.23 sec).
+#35 61.95   Restored /src/src/Horafy.API/Horafy.API.csproj (in 5.52 sec).
+#35 104.4 /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj : warning NU1902: Package 'MailKit' 4.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+#35 159.3   Horafy.Shared -> /app/build/Horafy.Shared.dll
+#35 179.1   Horafy.Domain -> /app/build/Horafy.Domain.dll
+#35 224.0   Horafy.Application -> /app/build/Horafy.Application.dll
+#35 279.1 /src/src/Horafy.Infrastructure/MultiTenancy/TenantSchemaService.cs(16,20): warning CS9113: Parameter 'configuration' is unread. [/src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj]
+#35 279.1 /src/src/Horafy.Infrastructure/DependencyInjection.cs(171,17): warning CS0618: 'IServiceCollectionQuartzConfigurator.UseMicrosoftDependencyInjectionJobFactory(Action<JobFactoryOptions>?)' is obsolete: 'MicrosoftDependencyInjectionJobFactory is the default for DI configuration, this method will be removed later on' [/src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj]
+#35 284.5   Horafy.Infrastructure -> /app/build/Horafy.Infrastructure.dll
+#35 313.2   Horafy.API -> /app/build/Horafy.API.dll
+#35 314.7 
+#35 314.9 Build succeeded.
+#35 315.0 
+#35 315.0 /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj : warning NU1902: Package 'MailKit' 4.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr [/src/src/Horafy.API/Horafy.API.csproj]
+#35 315.0 /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj : warning NU1902: Package 'MailKit' 4.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+#35 315.0 /src/src/Horafy.Infrastructure/MultiTenancy/TenantSchemaService.cs(16,20): warning CS9113: Parameter 'configuration' is unread. [/src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj]
+#35 315.0 /src/src/Horafy.Infrastructure/DependencyInjection.cs(171,17): warning CS0618: 'IServiceCollectionQuartzConfigurator.UseMicrosoftDependencyInjectionJobFactory(Action<JobFactoryOptions>?)' is obsolete: 'MicrosoftDependencyInjectionJobFactory is the default for DI configuration, this method will be removed later on' [/src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj]
+#35 315.0     4 Warning(s)
+#35 315.0     0 Error(s)
+#35 315.0 
+#35 315.0 Time Elapsed 00:04:53.91
+#35 DONE 322.8s
+
+#36 [api publish 1/1] RUN dotnet publish "Horafy.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+#36 64.89   Determining projects to restore...
+#36 86.80 /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj : warning NU1902: Package 'MailKit' 4.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr [/src/src/Horafy.API/Horafy.API.csproj]
+#36 86.84   All projects are up-to-date for restore.
+#36 105.7 /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj : warning NU1902: Package 'MailKit' 4.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+#36 119.0   Horafy.Shared -> /src/src/Horafy.Shared/bin/Release/net8.0/Horafy.Shared.dll
+#36 190.6   Horafy.Domain -> /src/src/Horafy.Domain/bin/Release/net8.0/Horafy.Domain.dll
+#36 206.2   Horafy.Application -> /src/src/Horafy.Application/bin/Release/net8.0/Horafy.Application.dll
+#36 248.3 /src/src/Horafy.Infrastructure/MultiTenancy/TenantSchemaService.cs(16,20): warning CS9113: Parameter 'configuration' is unread. [/src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj]
+#36 248.3 /src/src/Horafy.Infrastructure/DependencyInjection.cs(171,17): warning CS0618: 'IServiceCollectionQuartzConfigurator.UseMicrosoftDependencyInjectionJobFactory(Action<JobFactoryOptions>?)' is obsolete: 'MicrosoftDependencyInjectionJobFactory is the default for DI configuration, this method will be removed later on' [/src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj]
+#36 255.1   Horafy.Infrastructure -> /src/src/Horafy.Infrastructure/bin/Release/net8.0/Horafy.Infrastructure.dll
+#36 284.1   Horafy.API -> /src/src/Horafy.API/bin/Release/net8.0/Horafy.API.dll
+#36 291.4   Horafy.API -> /app/publish/
+#36 DONE 296.7s
+
+#37 [api final 2/4] WORKDIR /app
+#37 CACHED
+
+#38 [api final 3/4] RUN adduser --disabled-password --gecos "" appuser && chown -R appuser /app
+#38 CACHED
+
+#39 [api final 4/4] COPY --from=publish /app/publish .
+#39 DONE 3.3s
+
+#40 [api] exporting to image
+#40 exporting layers
+#40 exporting layers 10.1s done
+#40 exporting manifest sha256:36e82a5e49e4a7944486001cde6d2a734c2b1206fe033e8423e98a01034021dc 0.1s done
+#40 exporting config sha256:0aba70dd26a3cfe1045259c5117a9df91d91d866295da507b2726ee86012cb2b
+#40 exporting config sha256:0aba70dd26a3cfe1045259c5117a9df91d91d866295da507b2726ee86012cb2b 0.1s done
+#40 exporting attestation manifest sha256:03e89eb694b241c44e46e6b9f18ceef7e0e39691e8e18d227c96c1f62fc76bbc
+#40 exporting attestation manifest sha256:03e89eb694b241c44e46e6b9f18ceef7e0e39691e8e18d227c96c1f62fc76bbc 0.3s done
+#40 exporting manifest list sha256:fc1f5e7824129dd03ccbc44a198420aa436b5ad89e34eb8808320f168e39bc7f
+#40 exporting manifest list sha256:fc1f5e7824129dd03ccbc44a198420aa436b5ad89e34eb8808320f168e39bc7f 0.1s done
+#40 naming to docker.io/library/horafy-e2e-api:latest 0.0s done
+#40 unpacking to docker.io/library/horafy-e2e-api:latest
+#40 unpacking to docker.io/library/horafy-e2e-api:latest 3.7s done
+#40 DONE 15.3s
+
+#41 [api] resolving provenance for metadata file
+#41 DONE 0.5s
+ api  Built
+ frontend  Built
+ Network horafy-e2e_horafy-e2e-net  Creating
+ Network horafy-e2e_horafy-e2e-net  Created
+ Container horafy-e2e-postgres  Creating
+ Container horafy-e2e-rabbitmq  Creating
+ Container horafy-e2e-redis  Creating
+ Container horafy-e2e-rabbitmq  Created
+ Container horafy-e2e-redis  Created
+ Container horafy-e2e-postgres  Created
+ Container horafy-e2e-api  Creating
+ Container horafy-e2e-api  Created
+ Container horafy-e2e-frontend  Creating
+ Container horafy-e2e-frontend  Created
+ Container horafy-e2e-redis  Starting
+ Container horafy-e2e-postgres  Starting
+ Container horafy-e2e-rabbitmq  Starting
+ Container horafy-e2e-postgres  Started
+ Container horafy-e2e-redis  Started
+Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint horafy-e2e-rabbitmq (edb013966566cc3a9155a8d40f0054301eeef59a529b2aa45cb6f1f4b616a7eb): Bind for 0.0.0.0:5674 failed: port is already allocated
