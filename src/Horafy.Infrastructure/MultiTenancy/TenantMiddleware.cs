@@ -125,7 +125,8 @@ public sealed class TenantMiddleware(
             "/swagger",
             "/scalar",
             "/api/v1/platform",
-            "/api/v1/auth"
+            "/api/v1/auth",
+            "/api/v1/customers/auth"
         };
 
         return publicPrefixes.Any(prefix =>

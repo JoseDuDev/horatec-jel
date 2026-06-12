@@ -97,6 +97,8 @@ services:
         NEXT_PUBLIC_API_URL: http://localhost:8084
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: e2e-fake-client-id
     container_name: horafy-e2e-frontend
+    environment:
+      INTERNAL_API_URL: http://horafy-e2e-api:8080
     ports:
       - "3001:3000"
     depends_on:

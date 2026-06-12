@@ -1,4 +1,11 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000'
+// Server components run inside Docker — use internal hostname.
+// Client components run in the browser — use the public-facing URL.
+function getApiUrl(): string {
+  if (typeof window === 'undefined') {
+    return process.env.INTERNAL_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000'
+  }
+  return process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000'
+}
 
 async function portalFetch<T>(
   path: string,
@@ -6,7 +13,7 @@ async function portalFetch<T>(
   options: RequestInit = {},
   customerToken?: string
 ): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(`${getApiUrl()}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -45,7 +52,7 @@ export const portalApi = {
 
   slots: (slug: string, resourceId: string, date: string, serviceId?: string) => {
     const qs = new URLSearchParams({ date, ...(serviceId ? { serviceId } : {}) }).toString()
-    return portalFetch<string[]>(`/api/v1/resources/${resourceId}/slots?${qs}`, slug)
+    return portalFetch<string[]>(`/api/v1/availability/resources/${resourceId}/slots?${qs}`, slug)
   },
 
   reviews: (slug: string, resourceId: string) =>

@@ -121,7 +121,7 @@ export async function linkServiceToResource(
   resourceId: string,
   serviceId: string
 ): Promise<void> {
-  await post(`${API}/resources/${resourceId}/services/${serviceId}`, {}, token, slug)
+  await post(`${API}/availability/resources/${resourceId}/services/${serviceId}`, {}, token, slug)
 }
 
 /**

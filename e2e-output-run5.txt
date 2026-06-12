@@ -1,0 +1,295 @@
+[E2E] Subindo docker-compose.e2e.yml...
+#1 [internal] load local bake definitions
+#1 reading from stdin 823B 0.1s done
+#1 DONE 0.1s
+
+#2 [api internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.35kB 0.0s done
+#2 DONE 0.1s
+
+#3 [frontend internal] load build definition from Dockerfile
+#3 transferring dockerfile: 835B 0.0s done
+#3 DONE 0.1s
+
+#4 [api internal] load metadata for mcr.microsoft.com/dotnet/sdk:8.0
+#4 ...
+
+#5 [frontend internal] load metadata for docker.io/library/node:20-alpine
+#5 DONE 0.2s
+
+#6 [frontend internal] load .dockerignore
+#6 transferring context: 131B 0.0s done
+#6 DONE 0.1s
+
+#7 [api internal] load metadata for mcr.microsoft.com/dotnet/aspnet:8.0
+#7 DONE 0.4s
+
+#4 [api internal] load metadata for mcr.microsoft.com/dotnet/sdk:8.0
+#4 DONE 0.5s
+
+#8 [frontend internal] load build context
+#8 DONE 0.0s
+
+#9 [api internal] load .dockerignore
+#9 ...
+
+#10 [frontend deps 1/4] FROM docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+#10 resolve docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 0.3s done
+#10 DONE 0.4s
+
+#9 [api internal] load .dockerignore
+#9 transferring context: 161B 0.5s done
+#9 DONE 0.6s
+
+#8 [frontend internal] load build context
+#8 transferring context: 13.47kB 0.3s done
+#8 DONE 0.4s
+
+#11 [api internal] load build context
+#11 DONE 0.0s
+
+#12 [frontend deps 2/4] WORKDIR /app
+#12 CACHED
+
+#13 [frontend deps 3/4] COPY package.json package-lock.json ./
+#13 CACHED
+
+#14 [frontend deps 4/4] RUN npm ci
+#14 CACHED
+
+#15 [frontend builder 3/5] COPY --from=deps /app/node_modules ./node_modules
+#15 CACHED
+
+#16 [frontend builder 4/5] COPY . .
+#16 ...
+
+#17 [api final 1/5] FROM mcr.microsoft.com/dotnet/aspnet:8.0@sha256:6d40ae71165cb8a4427477ae3b447b05c080330cabae08b0dae672552bcd34d8
+#17 resolve mcr.microsoft.com/dotnet/aspnet:8.0@sha256:6d40ae71165cb8a4427477ae3b447b05c080330cabae08b0dae672552bcd34d8 0.4s done
+#17 DONE 0.5s
+
+#18 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#18 resolve mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd 0.5s done
+#18 DONE 0.5s
+
+#16 [frontend builder 4/5] COPY . .
+#16 ...
+
+#11 [api internal] load build context
+#11 transferring context: 46.07kB 0.4s done
+#11 DONE 0.6s
+
+#19 [api build  5/11] COPY [src/Horafy.Domain/Horafy.Domain.csproj, src/Horafy.Domain/]
+#19 CACHED
+
+#20 [api final 3/5] RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+#20 CACHED
+
+#21 [api publish 1/1] RUN dotnet publish "Horafy.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+#21 CACHED
+
+#22 [api build  9/11] COPY . .
+#22 CACHED
+
+#23 [api build  3/11] COPY [src/Horafy.API/Horafy.API.csproj, src/Horafy.API/]
+#23 CACHED
+
+#24 [api build  8/11] RUN dotnet restore "src/Horafy.API/Horafy.API.csproj"
+#24 CACHED
+
+#25 [api build  6/11] COPY [src/Horafy.Infrastructure/Horafy.Infrastructure.csproj, src/Horafy.Infrastructure/]
+#25 CACHED
+
+#26 [api final 4/5] RUN adduser --disabled-password --gecos "" appuser && chown -R appuser /app
+#26 CACHED
+
+#27 [api build  7/11] COPY [src/Horafy.Shared/Horafy.Shared.csproj, src/Horafy.Shared/]
+#27 CACHED
+
+#28 [api build  2/11] WORKDIR /src
+#28 CACHED
+
+#29 [api build  4/11] COPY [src/Horafy.Application/Horafy.Application.csproj, src/Horafy.Application/]
+#29 CACHED
+
+#30 [api build 11/11] RUN dotnet build "Horafy.API.csproj" -c Release -o /app/build
+#30 CACHED
+
+#31 [api build 10/11] WORKDIR /src/src/Horafy.API
+#31 CACHED
+
+#32 [api final 2/5] WORKDIR /app
+#32 CACHED
+
+#33 [api final 5/5] COPY --from=publish /app/publish .
+#33 CACHED
+
+#34 [api] exporting to image
+#34 exporting layers 0.1s done
+#34 exporting manifest sha256:e91c627a91e37d3b584b6fb6339330f7e622f66a65117d11dfa509b9143e5b66 0.0s done
+#34 exporting config sha256:411a228d76555f8c69c3052d4a76c2bf0bd56814e22a7668e393a64283485db1 0.0s done
+#34 exporting attestation manifest sha256:6e77808555178e3d2f263077684f51d58214e8e13790f6c9c5eb5a66e2fc2867
+#34 ...
+
+#16 [frontend builder 4/5] COPY . .
+#16 DONE 1.9s
+
+#34 [api] exporting to image
+#34 exporting attestation manifest sha256:6e77808555178e3d2f263077684f51d58214e8e13790f6c9c5eb5a66e2fc2867 0.3s done
+#34 exporting manifest list sha256:8c469a5e294efeeaf100f939fdedb3e9f2b8309f8d3839f91b19d235c97ca3f4
+#34 exporting manifest list sha256:8c469a5e294efeeaf100f939fdedb3e9f2b8309f8d3839f91b19d235c97ca3f4 0.2s done
+#34 naming to docker.io/library/horafy-e2e-api:latest 0.1s done
+#34 unpacking to docker.io/library/horafy-e2e-api:latest
+#34 unpacking to docker.io/library/horafy-e2e-api:latest 0.3s done
+#34 DONE 1.4s
+
+#35 [frontend builder 5/5] RUN npm run build
+#35 ...
+
+#36 [api] resolving provenance for metadata file
+#36 DONE 0.1s
+
+#35 [frontend builder 5/5] RUN npm run build
+#35 4.406 
+#35 4.406 > frontend@0.1.0 build
+#35 4.406 > next build
+#35 4.406 
+#35 7.494 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+#35 7.494 This information is used to shape Next.js' roadmap and prioritize features.
+#35 7.494 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+#35 7.494 https://nextjs.org/telemetry
+#35 7.495 
+#35 7.518 ▲ Next.js 16.2.7 (Turbopack)
+#35 7.518 - Environments: .env.local
+#35 7.518 
+#35 7.594 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+#35 7.644   Creating an optimized production build ...
+#35 28.35 ✓ Compiled successfully in 19.5s
+#35 28.38   Running TypeScript ...
+#35 47.35   Finished TypeScript in 19.0s ...
+#35 47.36   Collecting page data using 7 workers ...
+#35 48.76   Generating static pages using 7 workers (0/21) ...
+#35 49.96   Generating static pages using 7 workers (5/21) 
+#35 50.36   Generating static pages using 7 workers (10/21) 
+#35 50.36   Generating static pages using 7 workers (15/21) 
+#35 50.57 ✓ Generating static pages using 7 workers (21/21) in 1814ms
+#35 50.58   Finalizing page optimization ...
+#35 51.82 
+#35 51.82 Route (app)
+#35 51.82 ┌ ○ /
+#35 51.82 ├ ○ /_not-found
+#35 51.82 ├ ƒ /[slug]
+#35 51.82 ├ ƒ /[slug]/agendar
+#35 51.82 ├ ƒ /[slug]/agendar/[bookingId]/status
+#35 51.82 ├ ƒ /[slug]/minha-conta
+#35 51.82 ├ ƒ /[slug]/servicos
+#35 51.82 ├ ƒ /[slug]/servicos/[id]
+#35 51.82 ├ ○ /admin/agenda
+#35 51.82 ├ ○ /admin/agendamentos
+#35 51.82 ├ ○ /admin/carteira
+#35 51.82 ├ ○ /admin/clientes
+#35 51.82 ├ ○ /admin/configuracoes
+#35 51.82 ├ ○ /admin/dashboard
+#35 51.82 ├ ○ /admin/disponibilidade
+#35 51.82 ├ ○ /admin/financeiro
+#35 51.82 ├ ○ /admin/notificacoes
+#35 51.82 ├ ○ /admin/onboarding
+#35 51.82 ├ ○ /admin/recursos
+#35 51.82 ├ ○ /admin/servicos
+#35 51.82 ├ ○ /login
+#35 51.82 ├ ○ /platform/financeiro
+#35 51.82 ├ ○ /platform/login
+#35 51.82 ├ ○ /platform/planos
+#35 51.82 └ ○ /platform/tenants
+#35 51.82 
+#35 51.82 
+#35 51.82 ƒ Proxy (Middleware)
+#35 51.82 
+#35 51.82 ○  (Static)   prerendered as static content
+#35 51.82 ƒ  (Dynamic)  server-rendered on demand
+#35 51.82 
+#35 51.91 npm notice
+#35 51.91 npm notice New major version of npm available! 10.8.2 -> 11.17.0
+#35 51.91 npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.17.0
+#35 51.91 npm notice To update run: npm install -g npm@11.17.0
+#35 51.91 npm notice
+#35 DONE 52.0s
+
+#37 [frontend runner 3/6] RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+#37 CACHED
+
+#38 [frontend runner 4/6] COPY --from=builder /app/public ./public
+#38 CACHED
+
+#39 [frontend runner 5/6] COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+#39 DONE 1.3s
+
+#40 [frontend runner 6/6] COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+#40 DONE 0.1s
+
+#41 [frontend] exporting to image
+#41 exporting layers
+#41 exporting layers 2.8s done
+#41 exporting manifest sha256:102f8580c422a407b312fcc653e2544c6e0e4e3f63fe7bea4d624f822c2d258f 0.0s done
+#41 exporting config sha256:ce8fc16ad1b82209595aa17874d4311d775e794f778a9d82a14f9ee997925467 0.0s done
+#41 exporting attestation manifest sha256:95d62a2eeacb4b2160fbfff9dda343beb994c9168c5c0829af13db9c550c3a80 0.0s done
+#41 exporting manifest list sha256:bdbc77ada74698070685c151dd2a27865b91078d55d4cd0a1622a6a6a42d5dc5 0.0s done
+#41 naming to docker.io/library/horafy-e2e-frontend:latest
+#41 naming to docker.io/library/horafy-e2e-frontend:latest done
+#41 unpacking to docker.io/library/horafy-e2e-frontend:latest
+#41 unpacking to docker.io/library/horafy-e2e-frontend:latest 2.7s done
+#41 DONE 5.8s
+
+#42 [frontend] resolving provenance for metadata file
+#42 DONE 0.1s
+ api  Built
+ frontend  Built
+ Network horafy-e2e_horafy-e2e-net  Creating
+ Network horafy-e2e_horafy-e2e-net  Created
+ Container horafy-e2e-redis  Creating
+ Container horafy-e2e-rabbitmq  Creating
+ Container horafy-e2e-postgres  Creating
+ Container horafy-e2e-redis  Created
+ Container horafy-e2e-rabbitmq  Created
+ Container horafy-e2e-postgres  Created
+ Container horafy-e2e-api  Creating
+ Container horafy-e2e-api  Created
+ Container horafy-e2e-frontend  Creating
+ Container horafy-e2e-frontend  Created
+ Container horafy-e2e-rabbitmq  Starting
+ Container horafy-e2e-postgres  Starting
+ Container horafy-e2e-redis  Starting
+ Container horafy-e2e-postgres  Started
+ Container horafy-e2e-rabbitmq  Started
+ Container horafy-e2e-redis  Started
+ Container horafy-e2e-postgres  Waiting
+ Container horafy-e2e-redis  Waiting
+ Container horafy-e2e-rabbitmq  Waiting
+ Container horafy-e2e-redis  Healthy
+ Container horafy-e2e-postgres  Healthy
+ Container horafy-e2e-rabbitmq  Healthy
+ Container horafy-e2e-api  Starting
+ Container horafy-e2e-api  Started
+ Container horafy-e2e-api  Waiting
+ Container horafy-e2e-api  Healthy
+ Container horafy-e2e-frontend  Starting
+ Container horafy-e2e-frontend  Started
+ Container horafy-e2e-redis  Waiting
+ Container horafy-e2e-rabbitmq  Waiting
+ Container horafy-e2e-api  Waiting
+ Container horafy-e2e-frontend  Waiting
+ Container horafy-e2e-postgres  Waiting
+ Container horafy-e2e-api  Healthy
+ Container horafy-e2e-redis  Healthy
+ Container horafy-e2e-postgres  Healthy
+ Container horafy-e2e-rabbitmq  Healthy
+ Container horafy-e2e-frontend  Healthy
+[E2E] Stack pronto.
+
+Running 7 tests using 1 worker
+
+  ✘  1 [chromium] › e2e\admin-workflow.spec.ts:71:7 › Admin workflow: confirm → customer cancel → financeiro › admin confirma agendamento via UI (3ms)
+  -  2 [chromium] › e2e\admin-workflow.spec.ts:94:7 › Admin workflow: confirm → customer cancel → financeiro › cliente cancela agendamento via portal
+  -  3 [chromium] › e2e\admin-workflow.spec.ts:117:7 › Admin workflow: confirm → customer cancel → financeiro › admin acessa financeiro após cancelamento
+  ✘  4 [chromium] › e2e\admin-workflow.spec.ts:71:7 › Admin workflow: confirm → customer cancel → financeiro › admin confirma agendamento via UI (retry #1) (1ms)
+  -  5 [chromium] › e2e\admin-workflow.spec.ts:94:7 › Admin workflow: confirm → customer cancel → financeiro › cliente cancela agendamento via portal (retry #1)
+  -  6 [chromium] › e2e\admin-workflow.spec.ts:117:7 › Admin workflow: confirm → customer cancel → financeiro › admin acessa financeiro após cancelamento (retry #1)

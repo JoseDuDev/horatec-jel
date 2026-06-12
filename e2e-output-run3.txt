@@ -1,0 +1,444 @@
+[E2E] Subindo docker-compose.e2e.yml...
+#1 [internal] load local bake definitions
+#1 reading from stdin 823B 0.0s done
+#1 DONE 0.0s
+
+#2 [frontend internal] load build definition from Dockerfile
+#2 transferring dockerfile:
+#2 transferring dockerfile: 835B 0.1s done
+#2 DONE 0.4s
+
+#3 [api internal] load build definition from Dockerfile
+#3 transferring dockerfile: 1.35kB 0.1s done
+#3 DONE 0.4s
+
+#4 [api internal] load metadata for mcr.microsoft.com/dotnet/sdk:8.0
+#4 ...
+
+#5 [frontend internal] load metadata for docker.io/library/node:20-alpine
+#5 DONE 0.7s
+
+#4 [api internal] load metadata for mcr.microsoft.com/dotnet/sdk:8.0
+#4 DONE 0.7s
+
+#6 [api internal] load metadata for mcr.microsoft.com/dotnet/aspnet:8.0
+#6 DONE 0.8s
+
+#7 [frontend internal] load .dockerignore
+#7 DONE 0.0s
+
+#8 [api internal] load .dockerignore
+#8 transferring context: 32B 0.0s
+#8 transferring context: 161B 0.1s done
+#8 DONE 0.3s
+
+#7 [frontend internal] load .dockerignore
+#7 transferring context: 131B 0.2s done
+#7 DONE 0.5s
+
+#9 [api internal] load build context
+#9 DONE 0.0s
+
+#10 [api final 1/5] FROM mcr.microsoft.com/dotnet/aspnet:8.0@sha256:6d40ae71165cb8a4427477ae3b447b05c080330cabae08b0dae672552bcd34d8
+#10 resolve mcr.microsoft.com/dotnet/aspnet:8.0@sha256:6d40ae71165cb8a4427477ae3b447b05c080330cabae08b0dae672552bcd34d8
+#10 ...
+
+#11 [frontend internal] load build context
+#11 DONE 0.0s
+
+#12 [frontend deps 1/4] FROM docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+#12 resolve docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+#12 resolve docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 0.5s done
+#12 DONE 0.6s
+
+#13 [api build  1/11] FROM mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd
+#13 resolve mcr.microsoft.com/dotnet/sdk:8.0@sha256:a042cd112696654d429afdb0a6907a053f58c776193853107e7e00db76f0c6fd 0.5s done
+#13 DONE 0.7s
+
+#10 [api final 1/5] FROM mcr.microsoft.com/dotnet/aspnet:8.0@sha256:6d40ae71165cb8a4427477ae3b447b05c080330cabae08b0dae672552bcd34d8
+#10 resolve mcr.microsoft.com/dotnet/aspnet:8.0@sha256:6d40ae71165cb8a4427477ae3b447b05c080330cabae08b0dae672552bcd34d8 0.6s done
+#10 DONE 0.6s
+
+#9 [api internal] load build context
+#9 ...
+
+#11 [frontend internal] load build context
+#11 transferring context: 9.24kB 0.4s done
+#11 DONE 0.6s
+
+#14 [frontend runner 4/6] COPY --from=builder /app/public ./public
+#14 CACHED
+
+#15 [frontend runner 3/6] RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
+#15 CACHED
+
+#16 [frontend deps 4/4] RUN npm ci
+#16 CACHED
+
+#17 [frontend builder 3/5] COPY --from=deps /app/node_modules ./node_modules
+#17 CACHED
+
+#18 [frontend builder 4/5] COPY . .
+#18 CACHED
+
+#19 [frontend runner 5/6] COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+#19 CACHED
+
+#20 [frontend deps 2/4] WORKDIR /app
+#20 CACHED
+
+#21 [frontend deps 3/4] COPY package.json package-lock.json ./
+#21 CACHED
+
+#22 [frontend builder 5/5] RUN npm run build
+#22 CACHED
+
+#9 [api internal] load build context
+#9 ...
+
+#23 [frontend runner 6/6] COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+#23 CACHED
+
+#9 [api internal] load build context
+#9 transferring context: 56.77kB 0.7s done
+#9 DONE 1.0s
+
+#24 [frontend] exporting to image
+#24 exporting layers 0.0s done
+#24 exporting manifest sha256:e276bcaab92cc0897a2c79bcb34107c467112bb458a77fcd2bcd79f7307b3772 done
+#24 exporting config sha256:54bc79e98c293d7c466e3fb0cc926c87840fa1c4045675994e7f67e5c2d3d375 0.0s done
+#24 exporting attestation manifest sha256:1fa15f53bac90eb330e4c585a8bc73b199d915b91c96835817996ca396ef81c5 0.1s done
+#24 exporting manifest list sha256:54abe6f1771ed564cabc40345d65bebd08c1869ad501bad8da568b6c6f17af01 0.1s done
+#24 naming to docker.io/library/horafy-e2e-frontend:latest done
+#24 unpacking to docker.io/library/horafy-e2e-frontend:latest 0.0s done
+#24 DONE 0.5s
+
+#25 [api build  5/11] COPY [src/Horafy.Domain/Horafy.Domain.csproj, src/Horafy.Domain/]
+#25 CACHED
+
+#26 [api build  3/11] COPY [src/Horafy.API/Horafy.API.csproj, src/Horafy.API/]
+#26 CACHED
+
+#27 [api build  4/11] COPY [src/Horafy.Application/Horafy.Application.csproj, src/Horafy.Application/]
+#27 CACHED
+
+#28 [api build  2/11] WORKDIR /src
+#28 CACHED
+
+#29 [api build  6/11] COPY [src/Horafy.Infrastructure/Horafy.Infrastructure.csproj, src/Horafy.Infrastructure/]
+#29 CACHED
+
+#30 [api build  7/11] COPY [src/Horafy.Shared/Horafy.Shared.csproj, src/Horafy.Shared/]
+#30 CACHED
+
+#31 [api build  8/11] RUN dotnet restore "src/Horafy.API/Horafy.API.csproj"
+#31 CACHED
+
+#32 [api build  9/11] COPY . .
+#32 ...
+
+#33 [frontend] resolving provenance for metadata file
+#33 DONE 0.1s
+
+#32 [api build  9/11] COPY . .
+#32 DONE 5.3s
+
+#34 [api build 10/11] WORKDIR /src/src/Horafy.API
+#34 DONE 0.5s
+
+#35 [api build 11/11] RUN dotnet build "Horafy.API.csproj" -c Release -o /app/build
+#35 5.751   Determining projects to restore...
+#35 8.298 /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj : warning NU1902: Package 'MailKit' 4.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr [/src/src/Horafy.API/Horafy.API.csproj]
+#35 8.301   All projects are up-to-date for restore.
+#35 10.20 /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj : warning NU1902: Package 'MailKit' 4.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+#35 26.97   Horafy.Shared -> /app/build/Horafy.Shared.dll
+#35 31.56   Horafy.Domain -> /app/build/Horafy.Domain.dll
+#35 35.73   Horafy.Application -> /app/build/Horafy.Application.dll
+#35 38.79 /src/src/Horafy.Infrastructure/MultiTenancy/TenantSchemaService.cs(16,20): warning CS9113: Parameter 'configuration' is unread. [/src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj]
+#35 38.79 /src/src/Horafy.Infrastructure/DependencyInjection.cs(171,17): warning CS0618: 'IServiceCollectionQuartzConfigurator.UseMicrosoftDependencyInjectionJobFactory(Action<JobFactoryOptions>?)' is obsolete: 'MicrosoftDependencyInjectionJobFactory is the default for DI configuration, this method will be removed later on' [/src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj]
+#35 39.02   Horafy.Infrastructure -> /app/build/Horafy.Infrastructure.dll
+#35 43.20   Horafy.API -> /app/build/Horafy.API.dll
+#35 43.26 
+#35 43.26 Build succeeded.
+#35 43.27 
+#35 43.27 /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj : warning NU1902: Package 'MailKit' 4.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr [/src/src/Horafy.API/Horafy.API.csproj]
+#35 43.27 /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj : warning NU1902: Package 'MailKit' 4.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+#35 43.27 /src/src/Horafy.Infrastructure/MultiTenancy/TenantSchemaService.cs(16,20): warning CS9113: Parameter 'configuration' is unread. [/src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj]
+#35 43.27 /src/src/Horafy.Infrastructure/DependencyInjection.cs(171,17): warning CS0618: 'IServiceCollectionQuartzConfigurator.UseMicrosoftDependencyInjectionJobFactory(Action<JobFactoryOptions>?)' is obsolete: 'MicrosoftDependencyInjectionJobFactory is the default for DI configuration, this method will be removed later on' [/src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj]
+#35 43.27     4 Warning(s)
+#35 43.27     0 Error(s)
+#35 43.27 
+#35 43.27 Time Elapsed 00:00:38.88
+#35 DONE 43.6s
+
+#36 [api publish 1/1] RUN dotnet publish "Horafy.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+#36 4.227   Determining projects to restore...
+#36 8.517 /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj : warning NU1902: Package 'MailKit' 4.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr [/src/src/Horafy.API/Horafy.API.csproj]
+#36 8.520   All projects are up-to-date for restore.
+#36 9.520 /src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj : warning NU1902: Package 'MailKit' 4.12.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-9j88-vvj5-vhgr
+#36 10.24   Horafy.Shared -> /src/src/Horafy.Shared/bin/Release/net8.0/Horafy.Shared.dll
+#36 14.51   Horafy.Domain -> /src/src/Horafy.Domain/bin/Release/net8.0/Horafy.Domain.dll
+#36 16.45   Horafy.Application -> /src/src/Horafy.Application/bin/Release/net8.0/Horafy.Application.dll
+#36 18.85 /src/src/Horafy.Infrastructure/MultiTenancy/TenantSchemaService.cs(16,20): warning CS9113: Parameter 'configuration' is unread. [/src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj]
+#36 18.85 /src/src/Horafy.Infrastructure/DependencyInjection.cs(171,17): warning CS0618: 'IServiceCollectionQuartzConfigurator.UseMicrosoftDependencyInjectionJobFactory(Action<JobFactoryOptions>?)' is obsolete: 'MicrosoftDependencyInjectionJobFactory is the default for DI configuration, this method will be removed later on' [/src/src/Horafy.Infrastructure/Horafy.Infrastructure.csproj]
+#36 19.12   Horafy.Infrastructure -> /src/src/Horafy.Infrastructure/bin/Release/net8.0/Horafy.Infrastructure.dll
+#36 22.31   Horafy.API -> /src/src/Horafy.API/bin/Release/net8.0/Horafy.API.dll
+#36 23.40   Horafy.API -> /app/publish/
+#36 DONE 24.3s
+
+#37 [api final 2/5] WORKDIR /app
+#37 CACHED
+
+#38 [api final 3/5] RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+#38 CACHED
+
+#39 [api final 4/5] RUN adduser --disabled-password --gecos "" appuser && chown -R appuser /app
+#39 CACHED
+
+#40 [api final 5/5] COPY --from=publish /app/publish .
+#40 DONE 0.8s
+
+#41 [api] exporting to image
+#41 exporting layers
+#41 exporting layers 2.4s done
+#41 exporting manifest sha256:e221a4f1b97a1f25965eb321ea80709a1894703b905b76f4663efacdd10d0778 0.0s done
+#41 exporting config sha256:cfa823cd40342519c1fc1530833a292c9b90460d4ec81524d6026d49d6039c05 0.0s done
+#41 exporting attestation manifest sha256:d9d2acc105af5481b4de6c8b45b1de69d7b8eac50177207bdce3af3ab5e64971 0.1s done
+#41 exporting manifest list sha256:255b31c0f0aaa59043e79eb99a188e24f1bd39266161a2763c234bfb126d7822
+#41 exporting manifest list sha256:255b31c0f0aaa59043e79eb99a188e24f1bd39266161a2763c234bfb126d7822 0.0s done
+#41 naming to docker.io/library/horafy-e2e-api:latest done
+#41 unpacking to docker.io/library/horafy-e2e-api:latest
+#41 unpacking to docker.io/library/horafy-e2e-api:latest 0.3s done
+#41 DONE 2.9s
+
+#42 [api] resolving provenance for metadata file
+#42 DONE 0.0s
+ api  Built
+ frontend  Built
+ Network horafy-e2e_horafy-e2e-net  Creating
+ Network horafy-e2e_horafy-e2e-net  Created
+ Container horafy-e2e-postgres  Creating
+ Container horafy-e2e-redis  Creating
+ Container horafy-e2e-rabbitmq  Creating
+ Container horafy-e2e-rabbitmq  Created
+ Container horafy-e2e-postgres  Created
+ Container horafy-e2e-redis  Created
+ Container horafy-e2e-api  Creating
+ Container horafy-e2e-api  Created
+ Container horafy-e2e-frontend  Creating
+ Container horafy-e2e-frontend  Created
+ Container horafy-e2e-rabbitmq  Starting
+ Container horafy-e2e-redis  Starting
+ Container horafy-e2e-postgres  Starting
+ Container horafy-e2e-redis  Started
+ Container horafy-e2e-rabbitmq  Started
+ Container horafy-e2e-postgres  Started
+ Container horafy-e2e-rabbitmq  Waiting
+ Container horafy-e2e-postgres  Waiting
+ Container horafy-e2e-redis  Waiting
+ Container horafy-e2e-redis  Healthy
+ Container horafy-e2e-postgres  Healthy
+ Container horafy-e2e-rabbitmq  Healthy
+ Container horafy-e2e-api  Starting
+ Container horafy-e2e-api  Started
+ Container horafy-e2e-api  Waiting
+ Container horafy-e2e-api  Healthy
+ Container horafy-e2e-frontend  Starting
+ Container horafy-e2e-frontend  Started
+ Container horafy-e2e-redis  Waiting
+ Container horafy-e2e-rabbitmq  Waiting
+ Container horafy-e2e-api  Waiting
+ Container horafy-e2e-frontend  Waiting
+ Container horafy-e2e-postgres  Waiting
+ Container horafy-e2e-postgres  Healthy
+ Container horafy-e2e-redis  Healthy
+ Container horafy-e2e-api  Healthy
+ Container horafy-e2e-rabbitmq  Healthy
+ Container horafy-e2e-frontend  Healthy
+[E2E] Stack pronto.
+
+Running 7 tests using 1 worker
+
+  ✘  1 [chromium] › e2e\admin-workflow.spec.ts:71:7 › Admin workflow: confirm → customer cancel → financeiro › admin confirma agendamento via UI (0ms)
+  -  2 [chromium] › e2e\admin-workflow.spec.ts:94:7 › Admin workflow: confirm → customer cancel → financeiro › cliente cancela agendamento via portal
+  -  3 [chromium] › e2e\admin-workflow.spec.ts:117:7 › Admin workflow: confirm → customer cancel → financeiro › admin acessa financeiro após cancelamento
+  ✘  4 [chromium] › e2e\admin-workflow.spec.ts:71:7 › Admin workflow: confirm → customer cancel → financeiro › admin confirma agendamento via UI (retry #1) (5ms)
+  -  5 [chromium] › e2e\admin-workflow.spec.ts:94:7 › Admin workflow: confirm → customer cancel → financeiro › cliente cancela agendamento via portal (retry #1)
+  -  6 [chromium] › e2e\admin-workflow.spec.ts:117:7 › Admin workflow: confirm → customer cancel → financeiro › admin acessa financeiro após cancelamento (retry #1)
+  ✘  7 [chromium] › e2e\booking.spec.ts:30:7 › Portal booking flow › cliente navega pelo wizard e agendamento fica Confirmado (3ms)
+  ✘  8 [chromium] › e2e\booking.spec.ts:30:7 › Portal booking flow › cliente navega pelo wizard e agendamento fica Confirmado (retry #1) (1ms)
+  ✘  9 [chromium] › e2e\loyalty.spec.ts:74:7 › Loyalty: booking concluído credita carteira › admin marca booking como Concluído via UI (1ms)
+  -  10 [chromium] › e2e\loyalty.spec.ts:95:7 › Loyalty: booking concluído credita carteira › carteira do cliente mostra crédito de fidelidade (R$ 6,00 = 10% de R$ 60)
+  ✘  11 [chromium] › e2e\loyalty.spec.ts:74:7 › Loyalty: booking concluído credita carteira › admin marca booking como Concluído via UI (retry #1) (1ms)
+  -  12 [chromium] › e2e\loyalty.spec.ts:95:7 › Loyalty: booking concluído credita carteira › carteira do cliente mostra crédito de fidelidade (R$ 6,00 = 10% de R$ 60) (retry #1)
+  ✓  13 [chromium] › e2e\onboarding.spec.ts:13:7 › Onboarding wizard › owner faz login e conclui o wizard de 5 passos (9.7s)
+[E2E] Derrubando docker-compose.e2e.yml...
+ Container horafy-e2e-frontend  Stopping
+ Container horafy-e2e-frontend  Stopped
+ Container horafy-e2e-frontend  Removing
+ Container horafy-e2e-frontend  Removed
+ Container horafy-e2e-api  Stopping
+ Container horafy-e2e-api  Stopped
+ Container horafy-e2e-api  Removing
+ Container horafy-e2e-api  Removed
+ Container horafy-e2e-postgres  Stopping
+ Container horafy-e2e-redis  Stopping
+ Container horafy-e2e-rabbitmq  Stopping
+ Container horafy-e2e-redis  Stopped
+ Container horafy-e2e-redis  Removing
+ Container horafy-e2e-redis  Removed
+ Container horafy-e2e-postgres  Stopped
+ Container horafy-e2e-postgres  Removing
+ Container horafy-e2e-rabbitmq  Stopped
+ Container horafy-e2e-rabbitmq  Removing
+ Container horafy-e2e-postgres  Removed
+ Container horafy-e2e-rabbitmq  Removed
+ Network horafy-e2e_horafy-e2e-net  Removing
+ Network horafy-e2e_horafy-e2e-net  Removed
+[E2E] Stack removido.
+
+
+  1) [chromium] › e2e\admin-workflow.spec.ts:71:7 › Admin workflow: confirm → customer cancel → financeiro › admin confirma agendamento via UI 
+
+    Error: POST http://localhost:8084/api/v1/customers/auth/test-login → 404: {"error":"Estabelecimento não encontrado."}
+
+       at helpers\api.ts:30
+
+      28 |   if (!res.ok) {
+      29 |     const text = await res.text().catch(() => '')
+    > 30 |     throw new Error(`POST ${url} → ${res.status}: ${text}`)
+         |           ^
+      31 |   }
+      32 |   // 204 No Content não tem body
+      33 |   if (res.status === 204) return null
+        at post (C:\Projetos\JEL\JEL\Horafy\frontend\e2e\helpers\api.ts:30:11)
+        at customerTestLogin (C:\Projetos\JEL\JEL\Horafy\frontend\e2e\helpers\api.ts:159:16)
+        at C:\Projetos\JEL\JEL\Horafy\frontend\e2e\admin-workflow.spec.ts:28:21
+
+    Error Context: test-results\admin-workflow-Admin-workf-137df-confirma-agendamento-via-UI-chromium\error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: POST http://localhost:8084/api/v1/customers/auth/test-login → 404: {"error":"Estabelecimento não encontrado."}
+
+       at helpers\api.ts:30
+
+      28 |   if (!res.ok) {
+      29 |     const text = await res.text().catch(() => '')
+    > 30 |     throw new Error(`POST ${url} → ${res.status}: ${text}`)
+         |           ^
+      31 |   }
+      32 |   // 204 No Content não tem body
+      33 |   if (res.status === 204) return null
+        at post (C:\Projetos\JEL\JEL\Horafy\frontend\e2e\helpers\api.ts:30:11)
+        at customerTestLogin (C:\Projetos\JEL\JEL\Horafy\frontend\e2e\helpers\api.ts:159:16)
+        at C:\Projetos\JEL\JEL\Horafy\frontend\e2e\admin-workflow.spec.ts:28:21
+
+    Error Context: test-results\admin-workflow-Admin-workf-137df-confirma-agendamento-via-UI-chromium-retry1\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\admin-workflow-Admin-workf-137df-confirma-agendamento-via-UI-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\admin-workflow-Admin-workf-137df-confirma-agendamento-via-UI-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium] › e2e\booking.spec.ts:30:7 › Portal booking flow › cliente navega pelo wizard e agendamento fica Confirmado 
+
+    Error: POST http://localhost:8084/api/v1/customers/auth/test-login → 404: {"error":"Estabelecimento não encontrado."}
+
+       at helpers\api.ts:30
+
+      28 |   if (!res.ok) {
+      29 |     const text = await res.text().catch(() => '')
+    > 30 |     throw new Error(`POST ${url} → ${res.status}: ${text}`)
+         |           ^
+      31 |   }
+      32 |   // 204 No Content não tem body
+      33 |   if (res.status === 204) return null
+        at post (C:\Projetos\JEL\JEL\Horafy\frontend\e2e\helpers\api.ts:30:11)
+        at customerTestLogin (C:\Projetos\JEL\JEL\Horafy\frontend\e2e\helpers\api.ts:159:16)
+        at C:\Projetos\JEL\JEL\Horafy\frontend\e2e\booking.spec.ts:27:21
+
+    Error Context: test-results\booking-Portal-booking-flo-e336a-agendamento-fica-Confirmado-chromium\error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: POST http://localhost:8084/api/v1/customers/auth/test-login → 404: {"error":"Estabelecimento não encontrado."}
+
+       at helpers\api.ts:30
+
+      28 |   if (!res.ok) {
+      29 |     const text = await res.text().catch(() => '')
+    > 30 |     throw new Error(`POST ${url} → ${res.status}: ${text}`)
+         |           ^
+      31 |   }
+      32 |   // 204 No Content não tem body
+      33 |   if (res.status === 204) return null
+        at post (C:\Projetos\JEL\JEL\Horafy\frontend\e2e\helpers\api.ts:30:11)
+        at customerTestLogin (C:\Projetos\JEL\JEL\Horafy\frontend\e2e\helpers\api.ts:159:16)
+        at C:\Projetos\JEL\JEL\Horafy\frontend\e2e\booking.spec.ts:27:21
+
+    Error Context: test-results\booking-Portal-booking-flo-e336a-agendamento-fica-Confirmado-chromium-retry1\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\booking-Portal-booking-flo-e336a-agendamento-fica-Confirmado-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\booking-Portal-booking-flo-e336a-agendamento-fica-Confirmado-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium] › e2e\loyalty.spec.ts:74:7 › Loyalty: booking concluído credita carteira › admin marca booking como Concluído via UI 
+
+    Error: POST http://localhost:8084/api/v1/customers/auth/test-login → 404: {"error":"Estabelecimento não encontrado."}
+
+       at helpers\api.ts:30
+
+      28 |   if (!res.ok) {
+      29 |     const text = await res.text().catch(() => '')
+    > 30 |     throw new Error(`POST ${url} → ${res.status}: ${text}`)
+         |           ^
+      31 |   }
+      32 |   // 204 No Content não tem body
+      33 |   if (res.status === 204) return null
+        at post (C:\Projetos\JEL\JEL\Horafy\frontend\e2e\helpers\api.ts:30:11)
+        at customerTestLogin (C:\Projetos\JEL\JEL\Horafy\frontend\e2e\helpers\api.ts:159:16)
+        at C:\Projetos\JEL\JEL\Horafy\frontend\e2e\loyalty.spec.ts:30:21
+
+    Error Context: test-results\loyalty-Loyalty-booking-co-baa64-oking-como-Concluído-via-UI-chromium\error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: POST http://localhost:8084/api/v1/customers/auth/test-login → 404: {"error":"Estabelecimento não encontrado."}
+
+       at helpers\api.ts:30
+
+      28 |   if (!res.ok) {
+      29 |     const text = await res.text().catch(() => '')
+    > 30 |     throw new Error(`POST ${url} → ${res.status}: ${text}`)
+         |           ^
+      31 |   }
+      32 |   // 204 No Content não tem body
+      33 |   if (res.status === 204) return null
+        at post (C:\Projetos\JEL\JEL\Horafy\frontend\e2e\helpers\api.ts:30:11)
+        at customerTestLogin (C:\Projetos\JEL\JEL\Horafy\frontend\e2e\helpers\api.ts:159:16)
+        at C:\Projetos\JEL\JEL\Horafy\frontend\e2e\loyalty.spec.ts:30:21
+
+    Error Context: test-results\loyalty-Loyalty-booking-co-baa64-oking-como-Concluído-via-UI-chromium-retry1\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\loyalty-Loyalty-booking-co-baa64-oking-como-Concluído-via-UI-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\loyalty-Loyalty-booking-co-baa64-oking-como-Concluído-via-UI-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    [chromium] › e2e\admin-workflow.spec.ts:71:7 › Admin workflow: confirm → customer cancel → financeiro › admin confirma agendamento via UI 
+    [chromium] › e2e\booking.spec.ts:30:7 › Portal booking flow › cliente navega pelo wizard e agendamento fica Confirmado 
+    [chromium] › e2e\loyalty.spec.ts:74:7 › Loyalty: booking concluído credita carteira › admin marca booking como Concluído via UI 
+  3 did not run
+  1 passed (3.5m)
