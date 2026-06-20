@@ -135,6 +135,30 @@ public class GetAvailableSlotsQueryHandlerTests
     }
 
     [Fact]
+    public async Task Handle_TodayPastSlots_AreExcluded()
+    {
+        // Regra para HOJE cobrindo o dia inteiro → slots anteriores a "agora" são removidos
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var rule = AvailabilityRule.Create(
+            ResourceId, today.DayOfWeek, new TimeOnly(0, 0), new TimeOnly(23, 0), 30);
+        var (handler, availRepo, _, bookingRepo) = BuildHandler();
+
+        availRepo.Setup(r => r.GetRuleAsync(ResourceId, today.DayOfWeek, default))
+            .ReturnsAsync(rule);
+        availRepo.Setup(r => r.GetExceptionAsync(ResourceId, today, default))
+            .ReturnsAsync((AvailabilityException?)null);
+        bookingRepo.Setup(r => r.GetByResourceAsync(ResourceId, It.IsAny<DateTimeOffset>(),
+            It.IsAny<DateTimeOffset>(), default))
+            .ReturnsAsync(new List<Booking>());
+
+        var result = await handler.Handle(
+            new GetAvailableSlotsQuery(ResourceId, today, null), default);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().OnlyContain(s => s > DateTimeOffset.UtcNow);
+    }
+
+    [Fact]
     public async Task Handle_CustomHoursException_UsesExceptionTimes()
     {
         // Regra: 08:00–12:00, mas exceção define 10:00–12:00 → 2 slots de 60min

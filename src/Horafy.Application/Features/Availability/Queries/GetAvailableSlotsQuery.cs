@@ -67,8 +67,12 @@ internal sealed class GetAvailableSlotsQueryHandler(
         var existingBookings = await bookingRepository.GetByResourceAsync(
             request.ResourceId, dayStart, dayEnd, cancellationToken);
 
-        // 6. Filtrar slots ocupados
+        // 6. Filtrar slots no passado (não faz sentido oferecer horário já vencido)
+        var now = DateTimeOffset.UtcNow;
+
+        // 7. Filtrar slots ocupados e passados
         var availableSlots = allSlots
+            .Where(slot => slot > now)
             .Where(slot => !existingBookings.Any(b =>
                 b.OverlapsWith(slot, slot.AddMinutes(slotDuration))))
             .ToList();
