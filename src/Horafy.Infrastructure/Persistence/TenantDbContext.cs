@@ -85,14 +85,17 @@ public sealed class TenantDbContext : DbContext
 
         var result = await base.SaveChangesAsync(cancellationToken);
 
-        if (_publisher is not null)
-            foreach (var ev in domainEvents)
-                await _publisher.Publish(ev, cancellationToken);
-
+        // Limpa os eventos ANTES de publicar: um handler pode chamar SaveChangesAsync
+        // de novo (re-entrante) e re-coletaria os mesmos eventos ainda não limpos,
+        // causando dispatch duplicado e conflito de tracking (duas instâncias da mesma entidade).
         ChangeTracker
             .Entries<BaseEntity>()
             .ToList()
             .ForEach(e => e.Entity.ClearDomainEvents());
+
+        if (_publisher is not null)
+            foreach (var ev in domainEvents)
+                await _publisher.Publish(ev, cancellationToken);
 
         return result;
     }

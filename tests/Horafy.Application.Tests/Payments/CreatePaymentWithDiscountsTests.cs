@@ -36,8 +36,9 @@ public sealed class CreatePaymentWithDiscountsTests
         var service  = Service.Create("Corte", 60, 100m);
         var resource = Resource.Create("João", ResourceType.Professional);
         return Booking.Create(
-            new[] { (service.Id, "Corte", 60) },
+            new[] { (service.Id, "Corte", 60, 100m) },
             resource.Id,
+            resource.Name,
             Guid.NewGuid(), "Cliente", "cliente@test.com",
             DateTimeOffset.UtcNow.AddHours(2));
     }

@@ -67,13 +67,13 @@ internal sealed class CreateRecurringBookingCommandHandler(
         foreach (var date in occurrences)
         {
             var booking = Booking.Create(
-                request.ServiceId,
+                new[] { (request.ServiceId, service.Name, service.DurationMinutes, service.Price) },
                 request.ResourceId,
+                resource.Name,
                 customerId:        currentUser.UserId.Value,
                 customerName:      currentUser.Email ?? "Cliente",
                 customerEmail:     currentUser.Email ?? string.Empty,
                 scheduledAt:       date,
-                durationMinutes:   service.DurationMinutes,
                 notes:             request.Notes,
                 recurrenceGroupId: recurrenceGroupId);
 

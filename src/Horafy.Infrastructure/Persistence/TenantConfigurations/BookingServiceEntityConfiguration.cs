@@ -16,6 +16,8 @@ internal sealed class BookingServiceEntityConfiguration : IEntityTypeConfigurati
 
         builder.Property(bs => bs.ServiceName).IsRequired().HasMaxLength(200);
 
+        builder.Property(bs => bs.Price).HasColumnType("numeric(10,2)").HasDefaultValue(0m);
+
         builder.HasIndex(bs => bs.BookingId)
             .HasDatabaseName("ix_booking_services_booking");
     }

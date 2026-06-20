@@ -4,19 +4,21 @@ public sealed class BookingService
 {
     private BookingService() { }
 
-    public Guid   Id              { get; private set; } = Guid.NewGuid();
-    public Guid   BookingId       { get; private set; }
-    public Guid   ServiceId       { get; private set; }
-    public string ServiceName     { get; private set; } = default!;
-    public int    DurationMinutes { get; private set; }
+    public Guid    Id              { get; private set; } = Guid.NewGuid();
+    public Guid    BookingId       { get; private set; }
+    public Guid    ServiceId       { get; private set; }
+    public string  ServiceName     { get; private set; } = default!;
+    public int     DurationMinutes { get; private set; }
+    public decimal Price           { get; private set; }
 
     internal static BookingService Create(
-        Guid bookingId, Guid serviceId, string serviceName, int durationMinutes) =>
+        Guid bookingId, Guid serviceId, string serviceName, int durationMinutes, decimal price) =>
         new()
         {
             BookingId       = bookingId,
             ServiceId       = serviceId,
             ServiceName     = serviceName.Trim(),
-            DurationMinutes = durationMinutes
+            DurationMinutes = durationMinutes,
+            Price           = price
         };
 }

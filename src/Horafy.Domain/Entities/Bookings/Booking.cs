@@ -8,9 +8,10 @@ public sealed class Booking : BaseEntity
     private Booking() { }
     private readonly List<BookingService> _services = [];
 
-    public Guid ServiceId  { get; private set; }
-    public Guid ResourceId { get; private set; }
-    public Guid CustomerId { get; private set; }
+    public Guid ServiceId    { get; private set; }
+    public Guid ResourceId   { get; private set; }
+    public string ResourceName { get; private set; } = default!;
+    public Guid CustomerId   { get; private set; }
 
     public string CustomerName  { get; private set; } = default!;
     public string CustomerEmail { get; private set; } = default!;
@@ -36,9 +37,13 @@ public sealed class Booking : BaseEntity
 
     public IReadOnlyList<BookingService> Services => _services.AsReadOnly();
 
+    /// <summary>Valor total = soma dos preços (snapshot) dos serviços do agendamento.</summary>
+    public decimal TotalAmount => _services.Sum(s => s.Price);
+
     public static Booking Create(
-        IReadOnlyList<(Guid ServiceId, string ServiceName, int DurationMinutes)> services,
+        IReadOnlyList<(Guid ServiceId, string ServiceName, int DurationMinutes, decimal Price)> services,
         Guid resourceId,
+        string resourceName,
         Guid customerId,
         string customerName,
         string customerEmail,
@@ -63,6 +68,7 @@ public sealed class Booking : BaseEntity
         {
             ServiceId         = services[0].ServiceId,
             ResourceId        = resourceId,
+            ResourceName      = resourceName.Trim(),
             CustomerId        = customerId,
             CustomerName      = customerName.Trim(),
             CustomerEmail     = customerEmail.ToLowerInvariant().Trim(),
@@ -76,7 +82,7 @@ public sealed class Booking : BaseEntity
         };
 
         foreach (var svc in services)
-            booking._services.Add(BookingService.Create(booking.Id, svc.ServiceId, svc.ServiceName, svc.DurationMinutes));
+            booking._services.Add(BookingService.Create(booking.Id, svc.ServiceId, svc.ServiceName, svc.DurationMinutes, svc.Price));
 
         booking.RaiseDomainEvent(new BookingCreatedEvent(
             booking.Id, booking.ServiceId, resourceId, customerId, booking.CustomerPhone, scheduledAt));
@@ -97,8 +103,8 @@ public sealed class Booking : BaseEntity
         Guid? recurrenceGroupId = null,
         DateTimeOffset? expiresAt = null) =>
         Create(
-            new[] { (serviceId, ServiceName: serviceId.ToString(), durationMinutes) },
-            resourceId, customerId, customerName, customerEmail,
+            new[] { (serviceId, ServiceName: serviceId.ToString(), durationMinutes, Price: 0m) },
+            resourceId, resourceName: string.Empty, customerId, customerName, customerEmail,
             scheduledAt, customerPhone, notes, recurrenceGroupId, expiresAt);
 
     public void Confirm()

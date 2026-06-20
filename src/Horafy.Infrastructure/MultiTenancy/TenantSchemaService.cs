@@ -118,6 +118,7 @@ internal sealed class TenantSchemaService(
             customer_name        VARCHAR(150) NOT NULL,
             customer_email       VARCHAR(256) NOT NULL,
             customer_phone       VARCHAR(20),
+            resource_name        VARCHAR(150) NOT NULL DEFAULT '',
             scheduled_at         TIMESTAMPTZ  NOT NULL,
             ends_at              TIMESTAMPTZ  NOT NULL,
             duration_minutes     INT          NOT NULL,
@@ -160,10 +161,11 @@ internal sealed class TenantSchemaService(
         -- ── Serviços por Agendamento ───────────────────────────────────────
         CREATE TABLE IF NOT EXISTS {s}.booking_services (
             id               UUID         NOT NULL DEFAULT gen_random_uuid(),
-            booking_id       UUID         NOT NULL,
-            service_id       UUID         NOT NULL,
-            service_name     VARCHAR(200) NOT NULL,
-            duration_minutes INT          NOT NULL,
+            booking_id       UUID          NOT NULL,
+            service_id       UUID          NOT NULL,
+            service_name     VARCHAR(200)  NOT NULL,
+            duration_minutes INT           NOT NULL,
+            price            NUMERIC(10,2) NOT NULL DEFAULT 0,
             CONSTRAINT pk_booking_services PRIMARY KEY (id),
             CONSTRAINT fk_booking_services_booking
                 FOREIGN KEY (booking_id) REFERENCES {s}.bookings (id) ON DELETE CASCADE
@@ -211,6 +213,13 @@ internal sealed class TenantSchemaService(
         -- ── Coluna de status de pagamento nos agendamentos ─────────────────
         ALTER TABLE {s}.bookings
             ADD COLUMN IF NOT EXISTS payment_status VARCHAR(32) NOT NULL DEFAULT 'NotRequired';
+
+        -- ── Nome do recurso (snapshot) e preço por serviço (snapshot) ──────
+        ALTER TABLE {s}.bookings
+            ADD COLUMN IF NOT EXISTS resource_name VARCHAR(150) NOT NULL DEFAULT '';
+
+        ALTER TABLE {s}.booking_services
+            ADD COLUMN IF NOT EXISTS price NUMERIC(10,2) NOT NULL DEFAULT 0;
 
         -- ── Fila de Espera ─────────────────────────────────────────────────
         CREATE TABLE IF NOT EXISTS {s}.waitlist_entries (
@@ -390,6 +399,83 @@ internal sealed class TenantSchemaService(
         CREATE INDEX IF NOT EXISTS ix_favorite_services_customer
             ON {s}.favorite_services (customer_id)
             WHERE is_deleted = FALSE;
+
+        -- ── Carteira (Wallet) ──────────────────────────────────────────────
+        CREATE TABLE IF NOT EXISTS {s}.wallets (
+            id          UUID          NOT NULL DEFAULT gen_random_uuid(),
+            user_id     UUID          NOT NULL,
+            balance     NUMERIC(12,2) NOT NULL DEFAULT 0,
+            created_at  TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+            updated_at  TIMESTAMPTZ,
+            created_by  VARCHAR(256),
+            updated_by  VARCHAR(256),
+            is_deleted  BOOLEAN       NOT NULL DEFAULT FALSE,
+            deleted_at  TIMESTAMPTZ,
+            deleted_by  VARCHAR(256),
+            CONSTRAINT pk_wallets PRIMARY KEY (id)
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_wallets_user_id
+            ON {s}.wallets (user_id);
+
+        -- ── Transações da Carteira ─────────────────────────────────────────
+        CREATE TABLE IF NOT EXISTS {s}.wallet_transactions (
+            id          UUID          NOT NULL DEFAULT gen_random_uuid(),
+            wallet_id   UUID          NOT NULL,
+            type        VARCHAR(32)   NOT NULL,
+            amount      NUMERIC(12,2) NOT NULL,
+            description VARCHAR(255)  NOT NULL,
+            booking_id  UUID,
+            created_at  TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+            updated_at  TIMESTAMPTZ,
+            created_by  VARCHAR(256),
+            updated_by  VARCHAR(256),
+            is_deleted  BOOLEAN       NOT NULL DEFAULT FALSE,
+            deleted_at  TIMESTAMPTZ,
+            deleted_by  VARCHAR(256),
+            CONSTRAINT pk_wallet_transactions PRIMARY KEY (id),
+            CONSTRAINT fk_wallet_transactions_wallets
+                FOREIGN KEY (wallet_id) REFERENCES {s}.wallets (id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_wallet_transactions_wallet_id
+            ON {s}.wallet_transactions (wallet_id);
+
+        CREATE INDEX IF NOT EXISTS ix_wallet_transactions_booking_id
+            ON {s}.wallet_transactions (booking_id)
+            WHERE booking_id IS NOT NULL;
+
+        -- ── Vouchers ───────────────────────────────────────────────────────
+        CREATE TABLE IF NOT EXISTS {s}.vouchers (
+            id             UUID          NOT NULL DEFAULT gen_random_uuid(),
+            code           VARCHAR(50)   NOT NULL,
+            discount_type  VARCHAR(16)   NOT NULL,
+            discount_value NUMERIC(10,2) NOT NULL,
+            description    VARCHAR(255),
+            expires_at     TIMESTAMPTZ,
+            max_uses       INT,
+            used_count     INT           NOT NULL DEFAULT 0,
+            is_active      BOOLEAN       NOT NULL DEFAULT TRUE,
+            created_at     TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+            updated_at     TIMESTAMPTZ,
+            created_by     VARCHAR(256),
+            updated_by     VARCHAR(256),
+            is_deleted     BOOLEAN       NOT NULL DEFAULT FALSE,
+            deleted_at     TIMESTAMPTZ,
+            deleted_by     VARCHAR(256),
+            CONSTRAINT pk_vouchers PRIMARY KEY (id)
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_vouchers_code
+            ON {s}.vouchers (code);
+
+        -- ── Colunas de desconto nos pagamentos ─────────────────────────────
+        ALTER TABLE {s}.payments
+            ADD COLUMN IF NOT EXISTS voucher_code VARCHAR(50);
+        ALTER TABLE {s}.payments
+            ADD COLUMN IF NOT EXISTS voucher_discount_amount NUMERIC(10,2) NOT NULL DEFAULT 0;
+        ALTER TABLE {s}.payments
+            ADD COLUMN IF NOT EXISTS wallet_amount NUMERIC(10,2) NOT NULL DEFAULT 0;
         """;
     }
 }

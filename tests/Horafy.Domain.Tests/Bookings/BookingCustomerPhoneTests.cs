@@ -10,8 +10,9 @@ public sealed class BookingCustomerPhoneTests
     public void Create_WithPhone_SetsCustomerPhone()
     {
         var booking = Booking.Create(
-            services: new[] { (Guid.NewGuid(), "Corte", 30) },
+            services: new[] { (Guid.NewGuid(), "Corte", 30, 50m) },
             resourceId: Guid.NewGuid(),
+            resourceName: "Recurso",
             customerId: Guid.NewGuid(),
             customerName: "João",
             customerEmail: "joao@test.com",
@@ -25,8 +26,9 @@ public sealed class BookingCustomerPhoneTests
     public void Create_WithoutPhone_CustomerPhoneIsNull()
     {
         var booking = Booking.Create(
-            services: new[] { (Guid.NewGuid(), "Corte", 30) },
+            services: new[] { (Guid.NewGuid(), "Corte", 30, 50m) },
             resourceId: Guid.NewGuid(),
+            resourceName: "Recurso",
             customerId: Guid.NewGuid(),
             customerName: "João",
             customerEmail: "joao@test.com",

@@ -23,8 +23,9 @@ public sealed class CreateReviewCommandTests
     private static Booking MakeCompletedBooking(Guid customerId, Guid resourceId)
     {
         var b = Booking.Create(
-            services: new[] { (Guid.NewGuid(), "Corte", 30) },
+            services: new[] { (Guid.NewGuid(), "Corte", 30, 50m) },
             resourceId: resourceId,
+            resourceName: "Recurso",
             customerId: customerId,
             customerName: "João",
             customerEmail: "j@test.com",
@@ -94,8 +95,9 @@ public sealed class CreateReviewCommandTests
         _currentUser.Setup(c => c.UserId).Returns((Guid?)customerId);
 
         var booking = Booking.Create(
-            services: new[] { (Guid.NewGuid(), "Corte", 30) },
+            services: new[] { (Guid.NewGuid(), "Corte", 30, 50m) },
             resourceId: resourceId,
+            resourceName: "Recurso",
             customerId: customerId,
             customerName: "João",
             customerEmail: "j@test.com",

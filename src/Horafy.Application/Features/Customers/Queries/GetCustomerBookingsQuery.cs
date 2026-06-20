@@ -19,7 +19,10 @@ public sealed record CustomerBookingResult(
     string?              Notes,
     BookingStatus        Status,
     BookingPaymentStatus PaymentStatus,
-    IReadOnlyList<CustomerBookingServiceResult> Services);
+    IReadOnlyList<CustomerBookingServiceResult> Services,
+    string               ServiceName,
+    string               ResourceName,
+    decimal              TotalAmount);
 
 public sealed record CustomerBookingServiceResult(
     Guid   ServiceId,
@@ -48,7 +51,10 @@ internal sealed class GetCustomerBookingsQueryHandler(
                 b.Services
                     .Select(s => new CustomerBookingServiceResult(
                         s.ServiceId, s.ServiceName, s.DurationMinutes))
-                    .ToList()))
+                    .ToList(),
+                ServiceName:  string.Join(", ", b.Services.Select(s => s.ServiceName)),
+                ResourceName: b.ResourceName,
+                TotalAmount:  b.TotalAmount))
             .ToList();
 
         return Result.Success<IReadOnlyList<CustomerBookingResult>>(results);

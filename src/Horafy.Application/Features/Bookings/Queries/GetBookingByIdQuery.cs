@@ -21,6 +21,9 @@ internal sealed class GetBookingByIdQueryHandler(
             b.CustomerName, b.CustomerEmail, b.ScheduledAt, b.EndsAt,
             b.DurationMinutes, b.Notes, b.Status, b.CancellationReason,
             b.RecurrenceGroupId,
-            b.Services.Select(s => new BookingServiceResult(s.ServiceId, s.ServiceName, s.DurationMinutes)).ToList()));
+            b.Services.Select(s => new BookingServiceResult(s.ServiceId, s.ServiceName, s.DurationMinutes)).ToList(),
+            ServiceName:  string.Join(", ", b.Services.Select(s => s.ServiceName)),
+            ResourceName: b.ResourceName,
+            TotalAmount:  b.TotalAmount));
     }
 }

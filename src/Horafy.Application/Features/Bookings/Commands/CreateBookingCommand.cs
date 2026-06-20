@@ -48,12 +48,12 @@ internal sealed class CreateBookingCommandHandler(
         var fetchedServices = await serviceRepository.GetByIdsAsync(request.ServiceIds, cancellationToken);
         var serviceMap = fetchedServices.ToDictionary(s => s.Id);
 
-        var services = new List<(Guid ServiceId, string ServiceName, int DurationMinutes)>();
+        var services = new List<(Guid ServiceId, string ServiceName, int DurationMinutes, decimal Price)>();
         foreach (var serviceId in request.ServiceIds)
         {
             if (!serviceMap.TryGetValue(serviceId, out var service))
                 return Result.Failure<Guid>(BookingErrors.ServiceNotFound);
-            services.Add((service.Id, service.Name, service.DurationMinutes));
+            services.Add((service.Id, service.Name, service.DurationMinutes, service.Price));
         }
 
         var totalDuration = services.Sum(s => s.DurationMinutes);
@@ -68,6 +68,7 @@ internal sealed class CreateBookingCommandHandler(
         var booking = Booking.Create(
             services,
             request.ResourceId,
+            resource.Name,
             customerId:    currentUser.UserId.Value,
             customerName:  currentUser.Email ?? "Cliente",
             customerEmail: currentUser.Email ?? string.Empty,

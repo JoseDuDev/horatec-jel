@@ -72,6 +72,14 @@ public sealed class HorafyDbContext : DbContext
 
         var result = await base.SaveChangesAsync(cancellationToken);
 
+        // Limpa os eventos ANTES de publicar: um handler pode chamar SaveChangesAsync
+        // de novo (re-entrante) e re-coletaria os mesmos eventos, causando dispatch
+        // duplicado e conflito de tracking (duas instâncias da mesma entidade).
+        ChangeTracker
+            .Entries<BaseEntity>()
+            .ToList()
+            .ForEach(e => e.Entity.ClearDomainEvents());
+
         // Publica domain events via MediatR após commit
         if (_publisher is not null)
         {
@@ -80,12 +88,6 @@ public sealed class HorafyDbContext : DbContext
                 await _publisher.Publish(domainEvent, cancellationToken);
             }
         }
-
-        // Limpa os eventos das entidades
-        ChangeTracker
-            .Entries<BaseEntity>()
-            .ToList()
-            .ForEach(e => e.Entity.ClearDomainEvents());
 
         return result;
     }
