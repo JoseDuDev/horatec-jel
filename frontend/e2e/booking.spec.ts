@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import {
   setupTenant, createService, createResource, linkServiceToResource,
-  setBusinessHoursWeekdays, customerTestLogin, confirmBooking,
+  setResourceRulesWeekdays, customerTestLogin, confirmBooking,
   customerStorageState,
 } from './helpers/api'
 
@@ -22,7 +22,7 @@ test.describe('Portal booking flow', () => {
     })
     const resourceId = await createResource(ownerToken, slug, 'João Barbeiro')
     await linkServiceToResource(ownerToken, slug, resourceId, serviceId)
-    await setBusinessHoursWeekdays(ownerToken, slug)
+    await setResourceRulesWeekdays(ownerToken, slug, resourceId)
 
     customerSetup = await customerTestLogin(`cliente-${slug}@e2e.test`, slug)
   })

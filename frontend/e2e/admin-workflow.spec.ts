@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import {
   setupTenant, createService, createResource, linkServiceToResource,
-  setBusinessHoursWeekdays, customerTestLogin,
+  setResourceRulesWeekdays, customerTestLogin,
   adminStorageState, customerStorageState,
 } from './helpers/api'
 
@@ -23,7 +23,7 @@ test.describe('Admin workflow: confirm → customer cancel → financeiro', () =
     })
     const resourceId = await createResource(ownerToken, slug, 'Ana Massagista')
     await linkServiceToResource(ownerToken, slug, resourceId, serviceId)
-    await setBusinessHoursWeekdays(ownerToken, slug)
+    await setResourceRulesWeekdays(ownerToken, slug, resourceId)
 
     customerSetup = await customerTestLogin(`cliente-workflow-${slug}@e2e.test`, slug)
 

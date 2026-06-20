@@ -1,5 +1,9 @@
-// Aponta para a API do docker-compose.e2e.yml (porta 8084)
-const API = 'http://localhost:8084/api/v1'
+// Aponta para a API do docker-compose.e2e.yml (porta 8086)
+const API = 'http://localhost:8086/api/v1'
+
+// Origin do frontend e2e — deve casar com baseURL em playwright.config.ts,
+// senão o localStorage injetado via storageState não é aplicado.
+const FRONTEND_ORIGIN = 'http://localhost:3002'
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -149,6 +153,28 @@ export async function setBusinessHoursWeekdays(token: string, slug: string): Pro
 }
 
 /**
+ * Define regras de disponibilidade do RECURSO seg–sex 08:00–18:00.
+ * A geração de slots (`GetAvailableSlotsQuery`) usa as regras do recurso —
+ * NÃO as business hours do tenant — então é isto que libera horários no wizard.
+ * A duração real do slot é sobrescrita pela duração do serviço na geração.
+ */
+export async function setResourceRulesWeekdays(
+  token: string,
+  slug: string,
+  resourceId: string
+): Promise<void> {
+  for (let day = 1; day <= 5; day++) {   // 1=Monday … 5=Friday
+    await put(`${API}/availability/resources/${resourceId}/rules`, {
+      dayOfWeek: day,
+      startTime: '08:00:00',
+      endTime: '18:00:00',
+      slotDurationMinutes: 30,
+      breakAfterMinutes: 0,
+    }, token, slug)
+  }
+}
+
+/**
  * Cria/recupera cliente de teste via endpoint exclusivo de E2ETest.
  * Retorna credenciais do cliente.
  */
@@ -199,6 +225,24 @@ export async function confirmBooking(
   }
 }
 
+/**
+ * Aprova o pagamento do booking via webhook do MercadoPago (fake gateway).
+ * O FakePaymentGateway ecoa o preferenceId (`fake-{bookingId}`) e retorna Approved,
+ * então o ConfirmPaymentCommand encontra e aprova o pagamento. Sem x-signature → validação pulada.
+ * Necessário para o bônus de fidelidade (só credita com pagamento Approved).
+ */
+export async function approvePayment(slug: string, bookingId: string): Promise<void> {
+  const res = await fetch(`${API}/webhooks/mercadopago`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Tenant-Slug': slug },
+    body: JSON.stringify({ type: 'payment', data: { id: `fake-${bookingId}` } }),
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`approvePayment → ${res.status}: ${text}`)
+  }
+}
+
 /** Marca agendamento como Concluído (ação de admin/staff). */
 export async function completeBooking(
   token: string,
@@ -232,10 +276,17 @@ export function adminStorageState(setup: TenantSetup): object {
     refreshToken: '',
     tenantSlug: setup.slug,
   }
+  // O middleware (/admin/*) e o apiFetch admin leem os cookies access_token e
+  // tenant_slug — não o store. Sem eles → redirect para /login / 401.
   return {
-    cookies: [],
+    cookies: [
+      { name: 'access_token', value: setup.ownerToken, domain: 'localhost', path: '/',
+        expires: -1, httpOnly: false, secure: false, sameSite: 'Lax' as const },
+      { name: 'tenant_slug', value: setup.slug, domain: 'localhost', path: '/',
+        expires: -1, httpOnly: false, secure: false, sameSite: 'Lax' as const },
+    ],
     origins: [{
-      origin: 'http://localhost:3001',
+      origin: FRONTEND_ORIGIN,
       localStorage: [
         { name: 'horafy-auth', value: JSON.stringify({ state, version: 0 }) },
       ],
@@ -255,7 +306,7 @@ export function customerStorageState(setup: CustomerSetup): object {
   return {
     cookies: [],
     origins: [{
-      origin: 'http://localhost:3001',
+      origin: FRONTEND_ORIGIN,
       localStorage: [
         { name: 'horafy-portal-auth', value: JSON.stringify({ state, version: 0 }) },
       ],

@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test'
 import {
   setupTenant, createService, createResource, linkServiceToResource,
-  setBusinessHoursWeekdays, customerTestLogin, setLoyalty, confirmBooking,
-  adminStorageState, customerStorageState,
+  setResourceRulesWeekdays, customerTestLogin, setLoyalty,
+  approvePayment, adminStorageState, customerStorageState,
 } from './helpers/api'
 
 test.describe('Loyalty: booking concluído credita carteira', () => {
@@ -25,7 +25,7 @@ test.describe('Loyalty: booking concluído credita carteira', () => {
     })
     const resourceId = await createResource(ownerToken, slug, 'Carla Manicure')
     await linkServiceToResource(ownerToken, slug, resourceId, serviceId)
-    await setBusinessHoursWeekdays(ownerToken, slug)
+    await setResourceRulesWeekdays(ownerToken, slug, resourceId)
 
     customerSetup = await customerTestLogin(`cliente-loyalty-${slug}@e2e.test`, slug)
 
@@ -68,7 +68,10 @@ test.describe('Loyalty: booking concluído credita carteira', () => {
       await ctx.close()
     }
 
-    await confirmBooking(ownerToken, slug, bookingId)
+    // Aprova o pagamento (fake gateway) — pré-condição do bônus de fidelidade.
+    // O PaymentConfirmedEventHandler também confirma o booking (Pending → Confirmed),
+    // então não é preciso confirmar manualmente.
+    await approvePayment(slug, bookingId)
   })
 
   test('admin marca booking como Concluído via UI', async ({ browser }) => {
@@ -102,7 +105,9 @@ test.describe('Loyalty: booking concluído credita carteira', () => {
       await page.getByRole('tab', { name: /carteira/i }).click()
 
       await expect(page.getByText('Saldo disponível')).toBeVisible({ timeout: 10_000 })
-      await expect(page.getByText('R$ 6,00')).toBeVisible({ timeout: 15_000 })
+      // Crédito de fidelidade aparece em 2 lugares (saldo "R$ 6,00" e badge "+R$ 6,00").
+      // exact:true isola o saldo e evita strict mode violation.
+      await expect(page.getByText('R$ 6,00', { exact: true })).toBeVisible({ timeout: 15_000 })
     } finally {
       await ctx.close()
     }

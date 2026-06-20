@@ -9,7 +9,7 @@ export default defineConfig({
   globalSetup: './e2e/global-setup.ts',
   globalTeardown: './e2e/global-teardown.ts',
   use: {
-    baseURL: 'http://localhost:3001',
+    baseURL: 'http://localhost:3002',
     navigationTimeout: 15_000,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',

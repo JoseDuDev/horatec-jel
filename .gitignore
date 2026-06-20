@@ -13,6 +13,9 @@ _ReSharper*/
 ## Publicação
 /publish/
 *.pubxml
+
+## E2E debug logs
+e2e-output-run*.txt
 *.pubxml.user
 
 ## Secrets (NUNCA commitar)
