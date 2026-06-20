@@ -16,6 +16,7 @@ export interface CheckoutOptions {
 }
 
 interface Props {
+  slug: string
   service: Service
   resource: Resource
   slot: string
@@ -26,7 +27,7 @@ interface Props {
 }
 
 export function WizardStepConfirm({
-  service, resource, slot, notes, onNotesChange, onConfirm, loading,
+  slug, service, resource, slot, notes, onNotesChange, onConfirm, loading,
 }: Props) {
   const { accessToken } = usePortalAuthStore()
 
@@ -39,10 +40,10 @@ export function WizardStepConfirm({
 
   useEffect(() => {
     if (!accessToken) return
-    portalWalletApi.getWallet(accessToken)
+    portalWalletApi.getWallet(slug, accessToken)
       .then(w => setWalletBalance(w.balance))
       .catch(() => {})
-  }, [accessToken])
+  }, [slug, accessToken])
 
   const handleApplyVoucher = async () => {
     if (!voucherInput.trim() || !accessToken) return
@@ -50,7 +51,7 @@ export function WizardStepConfirm({
     setVoucherError(null)
     try {
       const result = await portalWalletApi.validateVoucher(
-        accessToken, voucherInput.trim(), service.price)
+        slug, accessToken, voucherInput.trim(), service.price)
       setAppliedVoucher(result)
     } catch (err) {
       setVoucherError(err instanceof Error ? err.message : 'Voucher inválido')

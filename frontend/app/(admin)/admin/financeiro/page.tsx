@@ -37,12 +37,11 @@ export default function FinanceiroPage() {
       </div>
 
       {summary && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
           {[
             { title: 'Receita Bruta', value: `R$ ${summary.totalRevenue.toFixed(2)}` },
-            { title: 'Reembolsos', value: `R$ ${summary.totalRefunds.toFixed(2)}` },
+            { title: 'Reembolsos', value: `R$ ${summary.totalRefunded.toFixed(2)}` },
             { title: 'Receita Líquida', value: `R$ ${summary.netRevenue.toFixed(2)}` },
-            { title: 'Agendamentos Pagos', value: `${summary.paidBookings}/${summary.totalBookings}` },
           ].map(m => (
             <Card key={m.title}>
               <CardHeader className="pb-1">

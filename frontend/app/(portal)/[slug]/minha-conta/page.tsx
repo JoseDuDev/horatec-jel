@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -23,11 +23,11 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 interface Props {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 export default function MinhaContaPage({ params }: Props) {
-  const { slug } = params
+  const { slug } = use(params)
   const { customer, accessToken } = usePortalAuthStore()
   const [bookings, setBookings] = useState<CustomerBooking[]>([])
   const [favorites, setFavorites] = useState<FavoriteService[]>([])
@@ -259,7 +259,7 @@ export default function MinhaContaPage({ params }: Props) {
         </TabsContent>
 
         <TabsContent value="carteira">
-          <WalletWidget token={accessToken ?? ''} />
+          <WalletWidget token={accessToken ?? ''} slug={slug} />
         </TabsContent>
       </Tabs>
     </div>

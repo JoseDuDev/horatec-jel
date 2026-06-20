@@ -74,7 +74,7 @@ export function BookingWizard({ slug, services, resources, initialServiceId }: P
     setSubmitting(true)
     try {
       const booking = await portalApi.createBooking(slug, accessToken, {
-        serviceId,
+        serviceIds: [serviceId],
         resourceId,
         scheduledAt: selectedSlot,
         notes: notes || undefined,
@@ -157,6 +157,7 @@ export function BookingWizard({ slug, services, resources, initialServiceId }: P
       )}
       {step === 3 && selectedService && selectedResource && selectedSlot && (
         <WizardStepConfirm
+          slug={slug}
           service={selectedService}
           resource={selectedResource}
           slot={selectedSlot}

@@ -50,7 +50,7 @@ export interface FavoriteService {
 }
 
 export interface CreateBookingRequest {
-  serviceId: string
+  serviceIds: string[]
   resourceId: string
   scheduledAt: string
   notes?: string

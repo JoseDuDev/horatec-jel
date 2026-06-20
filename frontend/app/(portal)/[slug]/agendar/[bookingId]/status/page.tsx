@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -22,11 +22,11 @@ const STATUS_CONFIG = {
 }
 
 interface Props {
-  params: { slug: string; bookingId: string }
+  params: Promise<{ slug: string; bookingId: string }>
 }
 
 export default function BookingStatusPage({ params }: Props) {
-  const { slug, bookingId } = params
+  const { slug, bookingId } = use(params)
   const { accessToken } = usePortalAuthStore()
   const [booking, setBooking] = useState<CustomerBooking | null>(null)
   const [loading, setLoading] = useState(true)

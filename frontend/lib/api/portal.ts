@@ -64,11 +64,15 @@ export const portalApi = {
   myBookings: (slug: string, token: string) =>
     portalFetch<CustomerBooking[]>('/api/v1/customers/me/bookings', slug, {}, token),
 
-  createBooking: (slug: string, token: string, data: CreateBookingRequest) =>
-    portalFetch<BookingCreatedResult>('/api/v1/bookings', slug, {
+  // O endpoint POST /bookings retorna o Guid cru (ex.: "550e8400-..."),
+  // não um objeto. Envelopamos em { id } para o wizard usar booking.id.
+  createBooking: async (slug: string, token: string, data: CreateBookingRequest): Promise<BookingCreatedResult> => {
+    const id = await portalFetch<string>('/api/v1/bookings', slug, {
       method: 'POST',
       body: JSON.stringify(data),
-    }, token),
+    }, token)
+    return { id, scheduledAt: data.scheduledAt, status: 'Pending' }
+  },
 
   createPayment: (slug: string, token: string, data: CreatePaymentPortalRequest) =>
     portalFetch<PaymentPortalResult>('/api/v1/payments', slug, {

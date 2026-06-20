@@ -9,11 +9,18 @@ export interface FinancialTransaction {
   customerName: string
 }
 
+export interface DailySummary {
+  date: string
+  revenue: number
+  count: number
+}
+
 export interface FinancialSummary {
   totalRevenue: number
-  totalRefunds: number
+  totalRefunded: number
   netRevenue: number
-  totalBookings: number
-  paidBookings: number
-  pendingAmount: number
+  byDay: DailySummary[]
+  // Não retornados pela API de summary atual — usados apenas pelo dashboard com fallback (?? 0).
+  paidBookings?: number
+  totalBookings?: number
 }

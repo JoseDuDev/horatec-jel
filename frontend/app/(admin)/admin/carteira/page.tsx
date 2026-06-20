@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 
 export default function CarteiraPage() {
   const token = useAuthStore(s => s.accessToken)
+  const slug = useAuthStore(s => s.tenantSlug)
 
   return (
     <div className="space-y-6">
@@ -25,17 +26,17 @@ export default function CarteiraPage() {
           <TabsTrigger value="creditos">Créditos</TabsTrigger>
         </TabsList>
         <TabsContent value="vouchers" className="mt-4">
-          <VouchersTab token={token ?? ''} />
+          <VouchersTab token={token ?? ''} slug={slug ?? ''} />
         </TabsContent>
         <TabsContent value="creditos" className="mt-4">
-          <CreditosTab token={token ?? ''} />
+          <CreditosTab token={token ?? ''} slug={slug ?? ''} />
         </TabsContent>
       </Tabs>
     </div>
   )
 }
 
-function VouchersTab({ token }: { token: string }) {
+function VouchersTab({ token, slug }: { token: string; slug: string }) {
   const [vouchers, setVouchers] = useState<VoucherSummary[]>([])
   const [loading, setLoading] = useState(true)
   const [form, setForm] = useState<CreateVoucherRequest>({
@@ -48,17 +49,17 @@ function VouchersTab({ token }: { token: string }) {
 
   const load = () => {
     setLoading(true)
-    walletApi.getVouchers(token).then(setVouchers).finally(() => setLoading(false))
+    walletApi.getVouchers(slug, token).then(setVouchers).finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [token])
+  useEffect(() => { load() }, [token, slug])
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     setCreating(true)
     setError(null)
     try {
-      await walletApi.createVoucher(token, form)
+      await walletApi.createVoucher(slug, token, form)
       setForm({ code: '', discountType: 'Percentage', discountValue: 10 })
       load()
     } catch (err) {
@@ -69,7 +70,7 @@ function VouchersTab({ token }: { token: string }) {
   }
 
   const handleDeactivate = async (id: string) => {
-    await walletApi.deactivateVoucher(token, id)
+    await walletApi.deactivateVoucher(slug, token, id)
     load()
   }
 
@@ -185,7 +186,7 @@ function VouchersTab({ token }: { token: string }) {
   )
 }
 
-function CreditosTab({ token }: { token: string }) {
+function CreditosTab({ token, slug }: { token: string; slug: string }) {
   const [userId, setUserId] = useState('')
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
@@ -197,7 +198,7 @@ function CreditosTab({ token }: { token: string }) {
     setLoading(true)
     setMessage(null)
     try {
-      await walletApi.addCredits(token, userId, parseFloat(amount), description)
+      await walletApi.addCredits(slug, token, userId, parseFloat(amount), description)
       setMessage({ type: 'success', text: `R$ ${amount} adicionados com sucesso.` })
       setAmount('')
       setDescription('')

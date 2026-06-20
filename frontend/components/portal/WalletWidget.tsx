@@ -15,16 +15,16 @@ const TYPE_LABEL: Record<WalletTransactionType, string> = {
   LoyaltyBonus: 'Bônus de fidelidade',
 }
 
-export function WalletWidget({ token }: { token: string }) {
+export function WalletWidget({ token, slug }: { token: string; slug: string }) {
   const [wallet, setWallet] = useState<WalletResult | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    portalWalletApi.getWallet(token)
+    portalWalletApi.getWallet(slug, token)
       .then(setWallet)
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [token])
+  }, [slug, token])
 
   if (loading) return <p className="text-sm text-slate-500">Carregando carteira…</p>
 
