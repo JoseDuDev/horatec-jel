@@ -5,6 +5,7 @@ using Horafy.Domain.Entities.Bookings;
 using Horafy.Domain.Entities.Resources;
 using Horafy.Domain.Entities.Services;
 using Horafy.Domain.Interfaces.Repositories;
+using Horafy.Shared;
 using Moq;
 using System.Data;
 using Xunit;
@@ -18,7 +19,6 @@ public sealed class CreateRecurringBookingCommandHandlerTests
     private readonly Mock<IBookingRepository>  _bookingRepo  = new();
     private readonly Mock<ICurrentUserService> _currentUser  = new();
     private readonly Mock<ITenantUnitOfWork>   _unitOfWork   = new();
-    private readonly Mock<ITransaction>        _transaction  = new();
 
     private CreateRecurringBookingCommandHandler MakeHandler() =>
         new(_serviceRepo.Object, _resourceRepo.Object,
@@ -34,8 +34,10 @@ public sealed class CreateRecurringBookingCommandHandlerTests
         _currentUser.SetupGet(u => u.IsAuthenticated).Returns(true);
         _currentUser.SetupGet(u => u.UserId).Returns(userId);
         _currentUser.SetupGet(u => u.Email).Returns("cliente@test.com");
-        _unitOfWork.Setup(u => u.BeginTransactionAsync(IsolationLevel.Serializable, default))
-                   .ReturnsAsync(_transaction.Object);
+        _unitOfWork.Setup(u => u.ExecuteInTransactionAsync(
+                It.IsAny<Func<CancellationToken, Task<Result<Guid>>>>(),
+                It.IsAny<IsolationLevel>(), It.IsAny<CancellationToken>()))
+           .Returns((Func<CancellationToken, Task<Result<Guid>>> op, IsolationLevel _, CancellationToken ct) => op(ct));
     }
 
     [Fact]
@@ -77,6 +79,11 @@ public sealed class CreateRecurringBookingCommandHandlerTests
             resource.Id, first, first.AddMinutes(60), null, default)).ReturnsAsync(false);
         _bookingRepo.Setup(r => r.HasConflictAsync(
             resource.Id, second, second.AddMinutes(60), null, default)).ReturnsAsync(true);
+
+        _unitOfWork.Setup(u => u.ExecuteInTransactionAsync(
+                It.IsAny<Func<CancellationToken, Task<Result<Guid>>>>(),
+                It.IsAny<IsolationLevel>(), It.IsAny<CancellationToken>()))
+           .Returns((Func<CancellationToken, Task<Result<Guid>>> op, IsolationLevel _, CancellationToken ct) => op(ct));
 
         var cmd = new CreateRecurringBookingCommand(
             service.Id, resource.Id, first,

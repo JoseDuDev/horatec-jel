@@ -50,40 +50,40 @@ internal sealed class CreateRecurringBookingCommandHandler(
         if (resource is null) return Result.Failure<Guid>(BookingErrors.ResourceNotFound);
 
         var occurrences = GenerateOccurrences(request.FirstOccurrence, request.Frequency, request.OccurrenceCount);
-
-        foreach (var date in occurrences)
-        {
-            var end = date.AddMinutes(service.DurationMinutes);
-            var hasConflict = await bookingRepository.HasConflictAsync(
-                request.ResourceId, date, end, cancellationToken: cancellationToken);
-            if (hasConflict) return Result.Failure<Guid>(BookingErrors.Conflict);
-        }
-
         var recurrenceGroupId = Guid.NewGuid();
 
-        await using var tx = await unitOfWork.BeginTransactionAsync(
-            IsolationLevel.Serializable, cancellationToken);
-
-        foreach (var date in occurrences)
+        // Transação Serializable (compatível com a retry-strategy do Npgsql): a checagem de
+        // conflito e a inserção de todas as ocorrências formam uma unidade atômica e
+        // retentável, evitando corrida TOCTOU entre verificar e gravar.
+        return await unitOfWork.ExecuteInTransactionAsync(async ct =>
         {
-            var booking = Booking.Create(
-                new[] { (request.ServiceId, service.Name, service.DurationMinutes, service.Price) },
-                request.ResourceId,
-                resource.Name,
-                customerId:        currentUser.UserId.Value,
-                customerName:      currentUser.Email ?? "Cliente",
-                customerEmail:     currentUser.Email ?? string.Empty,
-                scheduledAt:       date,
-                notes:             request.Notes,
-                recurrenceGroupId: recurrenceGroupId);
+            foreach (var date in occurrences)
+            {
+                var end = date.AddMinutes(service.DurationMinutes);
+                var hasConflict = await bookingRepository.HasConflictAsync(
+                    request.ResourceId, date, end, cancellationToken: ct);
+                if (hasConflict) return Result.Failure<Guid>(BookingErrors.Conflict);
+            }
 
-            bookingRepository.Add(booking);
-        }
+            foreach (var date in occurrences)
+            {
+                var booking = Booking.Create(
+                    new[] { (request.ServiceId, service.Name, service.DurationMinutes, service.Price) },
+                    request.ResourceId,
+                    resource.Name,
+                    customerId:        currentUser.UserId.Value,
+                    customerName:      currentUser.Email ?? "Cliente",
+                    customerEmail:     currentUser.Email ?? string.Empty,
+                    scheduledAt:       date,
+                    notes:             request.Notes,
+                    recurrenceGroupId: recurrenceGroupId);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-        await tx.CommitAsync(cancellationToken);
+                bookingRepository.Add(booking);
+            }
 
-        return Result.Success(recurrenceGroupId);
+            await unitOfWork.SaveChangesAsync(ct);
+            return Result.Success(recurrenceGroupId);
+        }, IsolationLevel.Serializable, cancellationToken);
     }
 
     private static IReadOnlyList<DateTimeOffset> GenerateOccurrences(
