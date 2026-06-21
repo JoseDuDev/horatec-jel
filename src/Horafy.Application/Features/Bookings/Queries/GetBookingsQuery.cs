@@ -29,7 +29,9 @@ public sealed record BookingResult(
     IReadOnlyList<BookingServiceResult> Services,
     string ServiceName,
     string ResourceName,
-    decimal TotalAmount);
+    decimal TotalAmount,
+    BookingKind Kind = BookingKind.Appointment,
+    RentalLifecycle? RentalStatus = null);
 
 internal sealed class GetBookingsQueryHandler(
     IBookingRepository bookingRepository)
@@ -59,5 +61,7 @@ internal sealed class GetBookingsQueryHandler(
         b.Services.Select(s => new BookingServiceResult(s.ServiceId, s.ServiceName, s.DurationMinutes)).ToList(),
         ServiceName:  string.Join(", ", b.Services.Select(s => s.ServiceName)),
         ResourceName: b.ResourceName,
-        TotalAmount:  b.TotalAmount);
+        TotalAmount:  b.TotalAmount,
+        Kind:         b.Kind,
+        RentalStatus: b.RentalStatus);
 }

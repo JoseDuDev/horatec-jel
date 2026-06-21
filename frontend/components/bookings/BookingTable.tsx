@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import type { Booking, BookingStatus } from '@/lib/types/booking'
+import type { Booking, BookingStatus, RentalStatus } from '@/lib/types/booking'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from '@/components/ui/table'
@@ -25,9 +25,17 @@ const STATUS_VARIANT: Record<BookingStatus, 'default' | 'secondary' | 'destructi
   NoShow: 'destructive',
 }
 
+const RENTAL_LABEL: Record<RentalStatus, string> = {
+  Reserved: 'Reservado',
+  PickedUp: 'Retirado',
+  Returned: 'Devolvido',
+}
+
+export type BookingAction = 'confirm' | 'cancel' | 'complete' | 'noshow' | 'pickup' | 'return'
+
 interface Props {
   bookings: Booking[]
-  onAction: (action: 'confirm' | 'cancel' | 'complete' | 'noshow', id: string) => void
+  onAction: (action: BookingAction, id: string) => void
 }
 
 export function BookingTable({ bookings, onAction }: Props) {
@@ -57,42 +65,57 @@ export function BookingTable({ bookings, onAction }: Props) {
               {format(new Date(b.scheduledAt), "dd/MM/yyyy HH:mm", { locale: ptBR })}
             </TableCell>
             <TableCell>
-              <Badge variant={STATUS_VARIANT[b.status]}>{STATUS_LABEL[b.status]}</Badge>
+              {b.kind === 'Rental' && b.rentalStatus ? (
+                <Badge variant="secondary">{RENTAL_LABEL[b.rentalStatus]}</Badge>
+              ) : (
+                <Badge variant={STATUS_VARIANT[b.status]}>{STATUS_LABEL[b.status]}</Badge>
+              )}
             </TableCell>
             <TableCell>R$ {b.totalAmount.toFixed(2)}</TableCell>
             <TableCell>
               <div className="flex gap-2 flex-wrap">
-                {b.status === 'Pending' && (
-                  <Button size="sm" onClick={() => onAction('confirm', b.id)}>
-                    Confirmar
-                  </Button>
-                )}
-                {(b.status === 'Pending' || b.status === 'Confirmed') && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onAction('cancel', b.id)}
-                  >
-                    Cancelar
-                  </Button>
-                )}
-                {b.status === 'Confirmed' && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => onAction('complete', b.id)}
-                  >
-                    Concluir
-                  </Button>
-                )}
-                {b.status === 'Confirmed' && (
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => onAction('noshow', b.id)}
-                  >
-                    Não Compareceu
-                  </Button>
+                {b.kind === 'Rental' ? (
+                  <>
+                    {b.status === 'Confirmed' && b.rentalStatus === 'Reserved' && (
+                      <Button size="sm" onClick={() => onAction('pickup', b.id)}>
+                        Retirar
+                      </Button>
+                    )}
+                    {b.rentalStatus === 'PickedUp' && (
+                      <Button size="sm" variant="secondary" onClick={() => onAction('return', b.id)}>
+                        Devolver
+                      </Button>
+                    )}
+                    {(b.status === 'Pending' ||
+                      (b.status === 'Confirmed' && b.rentalStatus === 'Reserved')) && (
+                      <Button size="sm" variant="outline" onClick={() => onAction('cancel', b.id)}>
+                        Cancelar
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {b.status === 'Pending' && (
+                      <Button size="sm" onClick={() => onAction('confirm', b.id)}>
+                        Confirmar
+                      </Button>
+                    )}
+                    {(b.status === 'Pending' || b.status === 'Confirmed') && (
+                      <Button size="sm" variant="outline" onClick={() => onAction('cancel', b.id)}>
+                        Cancelar
+                      </Button>
+                    )}
+                    {b.status === 'Confirmed' && (
+                      <Button size="sm" variant="secondary" onClick={() => onAction('complete', b.id)}>
+                        Concluir
+                      </Button>
+                    )}
+                    {b.status === 'Confirmed' && (
+                      <Button size="sm" variant="destructive" onClick={() => onAction('noshow', b.id)}>
+                        Não Compareceu
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
             </TableCell>

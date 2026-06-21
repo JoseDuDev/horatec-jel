@@ -29,7 +29,9 @@ internal sealed class GetMyBookingsQueryHandler(
             b.Services.Select(s => new BookingServiceResult(s.ServiceId, s.ServiceName, s.DurationMinutes)).ToList(),
             ServiceName:  string.Join(", ", b.Services.Select(s => s.ServiceName)),
             ResourceName: b.ResourceName,
-            TotalAmount:  b.TotalAmount))
+            TotalAmount:  b.TotalAmount,
+            Kind:         b.Kind,
+            RentalStatus: b.RentalStatus))
             .ToList();
 
         return Result.Success<IReadOnlyList<BookingResult>>(result);

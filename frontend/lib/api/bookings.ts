@@ -24,6 +24,14 @@ export const bookingsApi = {
   noShow: (id: string) =>
     apiFetch<void>(`/api/v1/bookings/${id}/no-show`, { method: 'POST' }),
 
+  // Locação: retirada e devolução (a devolução retorna multa/estorno).
+  rentalPickup: (id: string) =>
+    apiFetch<void>(`/api/v1/rentals/bookings/${id}/pickup`, { method: 'POST' }),
+
+  rentalReturn: (id: string) =>
+    apiFetch<{ bookingId: string; lateDays: number; lateFee: number; depositRefunded: number }>(
+      `/api/v1/rentals/bookings/${id}/return`, { method: 'POST' }),
+
   adminCreate: (data: AdminCreateBookingRequest) =>
     apiFetch<string>('/api/v1/bookings/admin', {
       method: 'POST',

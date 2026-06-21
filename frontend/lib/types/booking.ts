@@ -1,5 +1,9 @@
 export type BookingStatus = 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled' | 'NoShow'
 
+export type BookingKind = 'Appointment' | 'Rental'
+
+export type RentalStatus = 'Reserved' | 'PickedUp' | 'Returned'
+
 export interface Booking {
   id: string
   customerId: string
@@ -15,6 +19,8 @@ export interface Booking {
   status: BookingStatus
   totalAmount: number
   createdAt: string
+  kind?: BookingKind
+  rentalStatus?: RentalStatus | null
 }
 
 export interface AdminCreateBookingRequest {
