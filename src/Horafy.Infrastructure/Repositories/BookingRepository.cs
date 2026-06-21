@@ -57,6 +57,32 @@ internal sealed class BookingRepository(TenantDbContext context)
             && (excludeBookingId == null || b.Id != excludeBookingId),
             cancellationToken);
 
+    public async Task<int> CountReservedUnitsAsync(
+        Guid rentableItemId,
+        DateTimeOffset start,
+        DateTimeOffset end,
+        int bufferDays = 0,
+        Guid? excludeBookingId = null,
+        CancellationToken cancellationToken = default)
+    {
+        // Janela expandida pelo buffer em ambos os lados: garante o intervalo de
+        // bloqueio (limpeza/conferência) entre a devolução de uma locação e a
+        // retirada da próxima da mesma unidade física.
+        var from = start.AddDays(-bufferDays);
+        var to   = end.AddDays(bufferDays);
+
+        return await DbSet
+            .Where(b => b.Kind == BookingKind.Rental
+                     && b.Status != BookingStatus.Cancelled
+                     && b.Status != BookingStatus.NoShow
+                     && b.ScheduledAt < to
+                     && b.EndsAt > from
+                     && (excludeBookingId == null || b.Id != excludeBookingId))
+            .SelectMany(b => b.Services)
+            .Where(s => s.RentableItemId == rentableItemId)
+            .SumAsync(s => (int?)s.Quantity, cancellationToken) ?? 0;
+    }
+
     // Override FindAsync to eager-load Services (used by GetBookingsQuery for the all-resources path).
     public override async Task<IReadOnlyList<Booking>> FindAsync(
         Expression<Func<Booking, bool>> predicate,

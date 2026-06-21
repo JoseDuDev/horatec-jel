@@ -18,7 +18,14 @@ internal sealed class BookingServiceEntityConfiguration : IEntityTypeConfigurati
 
         builder.Property(bs => bs.Price).HasColumnType("numeric(10,2)").HasDefaultValue(0m);
 
+        builder.Property(bs => bs.RentableItemId);
+        builder.Property(bs => bs.Quantity).HasDefaultValue(1);
+
         builder.HasIndex(bs => bs.BookingId)
             .HasDatabaseName("ix_booking_services_booking");
+
+        builder.HasIndex(bs => bs.RentableItemId)
+            .HasDatabaseName("ix_booking_services_rentable_item")
+            .HasFilter("rentable_item_id IS NOT NULL");
     }
 }

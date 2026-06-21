@@ -253,6 +253,17 @@ internal sealed class TenantSchemaService(
         ALTER TABLE {s}.bookings
             ADD COLUMN IF NOT EXISTS kind VARCHAR(32) NOT NULL DEFAULT 'Appointment';
 
+        -- ── Vínculo da linha com item de locação (snapshot de unidades) ────
+        ALTER TABLE {s}.booking_services
+            ADD COLUMN IF NOT EXISTS rentable_item_id UUID;
+
+        ALTER TABLE {s}.booking_services
+            ADD COLUMN IF NOT EXISTS quantity INT NOT NULL DEFAULT 1;
+
+        CREATE INDEX IF NOT EXISTS ix_booking_services_rentable_item
+            ON {s}.booking_services (rentable_item_id)
+            WHERE rentable_item_id IS NOT NULL;
+
         -- ── Fila de Espera ─────────────────────────────────────────────────
         CREATE TABLE IF NOT EXISTS {s}.waitlist_entries (
             id             UUID         NOT NULL DEFAULT gen_random_uuid(),
