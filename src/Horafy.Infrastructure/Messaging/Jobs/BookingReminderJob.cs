@@ -55,9 +55,14 @@ public sealed class BookingReminderJob(
                 oneDayBookings.Select(b => (b, true))
                 .Concat(twoHourBookings.Select(b => (b, false))))
             {
-                var resource    = await resourceRepo.GetByIdAsync(booking.ResourceId, ct);
+                // Locação tem fluxo de lembrete próprio (ver Fase 6) — pula agendamento.
+                if (booking.Kind == BookingKind.Rental) continue;
+
+                var resource    = booking.ResourceId is { } rid
+                    ? await resourceRepo.GetByIdAsync(rid, ct)
+                    : null;
                 var serviceName = booking.Services.FirstOrDefault()?.ServiceName
-                                  ?? booking.ServiceId.ToString();
+                                  ?? booking.ServiceId?.ToString() ?? "Reserva";
 
                 var msg = new BookingReminderMessage(
                     BookingId:      booking.Id,

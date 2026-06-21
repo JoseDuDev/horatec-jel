@@ -51,8 +51,14 @@ internal sealed class CreateReviewCommandHandler(
                 "Este agendamento já foi avaliado.",
                 ErrorType.Conflict));
 
+        if (booking.ResourceId is not { } resourceId)
+            return Result.Failure<Guid>(new Error(
+                "Review.RentalNotReviewable",
+                "Locações não podem ser avaliadas.",
+                ErrorType.Validation));
+
         var review = Review.Create(
-            request.BookingId, booking.ResourceId,
+            request.BookingId, resourceId,
             currentUserService.UserId.Value, request.Stars, request.Comment);
 
         reviewRepository.Add(review);

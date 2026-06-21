@@ -50,11 +50,11 @@ public sealed class BookingCreatedNotificationPublisherTests
         _tenantSvc.SetupGet(t => t.TenantId).Returns(tenantId);
         _tenantSvc.SetupGet(t => t.Slug).Returns("barbearia");
         _bookingRepo.Setup(r => r.GetByIdAsync(booking.Id, default)).ReturnsAsync(booking);
-        _resourceRepo.Setup(r => r.GetByIdAsync(booking.ResourceId, default)).ReturnsAsync(resource);
+        _resourceRepo.Setup(r => r.GetByIdAsync(booking.ResourceId!.Value, default)).ReturnsAsync(resource);
         _tenantRepo.Setup(r => r.GetByIdAsync(tenantId, default)).ReturnsAsync(tenant);
 
         var evt = new BookingCreatedEvent(
-            booking.Id, booking.ServiceId, booking.ResourceId,
+            booking.Id, booking.ServiceId!.Value, booking.ResourceId!.Value,
             booking.CustomerId, booking.CustomerPhone, booking.ScheduledAt);
 
         await MakeHandler().Handle(evt, default);

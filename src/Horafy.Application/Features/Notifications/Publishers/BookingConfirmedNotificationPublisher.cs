@@ -1,5 +1,6 @@
 using Horafy.Application.Features.Notifications.Messages;
 using Horafy.Application.Interfaces;
+using Horafy.Domain.Entities.Bookings;
 using Horafy.Domain.Events.Bookings;
 using Horafy.Domain.Interfaces.Repositories;
 using MassTransit;
@@ -20,7 +21,12 @@ internal sealed class BookingConfirmedNotificationPublisher(
         var booking = await bookingRepository.GetByIdAsync(notification.BookingId, cancellationToken);
         if (booking is null) return;
 
-        var resource   = await resourceRepository.GetByIdAsync(booking.ResourceId, cancellationToken);
+        // Locação tem fluxo de notificação próprio (ver Fase 6) — evita conteúdo de agendamento.
+        if (booking.Kind == BookingKind.Rental) return;
+
+        var resource   = booking.ResourceId is { } rid
+            ? await resourceRepository.GetByIdAsync(rid, cancellationToken)
+            : null;
         var tenantName = "Horafy";
         var tenantSlug = currentTenant.Slug ?? "horafy";
 
@@ -31,7 +37,7 @@ internal sealed class BookingConfirmedNotificationPublisher(
         }
 
         var serviceName = booking.Services.FirstOrDefault()?.ServiceName
-                          ?? booking.ServiceId.ToString();
+                          ?? booking.ServiceId?.ToString() ?? "Reserva";
 
         await publishEndpoint.Publish(new BookingConfirmedMessage(
             BookingId:     booking.Id,

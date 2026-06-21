@@ -140,8 +140,8 @@ internal sealed class TenantSchemaService(
         -- ── Agendamentos ───────────────────────────────────────────────────
         CREATE TABLE IF NOT EXISTS {s}.bookings (
             id                   UUID         NOT NULL DEFAULT gen_random_uuid(),
-            service_id           UUID         NOT NULL,
-            resource_id          UUID         NOT NULL,
+            service_id           UUID,                       -- nulo em locações (Kind = Rental)
+            resource_id          UUID,                       -- nulo em locações (Kind = Rental)
             customer_id          UUID         NOT NULL,
             customer_name        VARCHAR(150) NOT NULL,
             customer_email       VARCHAR(256) NOT NULL,
@@ -252,6 +252,10 @@ internal sealed class TenantSchemaService(
         -- ── Modo da reserva: Appointment (agendamento) ou Rental (locação) ──
         ALTER TABLE {s}.bookings
             ADD COLUMN IF NOT EXISTS kind VARCHAR(32) NOT NULL DEFAULT 'Appointment';
+
+        -- Locações não têm serviço/recurso — torna as colunas anuláveis (idempotente).
+        ALTER TABLE {s}.bookings ALTER COLUMN service_id  DROP NOT NULL;
+        ALTER TABLE {s}.bookings ALTER COLUMN resource_id DROP NOT NULL;
 
         -- ── Vínculo da linha com item de locação (snapshot de unidades) ────
         ALTER TABLE {s}.booking_services

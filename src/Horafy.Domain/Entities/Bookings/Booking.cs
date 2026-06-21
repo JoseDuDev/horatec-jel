@@ -8,8 +8,9 @@ public sealed class Booking : BaseEntity
     private Booking() { }
     private readonly List<BookingService> _services = [];
 
-    public Guid ServiceId    { get; private set; }
-    public Guid ResourceId   { get; private set; }
+    // Nulos em reservas de locação (Kind = Rental), que não têm serviço nem recurso.
+    public Guid? ServiceId   { get; private set; }
+    public Guid? ResourceId  { get; private set; }
     public string ResourceName { get; private set; } = default!;
     public Guid CustomerId   { get; private set; }
 
@@ -88,7 +89,59 @@ public sealed class Booking : BaseEntity
             booking._services.Add(BookingService.Create(booking.Id, svc.ServiceId, svc.ServiceName, svc.DurationMinutes, svc.Price));
 
         booking.RaiseDomainEvent(new BookingCreatedEvent(
-            booking.Id, booking.ServiceId, resourceId, customerId, booking.CustomerPhone, scheduledAt));
+            booking.Id, services[0].ServiceId, resourceId, customerId, booking.CustomerPhone, scheduledAt));
+
+        return booking;
+    }
+
+    /// <summary>
+    /// Cria uma reserva de locação (Kind = Rental). Sem serviço/recurso; o período é
+    /// [<paramref name="startsAt"/> (retirada), <paramref name="endsAt"/> (devolução)].
+    /// Cada item vira uma linha (<see cref="BookingService"/>) com o item de locação,
+    /// as unidades e o snapshot do valor das diárias. Não dispara eventos de notificação
+    /// (locação ainda não tem fluxo de notificação — ver docs/rental-plan.md, Fase 6).
+    /// </summary>
+    public static Booking CreateRental(
+        IReadOnlyList<(Guid RentableItemId, string ItemName, int Quantity, decimal LineTotal)> items,
+        Guid customerId,
+        string customerName,
+        string customerEmail,
+        DateTimeOffset startsAt,
+        DateTimeOffset endsAt,
+        string? customerPhone = null,
+        string? notes = null)
+    {
+        if (items.Count == 0)
+            throw new ArgumentException("Pelo menos um item é obrigatório.", nameof(items));
+
+        if (endsAt <= startsAt)
+            throw new ArgumentException("A devolução deve ser posterior à retirada.", nameof(endsAt));
+
+        var booking = new Booking
+        {
+            ServiceId       = null,
+            ResourceId      = null,
+            ResourceName    = string.Empty,
+            CustomerId      = customerId,
+            CustomerName    = customerName.Trim(),
+            CustomerEmail   = customerEmail.ToLowerInvariant().Trim(),
+            CustomerPhone   = customerPhone?.Trim(),
+            Kind            = BookingKind.Rental,
+            ScheduledAt     = startsAt,
+            EndsAt          = endsAt,
+            DurationMinutes = (int)(endsAt - startsAt).TotalMinutes,
+            Notes           = notes?.Trim(),
+        };
+
+        foreach (var it in items)
+            booking._services.Add(BookingService.Create(
+                booking.Id,
+                serviceId:      Guid.Empty,
+                serviceName:    it.ItemName,
+                durationMinutes: 0,
+                price:          it.LineTotal,
+                rentableItemId: it.RentableItemId,
+                quantity:       it.Quantity));
 
         return booking;
     }

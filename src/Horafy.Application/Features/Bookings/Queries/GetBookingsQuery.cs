@@ -14,8 +14,8 @@ public sealed record BookingServiceResult(Guid ServiceId, string ServiceName, in
 
 public sealed record BookingResult(
     Guid Id,
-    Guid ServiceId,
-    Guid ResourceId,
+    Guid? ServiceId,
+    Guid? ResourceId,
     Guid CustomerId,
     string CustomerName,
     string CustomerEmail,

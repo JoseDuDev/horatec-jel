@@ -10,8 +10,8 @@ public sealed record GetCustomerBookingsQuery : IRequest<Result<IReadOnlyList<Cu
 
 public sealed record CustomerBookingResult(
     Guid                 Id,
-    Guid                 ServiceId,
-    Guid                 ResourceId,
+    Guid?                ServiceId,
+    Guid?                ResourceId,
     Guid                 CustomerId,
     DateTimeOffset       ScheduledAt,
     DateTimeOffset       EndsAt,

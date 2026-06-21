@@ -16,10 +16,14 @@ internal sealed class BookingCancelledEventHandler(
         var booking = await bookingRepository.GetByIdAsync(notification.BookingId, cancellationToken);
         if (booking is null) return;
 
+        // Locações não têm fila de espera (sem serviço/recurso).
+        if (booking.ServiceId is not { } serviceId || booking.ResourceId is not { } resourceId)
+            return;
+
         var date = DateOnly.FromDateTime(booking.ScheduledAt.Date);
 
         var waitingEntries = await waitlistRepository.GetByServiceResourceDateAsync(
-            booking.ServiceId, booking.ResourceId, date, cancellationToken);
+            serviceId, resourceId, date, cancellationToken);
 
         if (!waitingEntries.Any()) return;
 

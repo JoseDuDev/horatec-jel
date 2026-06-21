@@ -31,7 +31,7 @@ internal sealed class BookingCreatedNotificationPublisher(
         }
 
         var serviceName = booking.Services.FirstOrDefault()?.ServiceName
-                          ?? booking.ServiceId.ToString();
+                          ?? booking.ServiceId?.ToString() ?? "Reserva";
 
         await publishEndpoint.Publish(new BookingCreatedMessage(
             BookingId:     booking.Id,
