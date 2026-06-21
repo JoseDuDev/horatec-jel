@@ -13,6 +13,9 @@ public sealed class Booking : BaseEntity
     public string ResourceName { get; private set; } = default!;
     public Guid CustomerId   { get; private set; }
 
+    /// <summary>Modo da reserva: agendamento por horário (default) ou locação multi-dia.</summary>
+    public BookingKind Kind { get; private set; } = BookingKind.Appointment;
+
     public string CustomerName  { get; private set; } = default!;
     public string CustomerEmail { get; private set; } = default!;
     public string? CustomerPhone { get; private set; }

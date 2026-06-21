@@ -4,6 +4,7 @@ using Horafy.Domain.Entities.Bookings;
 using Horafy.Domain.Entities.Favorites;
 using Horafy.Domain.Entities.Notifications;
 using Horafy.Domain.Entities.Payments;
+using Horafy.Domain.Entities.Rentals;
 using Horafy.Domain.Entities.Resources;
 using Horafy.Domain.Entities.Reviews;
 using Horafy.Domain.Entities.Services;
@@ -35,6 +36,7 @@ public sealed class TenantDbContext : DbContext
     public DbSet<WalletEntity>          Wallets                => Set<WalletEntity>();
     public DbSet<WalletTransaction>     WalletTransactions     => Set<WalletTransaction>();
     public DbSet<Voucher>               Vouchers               => Set<Voucher>();
+    public DbSet<RentableItem>          RentableItems          => Set<RentableItem>();
 
     public TenantDbContext(
         DbContextOptions<TenantDbContext> options,

@@ -58,6 +58,34 @@ internal sealed class TenantSchemaService(
         CREATE INDEX IF NOT EXISTS ix_services_name
             ON {s}.services (name);
 
+        -- ── Itens de Locação ───────────────────────────────────────────────
+        CREATE TABLE IF NOT EXISTS {s}.rentable_items (
+            id                UUID          NOT NULL DEFAULT gen_random_uuid(),
+            name              VARCHAR(200)  NOT NULL,
+            description       TEXT,
+            category          VARCHAR(100),
+            quantity          INT           NOT NULL DEFAULT 1,
+            daily_rate        NUMERIC(10,2) NOT NULL DEFAULT 0,
+            security_deposit  NUMERIC(10,2) NOT NULL DEFAULT 0,
+            buffer_days       INT           NOT NULL DEFAULT 0,
+            image_url         VARCHAR(2000),
+            is_active         BOOLEAN       NOT NULL DEFAULT TRUE,
+            created_at        TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+            updated_at        TIMESTAMPTZ,
+            created_by        VARCHAR(256),
+            updated_by        VARCHAR(256),
+            is_deleted        BOOLEAN       NOT NULL DEFAULT FALSE,
+            deleted_at        TIMESTAMPTZ,
+            deleted_by        VARCHAR(256),
+            CONSTRAINT pk_rentable_items PRIMARY KEY (id)
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_rentable_items_name
+            ON {s}.rentable_items (name);
+
+        CREATE INDEX IF NOT EXISTS ix_rentable_items_is_active
+            ON {s}.rentable_items (is_active);
+
         -- ── Recursos ──────────────────────────────────────────────────────
         CREATE TABLE IF NOT EXISTS {s}.resources (
             id          UUID         NOT NULL DEFAULT gen_random_uuid(),
@@ -220,6 +248,10 @@ internal sealed class TenantSchemaService(
 
         ALTER TABLE {s}.booking_services
             ADD COLUMN IF NOT EXISTS price NUMERIC(10,2) NOT NULL DEFAULT 0;
+
+        -- ── Modo da reserva: Appointment (agendamento) ou Rental (locação) ──
+        ALTER TABLE {s}.bookings
+            ADD COLUMN IF NOT EXISTS kind VARCHAR(32) NOT NULL DEFAULT 'Appointment';
 
         -- ── Fila de Espera ─────────────────────────────────────────────────
         CREATE TABLE IF NOT EXISTS {s}.waitlist_entries (
