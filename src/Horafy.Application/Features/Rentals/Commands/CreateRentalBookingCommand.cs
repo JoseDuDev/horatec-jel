@@ -57,50 +57,49 @@ internal sealed class CreateRentalBookingCommandHandler(
 
         var user = await userRepository.GetByIdAsync(currentUser.UserId.Value, cancellationToken);
 
-        // Transação Serializable: a verificação de estoque e a inserção são atômicas.
-        // Reservas concorrentes do mesmo item conflitam no commit (SSI do Postgres),
-        // impedindo overbooking — mesmo padrão de CreateRecurringBookingCommand.
-        await using var tx = await unitOfWork.BeginTransactionAsync(
-            IsolationLevel.Serializable, cancellationToken);
-
-        var lines = new List<(Guid RentableItemId, string ItemName, int Quantity, decimal LineTotal)>();
-        var depositTotal = 0m;
-
-        foreach (var line in request.Items)
+        // Transação Serializable (compatível com a retry-strategy do Npgsql): a verificação
+        // de estoque e a inserção são atômicas. Reservas concorrentes do mesmo item conflitam
+        // no commit (SSI do Postgres) e a operação é re-executada, impedindo overbooking.
+        return await unitOfWork.ExecuteInTransactionAsync(async ct =>
         {
-            var item = await rentableItemRepository.GetByIdAsync(line.ItemId, cancellationToken);
-            if (item is null)
-                return Result.Failure<Guid>(RentalErrors.ItemNotFound);
-            if (!item.IsActive)
-                return Result.Failure<Guid>(RentalErrors.ItemInactive);
+            var lines = new List<(Guid RentableItemId, string ItemName, int Quantity, decimal LineTotal)>();
+            var depositTotal = 0m;
 
-            var reserved  = await bookingRepository.CountReservedUnitsAsync(
-                item.Id, start, end, item.BufferDays, cancellationToken: cancellationToken);
-            var available = item.Quantity - reserved;
+            foreach (var line in request.Items)
+            {
+                var item = await rentableItemRepository.GetByIdAsync(line.ItemId, ct);
+                if (item is null)
+                    return Result.Failure<Guid>(RentalErrors.ItemNotFound);
+                if (!item.IsActive)
+                    return Result.Failure<Guid>(RentalErrors.ItemInactive);
 
-            if (line.Quantity > available)
-                return Result.Failure<Guid>(RentalErrors.OutOfStock);
+                var reserved  = await bookingRepository.CountReservedUnitsAsync(
+                    item.Id, start, end, item.BufferDays, cancellationToken: ct);
+                var available = item.Quantity - reserved;
 
-            var quote = RentalPricing.Calculate(item.DailyRate, days, line.Quantity, item.SecurityDeposit);
-            lines.Add((item.Id, item.Name, line.Quantity, quote.RentalAmount));
-            depositTotal += quote.DepositAmount;
-        }
+                if (line.Quantity > available)
+                    return Result.Failure<Guid>(RentalErrors.OutOfStock);
 
-        var booking = Booking.CreateRental(
-            lines,
-            customerId:      currentUser.UserId.Value,
-            customerName:    currentUser.Email ?? "Cliente",
-            customerEmail:   currentUser.Email ?? string.Empty,
-            startsAt:        start,
-            endsAt:          end,
-            securityDeposit: depositTotal,
-            customerPhone:   user?.Phone,
-            notes:           request.Notes);
+                var quote = RentalPricing.Calculate(item.DailyRate, days, line.Quantity, item.SecurityDeposit);
+                lines.Add((item.Id, item.Name, line.Quantity, quote.RentalAmount));
+                depositTotal += quote.DepositAmount;
+            }
 
-        bookingRepository.Add(booking);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-        await tx.CommitAsync(cancellationToken);
+            var booking = Booking.CreateRental(
+                lines,
+                customerId:      currentUser.UserId.Value,
+                customerName:    currentUser.Email ?? "Cliente",
+                customerEmail:   currentUser.Email ?? string.Empty,
+                startsAt:        start,
+                endsAt:          end,
+                securityDeposit: depositTotal,
+                customerPhone:   user?.Phone,
+                notes:           request.Notes);
 
-        return Result.Success(booking.Id);
+            bookingRepository.Add(booking);
+            await unitOfWork.SaveChangesAsync(ct);
+
+            return Result.Success(booking.Id);
+        }, IsolationLevel.Serializable, cancellationToken);
     }
 }

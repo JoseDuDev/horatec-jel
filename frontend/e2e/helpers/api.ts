@@ -259,6 +259,85 @@ export async function completeBooking(
   }
 }
 
+// ── Locação ─────────────────────────────────────────────────────────────────
+
+/** Cria item de locação (admin). Retorna o id (Guid cru). */
+export async function createRentableItem(
+  token: string,
+  slug: string,
+  opts: { name: string; quantity: number; dailyRate: number; securityDeposit: number; bufferDays?: number }
+): Promise<string> {
+  const id = await post(`${API}/rentals/items`, {
+    name: opts.name,
+    quantity: opts.quantity,
+    dailyRate: opts.dailyRate,
+    securityDeposit: opts.securityDeposit,
+    bufferDays: opts.bufferDays ?? 0,
+    description: null,
+    category: null,
+    imageUrl: null,
+  }, token, slug)
+  return id as string
+}
+
+/** Cria reserva de locação (cliente). Retorna o id (Guid cru). */
+export async function createRentalBooking(
+  token: string,
+  slug: string,
+  opts: { itemId: string; startDate: string; endDate: string }
+): Promise<string> {
+  const id = await post(`${API}/rentals/bookings`, {
+    items: [{ itemId: opts.itemId, quantity: 1 }],
+    startDate: opts.startDate,
+    endDate: opts.endDate,
+    notes: null,
+  }, token, slug)
+  return id as string
+}
+
+/** Cria o pagamento de uma reserva (cliente). Necessário para o webhook aprovar depois. */
+export async function createPayment(
+  token: string,
+  slug: string,
+  opts: { bookingId: string; amount: number }
+): Promise<void> {
+  await post(`${API}/payments`, {
+    bookingId: opts.bookingId,
+    amount: opts.amount,
+    method: 'Pix',
+    backUrl: `${FRONTEND_ORIGIN}/back`,
+    voucherCode: null,
+    useWalletCredits: false,
+  }, token, slug)
+}
+
+/** Marca a retirada do item (admin). */
+export async function rentalPickup(token: string, slug: string, bookingId: string): Promise<void> {
+  const res = await fetch(`${API}/rentals/bookings/${bookingId}/pickup`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}`, 'X-Tenant-Slug': slug },
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`rentalPickup → ${res.status}: ${text}`)
+  }
+}
+
+/** Marca a devolução do item (admin). Retorna o resultado (multa/estorno). */
+export async function rentalReturn(
+  token: string, slug: string, bookingId: string
+): Promise<{ bookingId: string; lateDays: number; lateFee: number; depositRefunded: number }> {
+  const res = await fetch(`${API}/rentals/bookings/${bookingId}/return`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}`, 'X-Tenant-Slug': slug },
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(`rentalReturn → ${res.status}: ${text}`)
+  }
+  return res.json()
+}
+
 // ── StorageState helpers ──────────────────────────────────────────────────────
 
 /**

@@ -38,8 +38,11 @@ public class CreateRentalBookingCommandHandlerTests
             Bookings.Setup(r => r.Add(It.IsAny<Booking>()))
                     .Callback<Booking>(b => Captured = b);
             Uow.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-            Uow.Setup(u => u.BeginTransactionAsync(It.IsAny<IsolationLevel>(), It.IsAny<CancellationToken>()))
-               .ReturnsAsync(Mock.Of<ITransaction>());
+            // Executa a operação direto (sem transação real) no teste.
+            Uow.Setup(u => u.ExecuteInTransactionAsync(
+                    It.IsAny<Func<CancellationToken, Task<Result<Guid>>>>(),
+                    It.IsAny<IsolationLevel>(), It.IsAny<CancellationToken>()))
+               .Returns((Func<CancellationToken, Task<Result<Guid>>> op, IsolationLevel _, CancellationToken ct) => op(ct));
         }
 
         public CreateRentalBookingCommandHandler Build() =>

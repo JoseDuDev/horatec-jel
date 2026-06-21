@@ -16,6 +16,23 @@ internal sealed class TenantUnitOfWork(TenantDbContext context) : ITenantUnitOfW
         var tx = await context.Database.BeginTransactionAsync(isolationLevel, cancellationToken);
         return new EfTransaction(tx);
     }
+
+    public Task<T> ExecuteInTransactionAsync<T>(
+        Func<CancellationToken, Task<T>> operation,
+        IsolationLevel isolationLevel = IsolationLevel.ReadCommitted,
+        CancellationToken cancellationToken = default)
+    {
+        // A estratégia de retry do Npgsql não permite transação iniciada manualmente —
+        // toda a operação (incluindo o commit) precisa rodar como uma unidade retentável.
+        var strategy = context.Database.CreateExecutionStrategy();
+        return strategy.ExecuteAsync(async () =>
+        {
+            await using var tx = await context.Database.BeginTransactionAsync(isolationLevel, cancellationToken);
+            var result = await operation(cancellationToken);
+            await tx.CommitAsync(cancellationToken);
+            return result;
+        });
+    }
 }
 
 file sealed class EfTransaction(Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction tx)
