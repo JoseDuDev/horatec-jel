@@ -28,6 +28,7 @@ export function RentalCatalog({ slug, items }: Props) {
   const [selected, setSelected] = useState<RentableItem | null>(null)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [quantity, setQuantity] = useState(1)
   const [availability, setAvailability] = useState<RentalAvailability | null>(null)
   const [checking, setChecking] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -35,11 +36,12 @@ export function RentalCatalog({ slug, items }: Props) {
 
   const open = (item: RentableItem) => {
     setSelected(item)
-    setStartDate(''); setEndDate(''); setAvailability(null); setError(null)
+    setStartDate(''); setEndDate(''); setQuantity(1); setAvailability(null); setError(null)
   }
 
   const days = daysBetween(startDate, endDate)
   const validPeriod = !!startDate && !!endDate && days > 0
+  const exceedsStock = availability ? quantity > availability.availableUnits : false
 
   const check = async () => {
     if (!selected || !validPeriod) return
@@ -62,7 +64,7 @@ export function RentalCatalog({ slug, items }: Props) {
     setSubmitting(true); setError(null)
     try {
       const booking = await portalApi.createRentalBooking(slug, accessToken, {
-        items: [{ itemId: selected.id, quantity: 1 }],
+        items: [{ itemId: selected.id, quantity }],
         startDate, endDate,
       })
 
@@ -71,7 +73,7 @@ export function RentalCatalog({ slug, items }: Props) {
       try {
         const payment = await portalApi.createPayment(slug, accessToken, {
           bookingId: booking.id,
-          amount: rentalTotal + selected.securityDeposit,
+          amount: payableTotal,
           method: 'Pix',
           backUrl,
         })
@@ -90,8 +92,9 @@ export function RentalCatalog({ slug, items }: Props) {
     }
   }
 
-  const rentalTotal = selected ? selected.dailyRate * days : 0
-  const payableTotal = selected ? rentalTotal + selected.securityDeposit : 0
+  const rentalTotal  = selected ? selected.dailyRate * days * quantity : 0
+  const cautionTotal = selected ? selected.securityDeposit * quantity : 0
+  const payableTotal = rentalTotal + cautionTotal
 
   return (
     <>
@@ -137,16 +140,24 @@ export function RentalCatalog({ slug, items }: Props) {
               </div>
             </div>
 
+            <div className="w-28">
+              <Label htmlFor="quantity">Unidades</Label>
+              <Input id="quantity" type="number" min={1} value={quantity}
+                onChange={e => setQuantity(Math.max(1, Number(e.target.value) || 1))} />
+            </div>
+
             {validPeriod && selected && (
               <div className="rounded-md bg-slate-50 p-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">{days} diária(s) × {brl(selected.dailyRate)}</span>
+                  <span className="text-slate-500">
+                    {days} diária(s) × {brl(selected.dailyRate)}{quantity > 1 ? ` × ${quantity} un.` : ''}
+                  </span>
                   <span className="font-medium">{brl(rentalTotal)}</span>
                 </div>
-                {selected.securityDeposit > 0 && (
+                {cautionTotal > 0 && (
                   <div className="flex justify-between text-slate-500">
                     <span>Caução (reembolsável)</span>
-                    <span>{brl(selected.securityDeposit)}</span>
+                    <span>{brl(cautionTotal)}</span>
                   </div>
                 )}
                 <div className="mt-2 flex justify-between border-t pt-2 font-semibold">
@@ -157,10 +168,16 @@ export function RentalCatalog({ slug, items }: Props) {
             )}
 
             {availability && (
-              <p className={availability.isAvailable ? 'text-sm text-green-600' : 'text-sm text-red-500'}>
-                {availability.isAvailable
+              <p className={availability.availableUnits > 0 ? 'text-sm text-green-600' : 'text-sm text-red-500'}>
+                {availability.availableUnits > 0
                   ? `${availability.availableUnits} de ${availability.totalQuantity} unidade(s) disponível(is)`
                   : 'Sem unidades disponíveis para o período.'}
+              </p>
+            )}
+
+            {exceedsStock && (
+              <p className="text-sm text-red-500">
+                Quantidade solicitada acima do disponível ({availability?.availableUnits}).
               </p>
             )}
 
@@ -170,7 +187,7 @@ export function RentalCatalog({ slug, items }: Props) {
               <Button variant="outline" onClick={check} disabled={!validPeriod || checking}>
                 {checking ? 'Verificando…' : 'Verificar disponibilidade'}
               </Button>
-              <Button onClick={reserve} disabled={!validPeriod || submitting || availability?.isAvailable === false}>
+              <Button onClick={reserve} disabled={!validPeriod || submitting || exceedsStock}>
                 {submitting ? 'Reservando…' : 'Reservar'}
               </Button>
             </div>

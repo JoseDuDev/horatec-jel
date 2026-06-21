@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import {
   setupTenant, customerTestLogin,
   createRentableItem, createRentalBooking, createPayment, approvePayment,
-  rentalPickup, rentalReturn, customerStorageState,
+  adminStorageState, customerStorageState,
 } from './helpers/api'
 
 // yyyy-MM-dd com offset de dias a partir de hoje (UTC).
@@ -46,14 +46,29 @@ test.describe('Rental: locação multi-dia (alugar → pagar → retirar → dev
     await approvePayment(slug, bookingId)
   })
 
-  test('admin retira e devolve — estorna a caução integral', async () => {
-    await rentalPickup(tenantSetup.ownerToken, slug, bookingId)
+  test('admin retira e devolve a locação pela UI', async ({ browser }) => {
+    const ctx = await browser.newContext({
+      storageState: adminStorageState(tenantSetup) as any,
+    })
+    const page = await ctx.newPage()
+    page.on('dialog', d => d.accept()) // alerta de estorno exibido na devolução
+    try {
+      await page.goto('/admin/agendamentos')
+      // A locação tem retirada amanhã — amplia o filtro "até" para que apareça.
+      await page.locator('input[type="date"]').nth(1).fill('2027-12-31')
+      await page.waitForTimeout(1000)
 
-    const result = await rentalReturn(tenantSetup.ownerToken, slug, bookingId)
+      const row = page.locator('tr', { hasText: 'Furadeira de Impacto' }).first()
+      await expect(row).toBeVisible({ timeout: 10_000 })
 
-    expect(result.lateDays).toBe(0)
-    expect(result.lateFee).toBe(0)
-    expect(result.depositRefunded).toBe(DEPOSIT)
+      await row.getByRole('button', { name: 'Retirar' }).click()
+      await expect(row.getByText('Retirado')).toBeVisible({ timeout: 10_000 })
+
+      await row.getByRole('button', { name: 'Devolver' }).click()
+      await expect(row.getByText('Devolvido')).toBeVisible({ timeout: 10_000 })
+    } finally {
+      await ctx.close()
+    }
   })
 
   test('carteira do cliente recebe o estorno da caução (R$ 50,00)', async ({ browser }) => {

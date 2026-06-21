@@ -75,11 +75,14 @@ public sealed class RentalsController(ISender sender) : ApiControllerBase(sender
 
     [HttpPost("bookings/{id:guid}/pickup")]
     [Authorize(Roles = "TenantOwner,TenantAdmin,TenantStaff,PlatformAdmin")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Pickup(Guid id, CancellationToken cancellationToken) =>
-        ToActionResult(await Sender.Send(new MarkRentalPickedUpCommand(id), cancellationToken));
+    public async Task<IActionResult> Pickup(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(new MarkRentalPickedUpCommand(id), cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
 
     [HttpPost("bookings/{id:guid}/return")]
     [Authorize(Roles = "TenantOwner,TenantAdmin,TenantStaff,PlatformAdmin")]
