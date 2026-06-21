@@ -39,6 +39,9 @@ import type {
 } from '../types/portal'
 import type { Service } from '../types/service'
 import type { Resource } from '../types/resource'
+import type {
+  RentableItem, RentalAvailability, CreateRentalBookingRequest,
+} from '../types/rental'
 
 export const portalApi = {
   tenant: (slug: string) =>
@@ -106,6 +109,26 @@ export const portalApi = {
       method: 'PATCH',
       body: JSON.stringify({ phone }),
     }, token),
+
+  // ── Locação ─────────────────────────────────────────────────────────────────
+  rentalItems: (slug: string) =>
+    portalFetch<RentableItem[]>('/api/v1/rentals/items', slug),
+
+  rentalAvailability: (slug: string, itemId: string, startDate: string, endDate: string) => {
+    const qs = new URLSearchParams({ startDate, endDate }).toString()
+    return portalFetch<RentalAvailability>(`/api/v1/rentals/items/${itemId}/availability?${qs}`, slug)
+  },
+
+  // POST /rentals/bookings retorna o Guid cru; envelopamos em { id }.
+  createRentalBooking: async (
+    slug: string, token: string, data: CreateRentalBookingRequest
+  ): Promise<BookingCreatedResult> => {
+    const id = await portalFetch<string>('/api/v1/rentals/bookings', slug, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }, token)
+    return { id, scheduledAt: data.startDate, status: 'Pending' }
+  },
 
   loginWithGoogle: (slug: string, idToken: string) =>
     portalFetch<{ accessToken: string; refreshToken: string; expiresAt: string }>(
