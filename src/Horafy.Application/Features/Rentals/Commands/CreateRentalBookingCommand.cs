@@ -1,3 +1,4 @@
+using System.Data;
 using FluentValidation;
 using Horafy.Application.Interfaces;
 using Horafy.Domain.Entities.Bookings;
@@ -54,6 +55,14 @@ internal sealed class CreateRentalBookingCommandHandler(
         var start = new DateTimeOffset(request.StartDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
         var end   = new DateTimeOffset(request.EndDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
 
+        var user = await userRepository.GetByIdAsync(currentUser.UserId.Value, cancellationToken);
+
+        // Transação Serializable: a verificação de estoque e a inserção são atômicas.
+        // Reservas concorrentes do mesmo item conflitam no commit (SSI do Postgres),
+        // impedindo overbooking — mesmo padrão de CreateRecurringBookingCommand.
+        await using var tx = await unitOfWork.BeginTransactionAsync(
+            IsolationLevel.Serializable, cancellationToken);
+
         var lines = new List<(Guid RentableItemId, string ItemName, int Quantity, decimal LineTotal)>();
 
         foreach (var line in request.Items)
@@ -75,8 +84,6 @@ internal sealed class CreateRentalBookingCommandHandler(
             lines.Add((item.Id, item.Name, line.Quantity, quote.RentalAmount));
         }
 
-        var user = await userRepository.GetByIdAsync(currentUser.UserId.Value, cancellationToken);
-
         var booking = Booking.CreateRental(
             lines,
             customerId:    currentUser.UserId.Value,
@@ -89,6 +96,7 @@ internal sealed class CreateRentalBookingCommandHandler(
 
         bookingRepository.Add(booking);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+        await tx.CommitAsync(cancellationToken);
 
         return Result.Success(booking.Id);
     }

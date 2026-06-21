@@ -75,6 +75,7 @@ internal sealed class BookingRepository(TenantDbContext context)
             .Where(b => b.Kind == BookingKind.Rental
                      && b.Status != BookingStatus.Cancelled
                      && b.Status != BookingStatus.NoShow
+                     && b.RentalStatus != RentalLifecycle.Returned   // devolvido → estoque liberado
                      && b.ScheduledAt < to
                      && b.EndsAt > from
                      && (excludeBookingId == null || b.Id != excludeBookingId))

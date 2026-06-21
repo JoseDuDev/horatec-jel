@@ -46,4 +46,21 @@ public static class RentalPricing
     public static RentalQuote Calculate(
         decimal dailyRate, DateOnly start, DateOnly end, int quantity, decimal securityDeposit) =>
         Calculate(dailyRate, DaysBetween(start, end), quantity, securityDeposit);
+
+    /// <summary>Dias em atraso na devolução (0 se devolvida no prazo ou antes).</summary>
+    public static int LateDays(DateOnly plannedReturn, DateOnly actualReturn) =>
+        actualReturn <= plannedReturn ? 0 : actualReturn.DayNumber - plannedReturn.DayNumber;
+
+    /// <summary>Multa por atraso = taxa diária de atraso × dias em atraso × unidades.</summary>
+    public static decimal CalculateLateFee(decimal dailyLateFee, int lateDays, int quantity)
+    {
+        if (dailyLateFee < 0)
+            throw new ArgumentException("Taxa de atraso não pode ser negativa.", nameof(dailyLateFee));
+        if (lateDays < 0)
+            throw new ArgumentException("Dias em atraso não pode ser negativo.", nameof(lateDays));
+        if (quantity < 1)
+            throw new ArgumentException("Quantidade deve ser pelo menos 1.", nameof(quantity));
+
+        return decimal.Round(dailyLateFee * lateDays * quantity, 2);
+    }
 }

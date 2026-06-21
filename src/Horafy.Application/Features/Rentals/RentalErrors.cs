@@ -24,4 +24,13 @@ public static class RentalErrors
         "Rental.OutOfStock",
         "Não há unidades disponíveis para o período selecionado.",
         ErrorType.Conflict);
+
+    public static readonly Error BookingNotFound = new(
+        "Rental.BookingNotFound", "Locação não encontrada.", ErrorType.NotFound);
+
+    public static readonly Error NotARental = new(
+        "Rental.NotARental", "A reserva informada não é uma locação.", ErrorType.Validation);
+
+    public static Error InvalidLifecycleTransition(string detail) =>
+        new("Rental.InvalidLifecycleTransition", detail, ErrorType.Validation);
 }

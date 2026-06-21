@@ -257,6 +257,10 @@ internal sealed class TenantSchemaService(
         ALTER TABLE {s}.bookings ALTER COLUMN service_id  DROP NOT NULL;
         ALTER TABLE {s}.bookings ALTER COLUMN resource_id DROP NOT NULL;
 
+        -- ── Estágio do ciclo de vida da locação (Reserved/PickedUp/Returned) ─
+        ALTER TABLE {s}.bookings
+            ADD COLUMN IF NOT EXISTS rental_status VARCHAR(32);
+
         -- ── Vínculo da linha com item de locação (snapshot de unidades) ────
         ALTER TABLE {s}.booking_services
             ADD COLUMN IF NOT EXISTS rentable_item_id UUID;

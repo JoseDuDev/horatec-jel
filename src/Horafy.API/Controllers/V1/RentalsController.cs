@@ -70,6 +70,24 @@ public sealed class RentalsController(ISender sender) : ApiControllerBase(sender
         if (result.IsFailure) return ToActionResult(result);
         return CreatedAtRoute("GetBookingById", new { id = result.Value }, result.Value);
     }
+
+    // ── Ciclo de vida (admin/staff) ───────────────────────────────────────────
+
+    [HttpPost("bookings/{id:guid}/pickup")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,TenantStaff,PlatformAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Pickup(Guid id, CancellationToken cancellationToken) =>
+        ToActionResult(await Sender.Send(new MarkRentalPickedUpCommand(id), cancellationToken));
+
+    [HttpPost("bookings/{id:guid}/return")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,TenantStaff,PlatformAdmin")]
+    [ProducesResponseType(typeof(RentalReturnResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Return(Guid id, CancellationToken cancellationToken) =>
+        ToActionResult(await Sender.Send(new MarkRentalReturnedCommand(id), cancellationToken));
 }
 
 public sealed record CreateRentableItemRequest(

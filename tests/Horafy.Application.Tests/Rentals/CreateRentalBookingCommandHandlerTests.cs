@@ -5,6 +5,7 @@ using Horafy.Application.Interfaces;
 using Horafy.Domain.Entities.Bookings;
 using Horafy.Domain.Entities.Rentals;
 using Horafy.Domain.Entities.Users;
+using System.Data;
 using Horafy.Domain.Interfaces.Repositories;
 using Horafy.Shared;
 using Moq;
@@ -37,6 +38,8 @@ public class CreateRentalBookingCommandHandlerTests
             Bookings.Setup(r => r.Add(It.IsAny<Booking>()))
                     .Callback<Booking>(b => Captured = b);
             Uow.Setup(u => u.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+            Uow.Setup(u => u.BeginTransactionAsync(It.IsAny<IsolationLevel>(), It.IsAny<CancellationToken>()))
+               .ReturnsAsync(Mock.Of<ITransaction>());
         }
 
         public CreateRentalBookingCommandHandler Build() =>

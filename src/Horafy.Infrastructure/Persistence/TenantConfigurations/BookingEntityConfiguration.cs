@@ -24,6 +24,10 @@ internal sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Book
             .HasMaxLength(32)
             .HasDefaultValue(BookingKind.Appointment);
 
+        builder.Property(b => b.RentalStatus)
+            .HasConversion<string>()
+            .HasMaxLength(32);
+
         builder.Property(b => b.Status)
             .HasConversion<string>()
             .HasMaxLength(32);

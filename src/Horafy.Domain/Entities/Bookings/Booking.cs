@@ -17,6 +17,9 @@ public sealed class Booking : BaseEntity
     /// <summary>Modo da reserva: agendamento por horário (default) ou locação multi-dia.</summary>
     public BookingKind Kind { get; private set; } = BookingKind.Appointment;
 
+    /// <summary>Estágio do ciclo de vida da locação. Null em agendamentos.</summary>
+    public RentalLifecycle? RentalStatus { get; private set; }
+
     public string CustomerName  { get; private set; } = default!;
     public string CustomerEmail { get; private set; } = default!;
     public string? CustomerPhone { get; private set; }
@@ -127,6 +130,7 @@ public sealed class Booking : BaseEntity
             CustomerEmail   = customerEmail.ToLowerInvariant().Trim(),
             CustomerPhone   = customerPhone?.Trim(),
             Kind            = BookingKind.Rental,
+            RentalStatus    = RentalLifecycle.Reserved,
             ScheduledAt     = startsAt,
             EndsAt          = endsAt,
             DurationMinutes = (int)(endsAt - startsAt).TotalMinutes,
@@ -206,6 +210,45 @@ public sealed class Booking : BaseEntity
         Status    = BookingStatus.NoShow;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
+
+    // ── Ciclo de vida da locação ───────────────────────────────────────────────
+
+    /// <summary>Marca a retirada do item (Reserved → PickedUp). Exige reserva confirmada.</summary>
+    public void MarkRentalPickedUp()
+    {
+        if (Kind != BookingKind.Rental)
+            throw new InvalidOperationException("Apenas locações podem ser retiradas.");
+        if (Status != BookingStatus.Confirmed)
+            throw new InvalidOperationException("A locação precisa estar confirmada para a retirada.");
+        if (RentalStatus != RentalLifecycle.Reserved)
+            throw new InvalidOperationException($"Não é possível retirar uma locação no estágio {RentalStatus}.");
+
+        RentalStatus = RentalLifecycle.PickedUp;
+        UpdatedAt    = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Marca a devolução do item (PickedUp → Returned), encerra a reserva e libera o
+    /// estoque. Não dispara <see cref="BookingCompletedEvent"/> — locação não gera fidelidade.
+    /// </summary>
+    public void MarkRentalReturned(DateTimeOffset returnedAt)
+    {
+        if (Kind != BookingKind.Rental)
+            throw new InvalidOperationException("Apenas locações podem ser devolvidas.");
+        if (RentalStatus != RentalLifecycle.PickedUp)
+            throw new InvalidOperationException($"Não é possível devolver uma locação no estágio {RentalStatus}.");
+
+        RentalStatus = RentalLifecycle.Returned;
+        Status       = BookingStatus.Completed;
+        CompletedAt  = returnedAt;
+        UpdatedAt    = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>Locação em atraso: item retirado e ainda não devolvido após a data prevista.</summary>
+    public bool IsOverdue(DateTimeOffset now) =>
+        Kind == BookingKind.Rental
+        && RentalStatus == RentalLifecycle.PickedUp
+        && now > EndsAt;
 
     public void MarkPaymentPending()  => PaymentStatus = BookingPaymentStatus.Pending;
     public void MarkPaymentPaid()     { PaymentStatus = BookingPaymentStatus.Paid;          UpdatedAt = DateTimeOffset.UtcNow; }
