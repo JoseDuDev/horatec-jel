@@ -1,3 +1,4 @@
+using Horafy.Domain.Entities.Rentals;
 using Horafy.Domain.Interfaces.Repositories;
 using Horafy.Shared;
 using MediatR;
@@ -48,7 +49,7 @@ internal sealed class GetRentalAvailabilityQueryHandler(
             request.ItemId, start, end, item.BufferDays, cancellationToken: cancellationToken);
 
         var available = Math.Max(0, item.Quantity - reserved);
-        var days      = request.EndDate.DayNumber - request.StartDate.DayNumber;
+        var days      = RentalPricing.DaysBetween(request.StartDate, request.EndDate);
 
         return Result.Success(new RentalAvailabilityResult(
             ItemId:         item.Id,
