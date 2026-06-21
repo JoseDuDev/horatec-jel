@@ -34,6 +34,15 @@ public static class DefaultTemplates
         public const string PaymentConfirmed =
             "✅ Pagamento confirmado! Olá, {{customer_name}}. Recebemos seu pagamento " +
             "de *R$ {{amount}}*. Agendamento confirmado! — {{tenant_name}}";
+
+        public const string RentalReturnReminder =
+            "⏰ Lembrete de devolução! Olá, {{customer_name}}. A devolução de " +
+            "*{{item_name}}* é amanhã, *{{due_at}}*. — {{tenant_name}}";
+
+        public const string RentalOverdue =
+            "⚠️ Locação em atraso. Olá, {{customer_name}}. A devolução de *{{item_name}}* " +
+            "venceu em *{{due_at}}* ({{days_overdue}} dia(s) de atraso). " +
+            "Por favor, devolva o quanto antes para evitar multas. — {{tenant_name}}";
     }
 
     public static class EmailSubject
@@ -44,6 +53,8 @@ public static class DefaultTemplates
         public const string BookingReminder  = "Lembrete: {{service_name}} em {{scheduled_at}}";
         public const string PaymentPending   = "Link de pagamento — R$ {{amount}}";
         public const string PaymentConfirmed = "Pagamento confirmado — R$ {{amount}}";
+        public const string RentalReturnReminder = "Lembrete de devolução — {{item_name}}";
+        public const string RentalOverdue        = "Locação em atraso — {{item_name}}";
     }
 
     public static class EmailBody
@@ -80,5 +91,16 @@ public static class DefaultTemplates
             "<h2>✅ Pagamento confirmado!</h2><p>Olá, {{customer_name}}. Recebemos seu " +
             "pagamento de <strong>R$ {{amount}}</strong>. Agendamento confirmado!</p>" +
             "<p>— {{tenant_name}}</p>";
+
+        public const string RentalReturnReminder =
+            "<h2>⏰ Lembrete de devolução</h2><p>Olá, {{customer_name}}. A devolução de " +
+            "<strong>{{item_name}}</strong> está marcada para <strong>{{due_at}}</strong>.</p>" +
+            "<p>— {{tenant_name}}</p>";
+
+        public const string RentalOverdue =
+            "<h2>⚠️ Locação em atraso</h2><p>Olá, {{customer_name}}. A devolução de " +
+            "<strong>{{item_name}}</strong> venceu em <strong>{{due_at}}</strong> " +
+            "({{days_overdue}} dia(s) de atraso). Por favor, devolva o quanto antes " +
+            "para evitar multas.</p><p>— {{tenant_name}}</p>";
     }
 }

@@ -72,6 +72,66 @@ public sealed class BookingReminderJobTests
             default), Times.AtLeastOnce);
     }
 
+    private static Booking MakeRentalPickedUpEndingAt(DateTimeOffset endsAt)
+    {
+        var b = Booking.CreateRental(
+            new[] { (Guid.NewGuid(), "Furadeira", 1, 90m) },
+            customerId: Guid.NewGuid(), customerName: "João", customerEmail: "joao@test.com",
+            startsAt: endsAt.AddDays(-3), endsAt: endsAt);
+        b.Confirm();
+        b.MarkRentalPickedUp();
+        b.ClearDomainEvents();
+        return b;
+    }
+
+    // Mock que aplica o predicado — distingue as janelas (devolução vs. atraso).
+    private void SetupFilteredFind(params Booking[] master)
+    {
+        var list = master.ToList();
+        _bookingRepo.Setup(r => r.FindAsync(
+            It.IsAny<System.Linq.Expressions.Expression<Func<Booking, bool>>>(), default))
+            .ReturnsAsync((System.Linq.Expressions.Expression<Func<Booking, bool>> pred, CancellationToken _) =>
+                list.Where(pred.Compile()).ToList());
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_RentalDueIn24Hours_PublishesReturnReminder()
+    {
+        var now    = DateTimeOffset.UtcNow;
+        var rental = MakeRentalPickedUpEndingAt(now.AddHours(23.5));
+        var tenant = Tenant.Create("Loja", "loja", TenantVertical.Barbershop);
+
+        SetupFilteredFind(rental);
+        _tenantRepo.Setup(r => r.GetAllAsync(default)).ReturnsAsync(new List<Tenant> { tenant });
+
+        await MakeJob().ExecuteAsync(now, default);
+
+        _bus.Verify(b => b.Publish(
+            It.Is<RentalReturnReminderMessage>(m =>
+                m.BookingId == rental.Id && m.ItemName == "Furadeira" && m.TenantSlug == tenant.Slug),
+            default), Times.Once);
+        _bus.Verify(b => b.Publish(It.IsAny<RentalOverdueMessage>(), default), Times.Never);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_RentalOneDayOverdue_PublishesOverdueNotice()
+    {
+        var now    = DateTimeOffset.UtcNow;
+        var rental = MakeRentalPickedUpEndingAt(now.AddHours(-23.5));
+        var tenant = Tenant.Create("Loja", "loja", TenantVertical.Barbershop);
+
+        SetupFilteredFind(rental);
+        _tenantRepo.Setup(r => r.GetAllAsync(default)).ReturnsAsync(new List<Tenant> { tenant });
+
+        await MakeJob().ExecuteAsync(now, default);
+
+        _bus.Verify(b => b.Publish(
+            It.Is<RentalOverdueMessage>(m =>
+                m.BookingId == rental.Id && m.DaysOverdue >= 1 && m.ItemName == "Furadeira"),
+            default), Times.Once);
+        _bus.Verify(b => b.Publish(It.IsAny<RentalReturnReminderMessage>(), default), Times.Never);
+    }
+
     [Fact]
     public async Task ExecuteAsync_NoUpcomingBookings_DoesNotPublish()
     {
