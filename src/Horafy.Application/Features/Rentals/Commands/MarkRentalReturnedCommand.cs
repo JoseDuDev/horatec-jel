@@ -34,15 +34,6 @@ internal sealed class MarkRentalReturnedCommandHandler(
 
         var returnedAt = DateTimeOffset.UtcNow;
 
-        try
-        {
-            booking.MarkRentalReturned(returnedAt);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Result.Failure<RentalReturnResult>(RentalErrors.InvalidLifecycleTransition(ex.Message));
-        }
-
         var lateDays = RentalPricing.LateDays(
             DateOnly.FromDateTime(booking.EndsAt.UtcDateTime),
             DateOnly.FromDateTime(returnedAt.UtcDateTime));
@@ -62,6 +53,16 @@ internal sealed class MarkRentalReturnedCommandHandler(
 
         // Estorna a caução (descontada a multa, nunca < 0) como crédito na carteira do cliente.
         var refund = Math.Max(0m, booking.SecurityDeposit - lateFee);
+
+        try
+        {
+            booking.MarkRentalReturned(returnedAt, lateFee, refund);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Result.Failure<RentalReturnResult>(RentalErrors.InvalidLifecycleTransition(ex.Message));
+        }
+
         if (refund > 0)
         {
             var wallet = await walletRepository.GetByUserIdAsync(booking.CustomerId, cancellationToken);

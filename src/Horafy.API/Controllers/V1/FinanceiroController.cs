@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Horafy.API.Controllers.Base;
 using Horafy.Application.Features.Payments.Queries;
+using Horafy.Application.Features.Rentals.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,4 +30,12 @@ public sealed class FinanceiroController(ISender sender) : ApiControllerBase(sen
         [FromQuery] DateTimeOffset to,
         CancellationToken cancellationToken) =>
         ToActionResult(await Sender.Send(new GetFinancialSummaryQuery(from, to), cancellationToken));
+
+    [HttpGet("rentals/summary")]
+    [ProducesResponseType(typeof(RentalFinancialSummaryResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetRentalSummary(
+        [FromQuery] DateTimeOffset from,
+        [FromQuery] DateTimeOffset to,
+        CancellationToken cancellationToken) =>
+        ToActionResult(await Sender.Send(new GetRentalFinancialSummaryQuery(from, to), cancellationToken));
 }

@@ -1,5 +1,5 @@
 import { apiFetch } from './client'
-import type { FinancialTransaction, FinancialSummary } from '../types/financeiro'
+import type { FinancialTransaction, FinancialSummary, RentalFinancialSummary } from '../types/financeiro'
 
 export const financeiroApi = {
   list: (params: { from: string; to: string; serviceId?: string; resourceId?: string }) => {
@@ -12,5 +12,10 @@ export const financeiroApi = {
   summary: (params: { from: string; to: string }) => {
     const qs = new URLSearchParams(params).toString()
     return apiFetch<FinancialSummary>(`/api/v1/financeiro/summary?${qs}`)
+  },
+
+  rentalSummary: (params: { from: string; to: string }) => {
+    const qs = new URLSearchParams(params).toString()
+    return apiFetch<RentalFinancialSummary>(`/api/v1/financeiro/rentals/summary?${qs}`)
   },
 }

@@ -32,6 +32,14 @@ internal sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Book
             .HasColumnType("numeric(10,2)")
             .HasDefaultValue(0m);
 
+        builder.Property(b => b.LateFee)
+            .HasColumnType("numeric(10,2)")
+            .HasDefaultValue(0m);
+
+        builder.Property(b => b.DepositRefunded)
+            .HasColumnType("numeric(10,2)")
+            .HasDefaultValue(0m);
+
         builder.Property(b => b.Status)
             .HasConversion<string>()
             .HasMaxLength(32);

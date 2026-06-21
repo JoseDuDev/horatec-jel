@@ -24,3 +24,13 @@ export interface FinancialSummary {
   paidBookings?: number
   totalBookings?: number
 }
+
+export interface RentalFinancialSummary {
+  rentalCount: number
+  rentalRevenue: number
+  lateFeesCollected: number
+  depositsCharged: number
+  depositsRefunded: number
+  depositsHeld: number
+  netRevenue: number
+}

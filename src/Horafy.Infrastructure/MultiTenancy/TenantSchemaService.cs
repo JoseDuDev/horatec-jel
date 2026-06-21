@@ -265,6 +265,13 @@ internal sealed class TenantSchemaService(
         ALTER TABLE {s}.bookings
             ADD COLUMN IF NOT EXISTS security_deposit NUMERIC(10,2) NOT NULL DEFAULT 0;
 
+        -- ── Multa por atraso e caução estornada (apuradas na devolução) ─────
+        ALTER TABLE {s}.bookings
+            ADD COLUMN IF NOT EXISTS late_fee NUMERIC(10,2) NOT NULL DEFAULT 0;
+
+        ALTER TABLE {s}.bookings
+            ADD COLUMN IF NOT EXISTS deposit_refunded NUMERIC(10,2) NOT NULL DEFAULT 0;
+
         -- ── Vínculo da linha com item de locação (snapshot de unidades) ────
         ALTER TABLE {s}.booking_services
             ADD COLUMN IF NOT EXISTS rentable_item_id UUID;

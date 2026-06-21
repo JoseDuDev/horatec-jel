@@ -50,6 +50,12 @@ public sealed class Booking : BaseEntity
     /// <summary>Caução (snapshot) retida em locações; reembolsável na devolução. 0 em agendamentos.</summary>
     public decimal SecurityDeposit { get; private set; }
 
+    /// <summary>Multa por atraso apurada na devolução da locação. 0 caso não haja atraso.</summary>
+    public decimal LateFee { get; private set; }
+
+    /// <summary>Caução efetivamente estornada ao cliente na devolução (caução − multa).</summary>
+    public decimal DepositRefunded { get; private set; }
+
     /// <summary>Valor a cobrar no checkout = diárias/serviços + caução.</summary>
     public decimal PayableAmount => TotalAmount + SecurityDeposit;
 
@@ -242,17 +248,19 @@ public sealed class Booking : BaseEntity
     /// Marca a devolução do item (PickedUp → Returned), encerra a reserva e libera o
     /// estoque. Não dispara <see cref="BookingCompletedEvent"/> — locação não gera fidelidade.
     /// </summary>
-    public void MarkRentalReturned(DateTimeOffset returnedAt)
+    public void MarkRentalReturned(DateTimeOffset returnedAt, decimal lateFee = 0, decimal depositRefunded = 0)
     {
         if (Kind != BookingKind.Rental)
             throw new InvalidOperationException("Apenas locações podem ser devolvidas.");
         if (RentalStatus != RentalLifecycle.PickedUp)
             throw new InvalidOperationException($"Não é possível devolver uma locação no estágio {RentalStatus}.");
 
-        RentalStatus = RentalLifecycle.Returned;
-        Status       = BookingStatus.Completed;
-        CompletedAt  = returnedAt;
-        UpdatedAt    = DateTimeOffset.UtcNow;
+        RentalStatus    = RentalLifecycle.Returned;
+        Status          = BookingStatus.Completed;
+        CompletedAt     = returnedAt;
+        LateFee         = lateFee;
+        DepositRefunded = depositRefunded;
+        UpdatedAt       = DateTimeOffset.UtcNow;
     }
 
     /// <summary>Locação em atraso: item retirado e ainda não devolvido após a data prevista.</summary>

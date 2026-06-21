@@ -73,6 +73,18 @@ public sealed class BookingRentalLifecycleTests
     }
 
     [Fact]
+    public void MarkRentalReturned_PersistsLateFeeAndRefund()
+    {
+        var b = MakeConfirmedRental();
+        b.MarkRentalPickedUp();
+
+        b.MarkRentalReturned(DateTimeOffset.UtcNow, lateFee: 15m, depositRefunded: 35m);
+
+        b.LateFee.Should().Be(15m);
+        b.DepositRefunded.Should().Be(35m);
+    }
+
+    [Fact]
     public void MarkRentalReturned_WhenNotPickedUp_Throws()
     {
         var b = MakeConfirmedRental(); // Reserved
