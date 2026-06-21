@@ -65,6 +65,24 @@ export function RentalCatalog({ slug, items }: Props) {
         items: [{ itemId: selected.id, quantity: 1 }],
         startDate, endDate,
       })
+
+      // Cobra diárias + caução (a caução é estornada na devolução, descontada a multa).
+      const backUrl = `${window.location.origin}/${slug}/agendar/${booking.id}/status`
+      try {
+        const payment = await portalApi.createPayment(slug, accessToken, {
+          bookingId: booking.id,
+          amount: rentalTotal + selected.securityDeposit,
+          method: 'Pix',
+          backUrl,
+        })
+        if (payment.paymentUrl) {
+          window.location.href = payment.paymentUrl
+          return
+        }
+      } catch {
+        // pagamento falhou — segue para o status mesmo assim
+      }
+
       router.push(`/${slug}/agendar/${booking.id}/status`)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erro ao reservar.')
@@ -73,6 +91,7 @@ export function RentalCatalog({ slug, items }: Props) {
   }
 
   const rentalTotal = selected ? selected.dailyRate * days : 0
+  const payableTotal = selected ? rentalTotal + selected.securityDeposit : 0
 
   return (
     <>
@@ -130,6 +149,10 @@ export function RentalCatalog({ slug, items }: Props) {
                     <span>{brl(selected.securityDeposit)}</span>
                   </div>
                 )}
+                <div className="mt-2 flex justify-between border-t pt-2 font-semibold">
+                  <span>Total a pagar</span>
+                  <span>{brl(payableTotal)}</span>
+                </div>
               </div>
             )}
 

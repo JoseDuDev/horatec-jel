@@ -44,8 +44,14 @@ public sealed class Booking : BaseEntity
 
     public IReadOnlyList<BookingService> Services => _services.AsReadOnly();
 
-    /// <summary>Valor total = soma dos preços (snapshot) dos serviços do agendamento.</summary>
+    /// <summary>Valor total = soma dos preços (snapshot) dos serviços/diárias.</summary>
     public decimal TotalAmount => _services.Sum(s => s.Price);
+
+    /// <summary>Caução (snapshot) retida em locações; reembolsável na devolução. 0 em agendamentos.</summary>
+    public decimal SecurityDeposit { get; private set; }
+
+    /// <summary>Valor a cobrar no checkout = diárias/serviços + caução.</summary>
+    public decimal PayableAmount => TotalAmount + SecurityDeposit;
 
     public static Booking Create(
         IReadOnlyList<(Guid ServiceId, string ServiceName, int DurationMinutes, decimal Price)> services,
@@ -111,6 +117,7 @@ public sealed class Booking : BaseEntity
         string customerEmail,
         DateTimeOffset startsAt,
         DateTimeOffset endsAt,
+        decimal securityDeposit = 0,
         string? customerPhone = null,
         string? notes = null)
     {
@@ -119,6 +126,9 @@ public sealed class Booking : BaseEntity
 
         if (endsAt <= startsAt)
             throw new ArgumentException("A devolução deve ser posterior à retirada.", nameof(endsAt));
+
+        if (securityDeposit < 0)
+            throw new ArgumentException("Caução não pode ser negativa.", nameof(securityDeposit));
 
         var booking = new Booking
         {
@@ -131,6 +141,7 @@ public sealed class Booking : BaseEntity
             CustomerPhone   = customerPhone?.Trim(),
             Kind            = BookingKind.Rental,
             RentalStatus    = RentalLifecycle.Reserved,
+            SecurityDeposit = securityDeposit,
             ScheduledAt     = startsAt,
             EndsAt          = endsAt,
             DurationMinutes = (int)(endsAt - startsAt).TotalMinutes,

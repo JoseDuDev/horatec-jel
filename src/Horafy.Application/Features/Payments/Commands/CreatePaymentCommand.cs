@@ -1,6 +1,7 @@
 using FluentValidation;
 using Horafy.Application.Features.Bookings;
 using Horafy.Application.Interfaces;
+using Horafy.Domain.Entities.Bookings;
 using Horafy.Domain.Entities.Payments;
 using Horafy.Domain.Entities.Vouchers;
 using Horafy.Domain.Interfaces.Repositories;
@@ -103,9 +104,11 @@ internal sealed class CreatePaymentCommandHandler(
         }
         else
         {
-            // Calcular depósito parcial somente quando não há voucher/wallet aplicado
+            // Calcular depósito parcial (sinal) somente quando não há voucher/wallet aplicado.
+            // Não se aplica a locações — estas são cobradas integralmente (diárias + caução).
             var depositAmount = 0m;
-            if (voucher is null && !request.UseWalletCredits && currentTenant.TenantId.HasValue)
+            if (booking.Kind != BookingKind.Rental
+                && voucher is null && !request.UseWalletCredits && currentTenant.TenantId.HasValue)
             {
                 var tenant = await tenantRepository.GetByIdAsync(
                     currentTenant.TenantId.Value, cancellationToken);

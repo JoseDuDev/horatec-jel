@@ -64,6 +64,7 @@ internal sealed class CreateRentalBookingCommandHandler(
             IsolationLevel.Serializable, cancellationToken);
 
         var lines = new List<(Guid RentableItemId, string ItemName, int Quantity, decimal LineTotal)>();
+        var depositTotal = 0m;
 
         foreach (var line in request.Items)
         {
@@ -82,17 +83,19 @@ internal sealed class CreateRentalBookingCommandHandler(
 
             var quote = RentalPricing.Calculate(item.DailyRate, days, line.Quantity, item.SecurityDeposit);
             lines.Add((item.Id, item.Name, line.Quantity, quote.RentalAmount));
+            depositTotal += quote.DepositAmount;
         }
 
         var booking = Booking.CreateRental(
             lines,
-            customerId:    currentUser.UserId.Value,
-            customerName:  currentUser.Email ?? "Cliente",
-            customerEmail: currentUser.Email ?? string.Empty,
-            startsAt:      start,
-            endsAt:        end,
-            customerPhone: user?.Phone,
-            notes:         request.Notes);
+            customerId:      currentUser.UserId.Value,
+            customerName:    currentUser.Email ?? "Cliente",
+            customerEmail:   currentUser.Email ?? string.Empty,
+            startsAt:        start,
+            endsAt:          end,
+            securityDeposit: depositTotal,
+            customerPhone:   user?.Phone,
+            notes:           request.Notes);
 
         bookingRepository.Add(booking);
         await unitOfWork.SaveChangesAsync(cancellationToken);

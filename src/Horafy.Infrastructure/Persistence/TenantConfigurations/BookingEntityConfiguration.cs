@@ -28,6 +28,10 @@ internal sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Book
             .HasConversion<string>()
             .HasMaxLength(32);
 
+        builder.Property(b => b.SecurityDeposit)
+            .HasColumnType("numeric(10,2)")
+            .HasDefaultValue(0m);
+
         builder.Property(b => b.Status)
             .HasConversion<string>()
             .HasMaxLength(32);
