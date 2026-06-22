@@ -1,0 +1,19 @@
+# Caddy — reverse proxy com HTTPS automático (Let's Encrypt).
+# Os hostnames vêm do .env (APP_HOST / API_HOST), tipicamente via sslip.io:
+#   APP_HOST = <ip-com-traços>.sslip.io        (frontend)
+#   API_HOST = api.<ip-com-traços>.sslip.io    (API)
+# Como o sslip.io resolve o hostname para o IP do host, o desafio HTTP-01
+# do Let's Encrypt funciona e o certificado é emitido automaticamente.
+{
+	email {$ACME_EMAIL}
+}
+
+{$APP_HOST} {
+	encode gzip
+	reverse_proxy frontend:3000
+}
+
+{$API_HOST} {
+	encode gzip
+	reverse_proxy api:8080
+}

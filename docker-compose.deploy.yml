@@ -1,0 +1,136 @@
+name: horafy-deploy
+
+# Deploy de teste com sslip.io + Caddy (TLS automático via Let's Encrypt).
+# Configure os valores em .env (copie de .env.deploy.example) antes de subir.
+# Apenas o Caddy publica portas (80/443); os demais serviços ficam na rede interna.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: horafy-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    volumes:
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [horafy-net]
+
+  redis:
+    image: redis:7-alpine
+    container_name: horafy-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [horafy-net]
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: horafy-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks: [horafy-net]
+
+  api:
+    build:
+      context: .
+      dockerfile: src/Horafy.API/Dockerfile
+    container_name: horafy-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Staging          # não-Production → auto-migra na subida
+      PAYMENT_GATEWAY: fake                     # gateway fake no deploy de teste
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      Redis__ConnectionString: "redis:6379,password=${REDIS_PASSWORD}"
+      RabbitMq__Host: "rabbitmq"
+      RabbitMq__VirtualHost: "${RABBITMQ_VHOST}"
+      RabbitMq__Username: "${RABBITMQ_USER}"
+      RabbitMq__Password: "${RABBITMQ_PASSWORD}"
+      Jwt__Secret: "${JWT_SECRET}"
+      Jwt__Issuer: "horafy"
+      Jwt__Audience: "horafy"
+      Jwt__ExpirationMinutes: "60"
+      Jwt__RefreshTokenExpirationDays: "7"
+      MercadoPago__AccessToken: "fake-token"
+      AllowedOrigins__0: "${APP_PUBLIC_URL}"    # origem pública do frontend (CORS)
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+      rabbitmq: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+    networks: [horafy-net]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # NEXT_PUBLIC_* é assado no build → precisa do hostname público da API agora.
+        NEXT_PUBLIC_API_URL: ${API_PUBLIC_URL}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+    container_name: horafy-frontend
+    environment:
+      INTERNAL_API_URL: http://api:8080        # server components chamam a API pela rede interna
+    depends_on:
+      api: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000 > /dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+    networks: [horafy-net]
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: horafy-caddy
+    restart: unless-stopped
+    environment:
+      APP_HOST: ${APP_HOST}                     # ex.: 203-0-113-5.sslip.io
+      API_HOST: ${API_HOST}                     # ex.: api.203-0-113-5.sslip.io
+      ACME_EMAIL: ${ACME_EMAIL}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+    depends_on:
+      api:      { condition: service_healthy }
+      frontend: { condition: service_healthy }
+    networks: [horafy-net]
+
+volumes:
+  pgdata:
+  redisdata:
+  rabbitmqdata:
+  caddydata:
+  caddyconfig:
+
+networks:
+  horafy-net:
+    driver: bridge
