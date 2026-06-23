@@ -33,6 +33,13 @@ public sealed class Tenant : BaseEntity
     public TenantPlan Plan { get; private set; } = TenantPlan.Free;
     public TenantVertical Vertical { get; private set; }
 
+    /// <summary>
+    /// Módulos contratados (agendamento e/ou locação). Default: ambos, para preservar
+    /// o comportamento de tenants pré-existentes. A plataforma restringe ao vender um pacote.
+    /// </summary>
+    public TenantCapability Capabilities { get; private set; } =
+        TenantCapability.Appointments | TenantCapability.Rentals;
+
     // Configurações de contato
     public string? Email { get; private set; }
     public string? Phone { get; private set; }
@@ -60,7 +67,9 @@ public sealed class Tenant : BaseEntity
         string name,
         string slug,
         TenantVertical vertical,
-        string? email = null)
+        string? email = null,
+        TenantCapability capabilities = TenantCapability.Appointments | TenantCapability.Rentals,
+        TenantPlan plan = TenantPlan.Free)
     {
         var tenant = new Tenant
         {
@@ -68,6 +77,8 @@ public sealed class Tenant : BaseEntity
             Slug = slug.ToLowerInvariant().Trim(),
             Vertical = vertical,
             Email = email,
+            Capabilities = capabilities,
+            Plan = plan,
             TrialEndsAt = DateTimeOffset.UtcNow.AddDays(14)
         };
 
@@ -138,6 +149,19 @@ public sealed class Tenant : BaseEntity
         PlanRenewsAt = renewsAt;
         UpdatedAt = DateTimeOffset.UtcNow;
     }
+
+    /// <summary>Indica se o tenant tem a capacidade (módulo) informada.</summary>
+    public bool Has(TenantCapability capability) => Capabilities.HasFlag(capability);
+
+    /// <summary>Define os módulos contratados (ação da plataforma).</summary>
+    public void SetCapabilities(TenantCapability capabilities)
+    {
+        Capabilities = capabilities;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>Limites de cadastro do plano atual.</summary>
+    public PlanLimits Limits => PlanLimits.For(Plan);
 
     public void UpdateCancellationPolicy(int minHours, decimal feePercent, bool allowCustomer)
     {

@@ -61,6 +61,12 @@ public sealed class TenantEntityConfiguration : IEntityTypeConfiguration<Tenant>
             .HasConversion<string>()
             .HasMaxLength(50);
 
+        // Flags persistidas como int; default "ambos" (Appointments|Rentals = 3) preserva
+        // tenants existentes ao aplicar a migração.
+        builder.Property(t => t.Capabilities)
+            .HasConversion<int>()
+            .HasDefaultValue(TenantCapability.Appointments | TenantCapability.Rentals);
+
         // TenantTheme como owned entity (serializado em colunas da mesma tabela)
         builder.OwnsOne(t => t.Theme, themeBuilder =>
         {

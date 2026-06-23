@@ -1,6 +1,8 @@
 using FluentValidation;
 using Horafy.Application.Interfaces;
+using Horafy.Application.Features.Tenants;
 using Horafy.Domain.Entities.Rentals;
+using Horafy.Domain.Entities.Tenants;
 using Horafy.Domain.Interfaces.Repositories;
 using Horafy.Shared;
 using MediatR;
@@ -31,11 +33,23 @@ public sealed class CreateRentableItemCommandValidator : AbstractValidator<Creat
 
 internal sealed class CreateRentableItemCommandHandler(
     IRentableItemRepository rentableItemRepository,
+    ITenantPlanService tenantPlan,
     ITenantUnitOfWork unitOfWork) : IRequestHandler<CreateRentableItemCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(
         CreateRentableItemCommand request, CancellationToken cancellationToken)
     {
+        var tenant = await tenantPlan.GetCurrentTenantAsync(cancellationToken);
+        if (tenant is not null)
+        {
+            if (!tenant.Has(TenantCapability.Rentals))
+                return Result.Failure<Guid>(PlanErrors.RentalsNotEnabled);
+
+            var count = await rentableItemRepository.CountAsync(cancellationToken: cancellationToken);
+            if (tenant.Limits.RentableItemsReached(count))
+                return Result.Failure<Guid>(PlanErrors.RentableItemLimitReached(tenant.Limits.MaxRentableItems));
+        }
+
         var item = RentableItem.Create(
             request.Name, request.Quantity, request.DailyRate,
             request.SecurityDeposit, request.BufferDays,

@@ -1,6 +1,8 @@
 using FluentValidation;
 using Horafy.Application.Interfaces;
+using Horafy.Application.Features.Tenants;
 using Horafy.Domain.Entities.Services;
+using Horafy.Domain.Entities.Tenants;
 using Horafy.Domain.Interfaces.Repositories;
 using Horafy.Shared;
 using MediatR;
@@ -26,11 +28,23 @@ public sealed class CreateServiceCommandValidator : AbstractValidator<CreateServ
 
 internal sealed class CreateServiceCommandHandler(
     IServiceRepository serviceRepository,
+    ITenantPlanService tenantPlan,
     ITenantUnitOfWork unitOfWork) : IRequestHandler<CreateServiceCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(
         CreateServiceCommand request, CancellationToken cancellationToken)
     {
+        var tenant = await tenantPlan.GetCurrentTenantAsync(cancellationToken);
+        if (tenant is not null)
+        {
+            if (!tenant.Has(TenantCapability.Appointments))
+                return Result.Failure<Guid>(PlanErrors.AppointmentsNotEnabled);
+
+            var count = await serviceRepository.CountAsync(cancellationToken: cancellationToken);
+            if (tenant.Limits.ServicesReached(count))
+                return Result.Failure<Guid>(PlanErrors.ServiceLimitReached(tenant.Limits.MaxServices));
+        }
+
         if (await serviceRepository.ExistsByNameAsync(request.Name, cancellationToken))
             return Result.Failure<Guid>(ServiceErrors.NameAlreadyExists);
 

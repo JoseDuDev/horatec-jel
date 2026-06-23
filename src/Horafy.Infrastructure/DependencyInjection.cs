@@ -61,6 +61,7 @@ public static class DependencyInjection
 
         // Multi-tenancy — TenantDbContext com search_path dinâmico por tenant
         services.AddScoped<ICurrentTenantService, TenantService>();
+        services.AddScoped<ITenantPlanService, TenantPlanService>();
         services.AddScoped<TenantMigrationService>();
         services.AddScoped<ITenantSchemaService, TenantSchemaService>();
 

@@ -1,6 +1,8 @@
 using FluentValidation;
 using Horafy.Application.Interfaces;
+using Horafy.Application.Features.Tenants;
 using Horafy.Domain.Entities.Resources;
+using Horafy.Domain.Entities.Tenants;
 using Horafy.Domain.Interfaces.Repositories;
 using Horafy.Shared;
 using MediatR;
@@ -28,11 +30,23 @@ public sealed class CreateResourceCommandValidator : AbstractValidator<CreateRes
 
 internal sealed class CreateResourceCommandHandler(
     IResourceRepository resourceRepository,
+    ITenantPlanService tenantPlan,
     ITenantUnitOfWork unitOfWork) : IRequestHandler<CreateResourceCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(
         CreateResourceCommand request, CancellationToken cancellationToken)
     {
+        var tenant = await tenantPlan.GetCurrentTenantAsync(cancellationToken);
+        if (tenant is not null)
+        {
+            if (!tenant.Has(TenantCapability.Appointments))
+                return Result.Failure<Guid>(PlanErrors.AppointmentsNotEnabled);
+
+            var count = await resourceRepository.CountAsync(cancellationToken: cancellationToken);
+            if (tenant.Limits.ResourcesReached(count))
+                return Result.Failure<Guid>(PlanErrors.ResourceLimitReached(tenant.Limits.MaxResources));
+        }
+
         var resource = Resource.Create(
             request.Name, request.Type, request.Email, request.Phone,
             request.Specialty, request.Bio, request.AvatarUrl, request.UserId);
