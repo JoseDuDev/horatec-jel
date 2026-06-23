@@ -11,9 +11,11 @@ using Horafy.Application.Features.Tenants.Commands.CompleteOnboarding;
 using Horafy.Application.Features.Tenants.Commands.UpdateLoyaltySettings;
 using Horafy.Application.Features.Tenants.Commands.UpdatePaymentSettings;
 using Horafy.Application.Features.Tenants.Commands.UpdateTenant;
+using Horafy.Application.Features.Tenants.Commands.UpdateTenantPlan;
 using Horafy.Application.Features.Tenants.Commands.UpdateTenantTheme;
 using Horafy.Application.Features.Tenants.Queries.GetCurrentTenant;
 using Horafy.Application.Features.Tenants.Queries.GetTenantBySlug;
+using Horafy.Application.Features.Tenants.Queries.GetTenantUsage;
 using Horafy.Domain.Entities.Payments;
 using Horafy.Domain.Entities.Tenants;
 using MediatR;
@@ -39,7 +41,8 @@ public sealed class TenantsController(ISender sender) : ApiControllerBase(sender
         var result = await Sender.Send(new CreateTenantCommand(
             request.Name, request.Slug, request.Vertical,
             request.Email, request.Phone, request.City, request.State,
-            request.OwnerName, request.OwnerEmail, request.OwnerPassword),
+            request.OwnerName, request.OwnerEmail, request.OwnerPassword,
+            request.Capabilities, request.Plan),
             cancellationToken);
 
         if (result.IsFailure) return ToActionResult(result);
@@ -69,6 +72,13 @@ public sealed class TenantsController(ISender sender) : ApiControllerBase(sender
     [ProducesResponseType(typeof(TenantResult), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCurrent(CancellationToken cancellationToken) =>
         ToActionResult(await Sender.Send(new GetCurrentTenantQuery(), cancellationToken));
+
+    /// <summary>Uso atual de cadastros vs. limites do plano (indicador de quota).</summary>
+    [HttpGet("me/usage")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
+    [ProducesResponseType(typeof(TenantUsageResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetUsage(CancellationToken cancellationToken) =>
+        ToActionResult(await Sender.Send(new GetTenantUsageQuery(), cancellationToken));
 
     /// <summary>Atualiza dados cadastrais do estabelecimento.</summary>
     [HttpPut("me")]
@@ -157,6 +167,21 @@ public sealed class TenantsController(ISender sender) : ApiControllerBase(sender
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
 
+    /// <summary>Define o pacote (capacidades + plano) de um tenant (PlatformAdmin only).</summary>
+    [HttpPut("/api/v{version:apiVersion}/platform/tenants/{id:guid}/plan")]
+    [Authorize(Roles = "PlatformAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdatePlan(
+        Guid id,
+        [FromBody] UpdateTenantPlanRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new UpdateTenantPlanCommand(id, request.Capabilities, request.Plan), cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
+
     /// <summary>Atualiza as configurações de pagamento do tenant.</summary>
     [HttpPut("payment-settings")]
     [Authorize(Roles = "TenantOwner,PlatformAdmin")]
@@ -220,7 +245,12 @@ public sealed class TenantsController(ISender sender) : ApiControllerBase(sender
 public sealed record CreateTenantRequest(
     string Name, string Slug, TenantVertical Vertical,
     string? Email, string? Phone, string? City, string? State,
-    string OwnerName, string OwnerEmail, string OwnerPassword);
+    string OwnerName, string OwnerEmail, string OwnerPassword,
+    TenantCapability Capabilities = TenantCapability.Appointments | TenantCapability.Rentals,
+    TenantPlan Plan = TenantPlan.Free);
+
+public sealed record UpdateTenantPlanRequest(
+    TenantCapability Capabilities, TenantPlan Plan);
 
 public sealed record UpdateTenantRequest(
     string Name, string? Email, string? Phone,

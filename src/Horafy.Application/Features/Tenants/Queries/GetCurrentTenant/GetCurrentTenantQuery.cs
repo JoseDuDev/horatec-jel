@@ -23,6 +23,7 @@ public sealed record TenantResult(
     string  Locale,
     TenantStatus Status,
     TenantPlan   Plan,
+    TenantCapability Capabilities,
     TenantVertical Vertical,
     TenantThemeResult Theme,
     DateTimeOffset? TrialEndsAt,
@@ -80,7 +81,7 @@ internal sealed class GetCurrentTenantQueryHandler(
     internal static TenantResult ToResult(Domain.Entities.Tenants.Tenant t) => new(
         t.Id, t.Name, t.Slug, t.CustomDomain,
         t.Email, t.Phone, t.Address, t.City, t.State, t.ZipCode,
-        t.TimeZoneId, t.Locale, t.Status, t.Plan, t.Vertical,
+        t.TimeZoneId, t.Locale, t.Status, t.Plan, t.Capabilities, t.Vertical,
         new TenantThemeResult(
             t.Theme.PrimaryColor, t.Theme.SecondaryColor,
             t.Theme.BackgroundColor, t.Theme.TextColor, t.Theme.FontFamily,

@@ -13,6 +13,7 @@ public sealed record TenantSummary(
     string         Slug,
     TenantStatus   Status,
     TenantPlan     Plan,
+    TenantCapability Capabilities,
     TenantVertical Vertical,
     string?        Email,
     DateTimeOffset CreatedAt,
@@ -32,7 +33,7 @@ internal sealed class GetAllTenantsQueryHandler(
             .OrderByDescending(t => t.CreatedAt)
             .Select(t => new TenantSummary(
                 t.Id, t.Name, t.Slug,
-                t.Status, t.Plan, t.Vertical,
+                t.Status, t.Plan, t.Capabilities, t.Vertical,
                 t.Email, t.CreatedAt, t.TrialEndsAt, t.PlanRenewsAt))
             .ToList();
 

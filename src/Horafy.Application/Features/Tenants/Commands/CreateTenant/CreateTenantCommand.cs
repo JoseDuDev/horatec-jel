@@ -25,7 +25,10 @@ public sealed record CreateTenantCommand(
     // Dados do proprietário
     string OwnerName,
     string OwnerEmail,
-    string OwnerPassword) : IRequest<Result<CreateTenantResult>>;
+    string OwnerPassword,
+    // Pacote contratado (a plataforma define; default permissivo p/ self-signup)
+    TenantCapability Capabilities = TenantCapability.Appointments | TenantCapability.Rentals,
+    TenantPlan Plan = TenantPlan.Free) : IRequest<Result<CreateTenantResult>>;
 
 public sealed record CreateTenantResult(
     Guid TenantId,
@@ -70,8 +73,10 @@ internal sealed class CreateTenantCommandHandler(
         if (await userRepository.ExistsByEmailAsync(request.OwnerEmail, cancellationToken))
             return Result.Failure<CreateTenantResult>(TenantErrors.OwnerEmailAlreadyRegistered);
 
-        // 3. Cria o tenant
-        var tenant = Tenant.Create(request.Name, request.Slug, request.Vertical, request.Email);
+        // 3. Cria o tenant com o pacote contratado
+        var tenant = Tenant.Create(
+            request.Name, request.Slug, request.Vertical, request.Email,
+            request.Capabilities, request.Plan);
         tenantRepository.Add(tenant);
 
         // 4. Cria o usuário TenantOwner

@@ -160,6 +160,13 @@ public sealed class Tenant : BaseEntity
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>Define o plano (ação da plataforma), sem alterar a data de renovação.</summary>
+    public void SetPlan(TenantPlan plan)
+    {
+        Plan = plan;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     /// <summary>Limites de cadastro do plano atual.</summary>
     public PlanLimits Limits => PlanLimits.For(Plan);
 
