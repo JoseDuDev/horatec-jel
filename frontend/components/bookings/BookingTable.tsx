@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { CreditCard } from 'lucide-react'
 
 const STATUS_LABEL: Record<BookingStatus, string> = {
   Pending: 'Pendente',
@@ -33,9 +34,14 @@ const RENTAL_LABEL: Record<RentalStatus, string> = {
 
 export type BookingAction = 'confirm' | 'cancel' | 'complete' | 'noshow' | 'pickup' | 'return'
 
+export interface BookingActionOptions {
+  /** Estorna a caução no meio de pagamento original (cartão/PIX) em vez da carteira. */
+  refundToGateway?: boolean
+}
+
 interface Props {
   bookings: Booking[]
-  onAction: (action: BookingAction, id: string) => void
+  onAction: (action: BookingAction, id: string, opts?: BookingActionOptions) => void
 }
 
 export function BookingTable({ bookings, onAction }: Props) {
@@ -82,9 +88,20 @@ export function BookingTable({ bookings, onAction }: Props) {
                       </Button>
                     )}
                     {b.rentalStatus === 'PickedUp' && (
-                      <Button size="sm" variant="secondary" onClick={() => onAction('return', b.id)}>
-                        Devolver
-                      </Button>
+                      <>
+                        <Button size="sm" variant="secondary" onClick={() => onAction('return', b.id)}>
+                          Devolver
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          title="Registra a devolução e estorna a caução no cartão/PIX original"
+                          onClick={() => onAction('return', b.id, { refundToGateway: true })}
+                        >
+                          <CreditCard className="h-4 w-4 mr-1" />
+                          Estornar no cartão
+                        </Button>
+                      </>
                     )}
                     {(b.status === 'Pending' ||
                       (b.status === 'Confirmed' && b.rentalStatus === 'Reserved')) && (

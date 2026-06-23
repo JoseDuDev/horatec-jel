@@ -1,4 +1,5 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { Suspense } from 'react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { vi } from 'vitest'
 
 vi.mock('next/navigation', () => ({
@@ -49,9 +50,22 @@ vi.mock('@/components/portal/WalletWidget', () => ({
 
 import MinhaContaPage from '@/app/(portal)/[slug]/minha-conta/page'
 
+// params é um Promise (Next 16 / React 19 — desempacotado via use()); precisa de um
+// boundary de Suspense, e de um act() assíncrono para liberar a resolução da Promise
+// (e o retry do componente suspenso) antes das asserções.
+const renderPage = async () => {
+  await act(async () => {
+    render(
+      <Suspense fallback={null}>
+        <MinhaContaPage params={Promise.resolve({ slug: 'barb' })} />
+      </Suspense>
+    )
+  })
+}
+
 describe('MinhaContaPage — cancel booking', () => {
   it('shows cancel button for upcoming confirmed bookings', async () => {
-    render(<MinhaContaPage params={{ slug: 'barb' } as { slug: string }} />)
+    await renderPage()
     await waitFor(() => {
       expect(screen.getByText('Corte')).toBeInTheDocument()
     })
@@ -60,7 +74,7 @@ describe('MinhaContaPage — cancel booking', () => {
 
   it('calls cancelBooking on confirm', async () => {
     const { portalApi } = await import('@/lib/api/portal')
-    render(<MinhaContaPage params={{ slug: 'barb' } as { slug: string }} />)
+    await renderPage()
     await waitFor(() => screen.getByText('Corte'))
 
     fireEvent.click(screen.getByRole('button', { name: /^cancelar$/i }))

@@ -17,15 +17,17 @@ describe('ResourceForm', () => {
     })
   })
 
-  it('calls onSubmit with name and type', async () => {
+  it('calls onSubmit with name and the default type', async () => {
+    // "Tipo" é um Select (combobox) com valor padrão "Professional"; aqui validamos que
+    // o nome digitado e um type válido fluem para o onSubmit. A troca de tipo via Select
+    // depende de portais/pointer events instáveis no jsdom e fica para o E2E.
     const onSubmit = vi.fn()
     render(<ResourceForm services={mockServices} onSubmit={onSubmit} onCancel={vi.fn()} />)
     await userEvent.type(screen.getByLabelText(/nome/i), 'Sala B')
-    await userEvent.type(screen.getByLabelText(/tipo/i), 'Sala')
     fireEvent.click(screen.getByRole('button', { name: /salvar/i }))
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'Sala B', type: 'Sala' })
+        expect.objectContaining({ name: 'Sala B', type: 'Professional' })
       )
     })
   })

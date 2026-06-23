@@ -41,7 +41,8 @@ export default function AgendamentosPage() {
 
   const handleAction = async (
     action: 'confirm' | 'cancel' | 'complete' | 'noshow' | 'pickup' | 'return',
-    id: string
+    id: string,
+    opts?: { refundToGateway?: boolean }
   ) => {
     if (action === 'confirm')       await bookingsApi.confirm(id)
     else if (action === 'cancel')   await bookingsApi.cancel(id)
@@ -49,9 +50,12 @@ export default function AgendamentosPage() {
     else if (action === 'noshow')   await bookingsApi.noShow(id)
     else if (action === 'pickup')   await bookingsApi.rentalPickup(id)
     else if (action === 'return') {
-      const r = await bookingsApi.rentalReturn(id)
+      const r = await bookingsApi.rentalReturn(id, opts?.refundToGateway ?? false)
+      const dest = r.destination === 'Gateway' ? 'no cartão/PIX original' : 'na carteira'
       const fee = r.lateFee > 0 ? ` Multa por atraso: R$ ${r.lateFee.toFixed(2)}.` : ''
-      alert(`Devolução registrada. Caução estornada: R$ ${r.depositRefunded.toFixed(2)}.${fee}`)
+      alert(
+        `Devolução registrada. Caução de R$ ${r.depositRefunded.toFixed(2)} estornada ${dest}.${fee}`
+      )
     }
     load()
   }

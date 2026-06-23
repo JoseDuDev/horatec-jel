@@ -28,9 +28,18 @@ export const bookingsApi = {
   rentalPickup: (id: string) =>
     apiFetch<void>(`/api/v1/rentals/bookings/${id}/pickup`, { method: 'POST' }),
 
-  rentalReturn: (id: string) =>
-    apiFetch<{ bookingId: string; lateDays: number; lateFee: number; depositRefunded: number }>(
-      `/api/v1/rentals/bookings/${id}/return`, { method: 'POST' }),
+  // refundToGateway: estorna a caução no meio de pagamento original (cartão/PIX) em vez
+  // da carteira. Com fallback para a carteira no backend se o gateway falhar.
+  rentalReturn: (id: string, refundToGateway = false) =>
+    apiFetch<{
+      bookingId: string
+      lateDays: number
+      lateFee: number
+      depositRefunded: number
+      destination: 'None' | 'Wallet' | 'Gateway'
+    }>(
+      `/api/v1/rentals/bookings/${id}/return${refundToGateway ? '?refundToGateway=true' : ''}`,
+      { method: 'POST' }),
 
   adminCreate: (data: AdminCreateBookingRequest) =>
     apiFetch<string>('/api/v1/bookings/admin', {
