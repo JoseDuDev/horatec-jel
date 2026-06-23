@@ -89,8 +89,12 @@ public sealed class RentalsController(ISender sender) : ApiControllerBase(sender
     [ProducesResponseType(typeof(RentalReturnResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Return(Guid id, CancellationToken cancellationToken) =>
-        ToActionResult(await Sender.Send(new MarkRentalReturnedCommand(id), cancellationToken));
+    public async Task<IActionResult> Return(
+        Guid id,
+        [FromQuery] bool refundToGateway = false,
+        CancellationToken cancellationToken = default) =>
+        ToActionResult(await Sender.Send(
+            new MarkRentalReturnedCommand(id, refundToGateway), cancellationToken));
 }
 
 public sealed record CreateRentableItemRequest(

@@ -1,6 +1,6 @@
 # Horafy — Status do Projeto
 
-> Última atualização: 2026-06-08
+> Última atualização: 2026-06-22
 
 ---
 
@@ -23,8 +23,28 @@
 | 15 | Fidelidade + Cancelamento self-service | ✅ |
 | — | **Trigger de Onboarding** (redirect no primeiro login) | ✅ |
 | — | **UI vinculação Serviço ↔ Recurso** (multiselect + endpoints add/remove) | ✅ |
+| — | **E2E Playwright** (fluxos críticos via API + UI) | ✅ |
+| Locação 0–6 | **Módulo de Locação** (item alugável, estoque, diária, caução, ciclo de vida, financeiro, notificações) | ✅ |
 
-**Testes:** 234 backend (0 falhas) · 46 frontend (0 falhas)
+**Módulo de Locação (`docs/rental-plan.md`) — concluído (Fases 0–6):**
+
+- Item alugável (`RentableItem`) com estoque, diária, caução e buffer.
+- Disponibilidade por intervalo de dias contra estoque (`GetRentalAvailabilityQuery`).
+- Reserva ponta a ponta (`CreateRentalBookingCommand`) reusando pagamento/carteira/voucher.
+- Ciclo de vida: retirada/devolução (`RentalLifecycle`), multa por atraso, **estoque
+  reservado atomicamente sob isolamento Serializable** (anti-overbooking).
+- Estorno da caução na **carteira** (padrão) **ou no gateway** (`IPaymentGateway.RefundAsync`,
+  parcial — opt-in via `?refundToGateway=true` no endpoint de devolução, com fallback p/ carteira).
+- Financeiro de locação, lembrete de devolução (D-1) e aviso de atraso (Quartz).
+- E2E: alugar → pagar → retirar → devolver → caução estornada.
+
+**Testes:** 319 backend (0 falhas) · 46 frontend (0 falhas) · E2E Playwright (rental + fluxos críticos)
+
+> Pendência menor não bloqueante do módulo: o estado `Overdue` é **computado**
+> (`Booking.IsOverdue`), não persistido como estágio do `RentalLifecycle` — suficiente para
+> notificações; só virar estado persistido se relatórios precisarem filtrar atrasados.
+> A UI de admin ainda credita a caução na carteira por padrão; o estorno no gateway está
+> disponível na API e coberto por testes, faltando apenas o toggle no botão "Devolver".
 
 ---
 
@@ -69,23 +89,21 @@
 
 ---
 
-### 3. 🟡 Testes E2E (média prioridade)
+### 3. 🟡 Testes E2E (parcial)
 
-**O problema:** Não existe suite de testes de integração/E2E (Playwright ou Cypress). Os fluxos críticos (booking completo, pagamento, cancelamento) não têm cobertura real além de unit tests.
+**Estado:** suite Playwright existente em `frontend/e2e/` (helpers de API + storage state de
+admin/cliente). Cobre o fluxo de locação ponta a ponta (`rental.spec.ts`) e fluxos críticos
+de agendamento. Há também o teste de concorrência de estoque em backend
+(`tests/Horafy.Application.Tests/Rentals/RentalStockConcurrencyTests.cs`, via Testcontainers
+Postgres — **requer Docker**).
 
-**Fluxos críticos para cobrir:**
-1. Tenant cria conta → faz onboarding → cria serviço/recurso → disponibilidade
-2. Cliente acessa portal → agenda serviço → faz pagamento → recebe confirmação
-3. Admin confirma agendamento → cliente cancela → reembolso
-4. Fidelidade: agendamento concluído → wallet recebe crédito
+**Fluxos ainda a ampliar na cobertura E2E:**
+1. Tenant cria conta → onboarding → cria serviço/recurso → disponibilidade
+2. Admin confirma agendamento → cliente cancela → reembolso
+3. Fidelidade: agendamento concluído → wallet recebe crédito
 
-**Stack sugerida:** Playwright (já popular com Next.js)
-
-**Para começar:**
 ```bash
-cd frontend
-npm install -D @playwright/test
-npx playwright install
+cd frontend && npx playwright test          # roda a suite E2E
 ```
 
 ---
