@@ -1,6 +1,6 @@
 # Horafy — Status do Projeto
 
-> Última atualização: 2026-06-22
+> Última atualização: 2026-06-23
 
 ---
 
@@ -24,6 +24,7 @@
 | — | **Trigger de Onboarding** (redirect no primeiro login) | ✅ |
 | — | **UI vinculação Serviço ↔ Recurso** (multiselect + endpoints add/remove) | ✅ |
 | — | **E2E Playwright** (fluxos críticos via API + UI) | ✅ |
+| — | **UI: Selects exibem rótulo** (mapeamento valor→rótulo; antes mostravam o valor cru/GUID) | ✅ |
 | Locação 0–6 | **Módulo de Locação** (item alugável, estoque, diária, caução, ciclo de vida, financeiro, notificações) | ✅ |
 
 **Módulo de Locação (`docs/rental-plan.md`) — concluído (Fases 0–6):**
@@ -33,18 +34,17 @@
 - Reserva ponta a ponta (`CreateRentalBookingCommand`) reusando pagamento/carteira/voucher.
 - Ciclo de vida: retirada/devolução (`RentalLifecycle`), multa por atraso, **estoque
   reservado atomicamente sob isolamento Serializable** (anti-overbooking).
-- Estorno da caução na **carteira** (padrão) **ou no gateway** (`IPaymentGateway.RefundAsync`,
-  parcial — opt-in via `?refundToGateway=true` no endpoint de devolução, com fallback p/ carteira).
+- Estorno da caução na **carteira** (padrão, botão "Devolver") **ou no gateway** — estorno
+  parcial via `IPaymentGateway.RefundAsync`, com fallback p/ carteira; opt-in via
+  `?refundToGateway=true` na API e botão **"Estornar no cartão"** na tabela de agendamentos.
 - Financeiro de locação, lembrete de devolução (D-1) e aviso de atraso (Quartz).
-- E2E: alugar → pagar → retirar → devolver → caução estornada.
+- E2E: alugar → pagar → retirar → devolver → caução estornada (carteira **e** gateway).
 
-**Testes:** 319 backend (0 falhas) · 46 frontend (0 falhas) · E2E Playwright (rental + fluxos críticos)
+**Testes:** 319 backend (0 falhas) · 46 frontend (0 falhas) · 12 E2E Playwright (0 falhas)
 
 > Pendência menor não bloqueante do módulo: o estado `Overdue` é **computado**
 > (`Booking.IsOverdue`), não persistido como estágio do `RentalLifecycle` — suficiente para
 > notificações; só virar estado persistido se relatórios precisarem filtrar atrasados.
-> A UI de admin ainda credita a caução na carteira por padrão; o estorno no gateway está
-> disponível na API e coberto por testes, faltando apenas o toggle no botão "Devolver".
 
 ---
 
@@ -89,21 +89,27 @@
 
 ---
 
-### 3. 🟡 Testes E2E (parcial)
+### 3. 🟢 Testes E2E (suíte Playwright — 12 testes, 0 falhas)
 
-**Estado:** suite Playwright existente em `frontend/e2e/` (helpers de API + storage state de
-admin/cliente). Cobre o fluxo de locação ponta a ponta (`rental.spec.ts`) e fluxos críticos
-de agendamento. Há também o teste de concorrência de estoque em backend
-(`tests/Horafy.Application.Tests/Rentals/RentalStockConcurrencyTests.cs`, via Testcontainers
+**Estado:** suíte em `frontend/e2e/` (helpers de API + storage state de admin/cliente),
+rodando contra a stack do `docker-compose.e2e.yml` (sobe/derruba via global setup/teardown).
+Cada spec cria seu próprio tenant; rodam em série.
+
+Specs:
+- `onboarding.spec.ts` — criação de conta → wizard de onboarding
+- `booking.spec.ts` — cliente agenda pelo portal
+- `admin-workflow.spec.ts` — admin confirma → cliente cancela → financeiro
+- `loyalty.spec.ts` — fidelidade credita a carteira
+- `rental.spec.ts` — locação: alugar → pagar → retirar → devolver → caução na carteira
+- `rental-gateway-refund.spec.ts` — locação com estorno da caução no cartão (gateway)
+- `resources.spec.ts` — criação de recurso escolhendo o Tipo pelo Select
+
+Backend: teste de concorrência de estoque em
+`tests/Horafy.Application.Tests/Rentals/RentalStockConcurrencyTests.cs` (Testcontainers
 Postgres — **requer Docker**).
 
-**Fluxos ainda a ampliar na cobertura E2E:**
-1. Tenant cria conta → onboarding → cria serviço/recurso → disponibilidade
-2. Admin confirma agendamento → cliente cancela → reembolso
-3. Fidelidade: agendamento concluído → wallet recebe crédito
-
 ```bash
-cd frontend && npx playwright test          # roda a suite E2E
+cd frontend && npx playwright test          # sobe a stack e roda a suíte
 ```
 
 ---
