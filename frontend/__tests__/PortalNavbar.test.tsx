@@ -4,7 +4,7 @@ import { PortalNavbar } from '@/components/portal/PortalNavbar'
 
 vi.mock('@react-oauth/google', () => ({
   GoogleOAuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useGoogleLogin: () => vi.fn(),
+  GoogleLogin: () => <button>Sign in with Google</button>,
 }))
 
 vi.mock('next/navigation', () => ({
