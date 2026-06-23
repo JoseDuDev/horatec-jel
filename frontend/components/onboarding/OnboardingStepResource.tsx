@@ -47,7 +47,10 @@ export function OnboardingStepResource({ onNext, onBack }: Props) {
         <Label htmlFor="res-type">Tipo de Recurso</Label>
         <Select defaultValue="Professional" onValueChange={v => setValue('type', v || 'Professional')}>
           <SelectTrigger id="res-type">
-            <SelectValue />
+            {/* base-ui exibe o valor cru por padrão; mapeamos para o rótulo PT-BR. */}
+            <SelectValue>
+              {(value) => RESOURCE_TYPE_LABELS[value] ?? 'Profissional'}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {RESOURCE_TYPES.map(t => (

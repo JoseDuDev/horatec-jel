@@ -140,7 +140,10 @@ export function AdminBookingModal({ open, onOpenChange, onCreated }: Props) {
                 }}
               >
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Selecione um serviço..." />
+                  {/* base-ui exibe o valor cru (id) por padrão; mapeamos para o nome do serviço. */}
+                  <SelectValue placeholder="Selecione um serviço...">
+                    {(value) => services.find(s => s.id === value)?.name ?? 'Selecione um serviço...'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {services
@@ -161,7 +164,10 @@ export function AdminBookingModal({ open, onOpenChange, onCreated }: Props) {
                 onValueChange={v => setResourceId(v ?? '')}
               >
                 <SelectTrigger className="mt-1">
-                  <SelectValue placeholder="Selecione um recurso..." />
+                  {/* base-ui exibe o valor cru (id) por padrão; mapeamos para o nome do recurso. */}
+                  <SelectValue placeholder="Selecione um recurso...">
+                    {(value) => filteredResources.find(r => r.id === value)?.name ?? 'Selecione um recurso...'}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {filteredResources

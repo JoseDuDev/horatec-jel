@@ -62,7 +62,10 @@ export function OnboardingStepTenant({ initial, onNext }: Props) {
           onValueChange={v => setValue('timezone', v || 'America/Sao_Paulo')}
         >
           <SelectTrigger id="timezone">
-            <SelectValue />
+            {/* base-ui exibe o valor cru por padrão; removemos o prefixo "America/". */}
+            <SelectValue>
+              {(value) => (value ? String(value).replace('America/', '') : 'Selecione o fuso')}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {TIMEZONES.map(tz => (

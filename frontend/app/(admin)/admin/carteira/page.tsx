@@ -95,7 +95,12 @@ function VouchersTab({ token, slug }: { token: string; slug: string }) {
                 value={form.discountType}
                 onValueChange={(v) => setForm(f => ({ ...f, discountType: v as VoucherDiscountType }))}
               >
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  {/* base-ui exibe o valor cru por padrão; mapeamos para o rótulo. */}
+                  <SelectValue>
+                    {(value) => (value === 'Fixed' ? 'Fixo (R$)' : 'Percentual')}
+                  </SelectValue>
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Percentage">Percentual</SelectItem>
                   <SelectItem value="Fixed">Fixo (R$)</SelectItem>

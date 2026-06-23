@@ -57,7 +57,10 @@ export function ResourceForm({ initial, services, onSubmit, onCancel }: Props) {
           render={({ field }) => (
             <Select value={field.value} onValueChange={field.onChange}>
               <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Selecione o tipo" />
+                {/* base-ui exibe o valor cru por padrão; mapeamos para o rótulo PT-BR. */}
+                <SelectValue placeholder="Selecione o tipo">
+                  {(value) => RESOURCE_TYPES.find(t => t.value === value)?.label ?? 'Selecione o tipo'}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {RESOURCE_TYPES.map(t => (

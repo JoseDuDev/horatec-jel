@@ -17,6 +17,14 @@ import {
 } from '@/components/ui/select'
 import { Plus } from 'lucide-react'
 
+const STATUS_LABELS: Record<string, string> = {
+  Pending: 'Pendente',
+  Confirmed: 'Confirmado',
+  Completed: 'Concluído',
+  Cancelled: 'Cancelado',
+  NoShow: 'Não Compareceu',
+}
+
 export default function AgendamentosPage() {
   const [bookings, setBookings]   = useState<Booking[]>([])
   const [loading, setLoading]     = useState(true)
@@ -87,7 +95,10 @@ export default function AgendamentosPage() {
           onValueChange={v => setStatus(v as BookingStatus | '')}
         >
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="Todos os status" />
+            {/* base-ui exibe o valor cru por padrão; mapeamos para o rótulo PT-BR. */}
+            <SelectValue placeholder="Todos os status">
+              {(value) => (value ? STATUS_LABELS[value] ?? value : 'Todos os status')}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="">Todos</SelectItem>

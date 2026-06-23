@@ -28,12 +28,12 @@ test.describe('Admin: criar recurso escolhendo o Tipo pelo Select', () => {
       // Abre o Select de Tipo e escolhe "Quadra".
       await page.locator('[data-slot="select-trigger"]').click()
       await page.locator('[data-slot="select-item"]').filter({ hasText: 'Quadra' }).click()
-      // O trigger passa a refletir o valor escolhido.
+      // O trigger reflete o rótulo PT-BR do tipo escolhido (não o valor cru "Court").
       await expect(page.locator('[data-slot="select-trigger"]')).toContainText('Quadra')
 
       await page.getByRole('button', { name: 'Salvar' }).click()
 
-      // O card do recurso aparece com o nome e o tipo escolhidos.
+      // O recurso é criado com o tipo escolhido — o card o exibe pelo rótulo "Quadra".
       await expect(page.getByText('Quadra de Tênis')).toBeVisible({ timeout: 10_000 })
       await expect(page.getByText('Tipo: Quadra')).toBeVisible()
     } finally {

@@ -81,7 +81,10 @@ export function ExceptionsEditor({ resources }: Props) {
         <Label>Recurso</Label>
         <Select value={resourceId} onValueChange={v => setResourceId(v ?? '')}>
           <SelectTrigger className="mt-1">
-            <SelectValue placeholder="Selecione um recurso..." />
+            {/* base-ui exibe o valor cru (id) por padrão; mapeamos para o nome do recurso. */}
+            <SelectValue placeholder="Selecione um recurso...">
+              {(value) => resources.find(r => r.id === value)?.name ?? 'Selecione um recurso...'}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {resources.map(r => (
