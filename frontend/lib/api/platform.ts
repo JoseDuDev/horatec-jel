@@ -1,4 +1,4 @@
-import type { TenantSummary, TenantPlan } from '../types/platform'
+import type { TenantSummary, TenantPlan, PlanConfig } from '../types/platform'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000'
 
@@ -66,6 +66,20 @@ export const platformApi = {
     body: { capabilities: string; plan: TenantPlan },
   ) =>
     platformFetch<void>(`/api/v1/platform/tenants/${id}/plan`, token, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    }),
+
+  // Planos e seus limites (editáveis pela plataforma).
+  plans: (token: string) =>
+    platformFetch<PlanConfig[]>('/api/v1/platform/plans', token),
+
+  updatePlan: (
+    token: string,
+    plan: string,
+    body: { maxServices: number; maxResources: number; maxRentableItems: number },
+  ) =>
+    platformFetch<void>(`/api/v1/platform/plans/${plan}`, token, {
       method: 'PUT',
       body: JSON.stringify(body),
     }),

@@ -62,6 +62,7 @@ public static class DependencyInjection
         // Multi-tenancy — TenantDbContext com search_path dinâmico por tenant
         services.AddScoped<ICurrentTenantService, TenantService>();
         services.AddScoped<ITenantPlanService, TenantPlanService>();
+        services.AddScoped<IPlanLimitsService, PlanLimitsService>();
         services.AddScoped<TenantMigrationService>();
         services.AddScoped<ITenantSchemaService, TenantSchemaService>();
 
@@ -90,6 +91,7 @@ public static class DependencyInjection
         // Repositórios globais (public schema)
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IPlanConfigurationRepository, PlanConfigurationRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         // Repositórios de tenant (tenant_{slug} schema)

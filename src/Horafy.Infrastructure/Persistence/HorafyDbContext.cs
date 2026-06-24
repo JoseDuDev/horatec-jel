@@ -27,6 +27,7 @@ public sealed class HorafyDbContext : DbContext
     // Tabelas globais (schema public)
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<User>   Users   => Set<User>();
+    public DbSet<PlanConfiguration> PlanConfigurations => Set<PlanConfiguration>();
 
     public HorafyDbContext(
         DbContextOptions<HorafyDbContext> options,

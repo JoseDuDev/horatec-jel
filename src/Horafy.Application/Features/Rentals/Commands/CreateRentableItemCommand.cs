@@ -34,6 +34,7 @@ public sealed class CreateRentableItemCommandValidator : AbstractValidator<Creat
 internal sealed class CreateRentableItemCommandHandler(
     IRentableItemRepository rentableItemRepository,
     ITenantPlanService tenantPlan,
+    IPlanLimitsService planLimits,
     ITenantUnitOfWork unitOfWork) : IRequestHandler<CreateRentableItemCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(
@@ -45,9 +46,10 @@ internal sealed class CreateRentableItemCommandHandler(
             if (!tenant.Has(TenantCapability.Rentals))
                 return Result.Failure<Guid>(PlanErrors.RentalsNotEnabled);
 
-            var count = await rentableItemRepository.CountAsync(cancellationToken: cancellationToken);
-            if (tenant.Limits.RentableItemsReached(count))
-                return Result.Failure<Guid>(PlanErrors.RentableItemLimitReached(tenant.Limits.MaxRentableItems));
+            var limits = await planLimits.GetLimitsAsync(tenant.Plan, cancellationToken);
+            var count  = await rentableItemRepository.CountAsync(cancellationToken: cancellationToken);
+            if (limits.RentableItemsReached(count))
+                return Result.Failure<Guid>(PlanErrors.RentableItemLimitReached(limits.MaxRentableItems));
         }
 
         var item = RentableItem.Create(

@@ -31,6 +31,7 @@ public sealed class CreateResourceCommandValidator : AbstractValidator<CreateRes
 internal sealed class CreateResourceCommandHandler(
     IResourceRepository resourceRepository,
     ITenantPlanService tenantPlan,
+    IPlanLimitsService planLimits,
     ITenantUnitOfWork unitOfWork) : IRequestHandler<CreateResourceCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(
@@ -42,9 +43,10 @@ internal sealed class CreateResourceCommandHandler(
             if (!tenant.Has(TenantCapability.Appointments))
                 return Result.Failure<Guid>(PlanErrors.AppointmentsNotEnabled);
 
-            var count = await resourceRepository.CountAsync(cancellationToken: cancellationToken);
-            if (tenant.Limits.ResourcesReached(count))
-                return Result.Failure<Guid>(PlanErrors.ResourceLimitReached(tenant.Limits.MaxResources));
+            var limits = await planLimits.GetLimitsAsync(tenant.Plan, cancellationToken);
+            var count  = await resourceRepository.CountAsync(cancellationToken: cancellationToken);
+            if (limits.ResourcesReached(count))
+                return Result.Failure<Guid>(PlanErrors.ResourceLimitReached(limits.MaxResources));
         }
 
         var resource = Resource.Create(

@@ -34,6 +34,15 @@ public class PlanEnforcementTests
         return m.Object;
     }
 
+    // Limites = defaults do plano (sem override na tabela plan_configurations).
+    private static IPlanLimitsService Limits()
+    {
+        var m = new Mock<IPlanLimitsService>();
+        m.Setup(s => s.GetLimitsAsync(It.IsAny<TenantPlan>(), It.IsAny<CancellationToken>()))
+         .ReturnsAsync((TenantPlan p, CancellationToken _) => PlanLimits.For(p));
+        return m.Object;
+    }
+
     // ── Serviço (capacidade Appointments) ───────────────────────────────────────
 
     [Fact]
@@ -41,7 +50,7 @@ public class PlanEnforcementTests
     {
         var repo = new Mock<IServiceRepository>();
         var tenant = TenantWith(TenantCapability.Rentals, TenantPlan.Professional); // só locação
-        var handler = new CreateServiceCommandHandler(repo.Object, Plan(tenant), Uow());
+        var handler = new CreateServiceCommandHandler(repo.Object, Plan(tenant), Limits(), Uow());
 
         var result = await handler.Handle(new CreateServiceCommand("Corte", 30, 50, null, null), default);
 
@@ -57,7 +66,7 @@ public class PlanEnforcementTests
         repo.Setup(r => r.CountAsync(It.IsAny<Expression<Func<Service, bool>>?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(5); // Free = 5 serviços
         var tenant = TenantWith(TenantCapability.Appointments, TenantPlan.Free);
-        var handler = new CreateServiceCommandHandler(repo.Object, Plan(tenant), Uow());
+        var handler = new CreateServiceCommandHandler(repo.Object, Plan(tenant), Limits(), Uow());
 
         var result = await handler.Handle(new CreateServiceCommand("Corte", 30, 50, null, null), default);
 
@@ -75,7 +84,7 @@ public class PlanEnforcementTests
         repo.Setup(r => r.ExistsByNameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
         var tenant = TenantWith(TenantCapability.Appointments, TenantPlan.Free);
-        var handler = new CreateServiceCommandHandler(repo.Object, Plan(tenant), Uow());
+        var handler = new CreateServiceCommandHandler(repo.Object, Plan(tenant), Limits(), Uow());
 
         var result = await handler.Handle(new CreateServiceCommand("Corte", 30, 50, null, null), default);
 
@@ -92,7 +101,7 @@ public class PlanEnforcementTests
         repo.Setup(r => r.CountAsync(It.IsAny<Expression<Func<Resource, bool>>?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(2); // Free = 2 recursos
         var tenant = TenantWith(TenantCapability.Appointments, TenantPlan.Free);
-        var handler = new CreateResourceCommandHandler(repo.Object, Plan(tenant), Uow());
+        var handler = new CreateResourceCommandHandler(repo.Object, Plan(tenant), Limits(), Uow());
 
         var result = await handler.Handle(
             new CreateResourceCommand("Sala", ResourceType.PhysicalSpace, null, null, null, null, null, null), default);
@@ -108,7 +117,7 @@ public class PlanEnforcementTests
     {
         var repo = new Mock<IRentableItemRepository>();
         var tenant = TenantWith(TenantCapability.Appointments, TenantPlan.Professional); // só agendamento
-        var handler = new CreateRentableItemCommandHandler(repo.Object, Plan(tenant), Uow());
+        var handler = new CreateRentableItemCommandHandler(repo.Object, Plan(tenant), Limits(), Uow());
 
         var result = await handler.Handle(
             new CreateRentableItemCommand("Furadeira", 1, 30, 50, 0, null, null, null), default);
@@ -125,7 +134,7 @@ public class PlanEnforcementTests
         repo.Setup(r => r.CountAsync(It.IsAny<Expression<Func<RentableItem, bool>>?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(20); // Professional = 20 itens
         var tenant = TenantWith(TenantCapability.Rentals, TenantPlan.Professional);
-        var handler = new CreateRentableItemCommandHandler(repo.Object, Plan(tenant), Uow());
+        var handler = new CreateRentableItemCommandHandler(repo.Object, Plan(tenant), Limits(), Uow());
 
         var result = await handler.Handle(
             new CreateRentableItemCommand("Furadeira", 1, 30, 50, 0, null, null, null), default);
@@ -141,7 +150,7 @@ public class PlanEnforcementTests
         repo.Setup(r => r.CountAsync(It.IsAny<Expression<Func<RentableItem, bool>>?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(0);
         var tenant = TenantWith(TenantCapability.Rentals, TenantPlan.Professional);
-        var handler = new CreateRentableItemCommandHandler(repo.Object, Plan(tenant), Uow());
+        var handler = new CreateRentableItemCommandHandler(repo.Object, Plan(tenant), Limits(), Uow());
 
         var result = await handler.Handle(
             new CreateRentableItemCommand("Furadeira", 1, 30, 50, 0, null, null, null), default);
@@ -158,7 +167,7 @@ public class PlanEnforcementTests
         var repo = new Mock<IServiceRepository>();
         repo.Setup(r => r.ExistsByNameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
-        var handler = new CreateServiceCommandHandler(repo.Object, Plan(null), Uow());
+        var handler = new CreateServiceCommandHandler(repo.Object, Plan(null), Limits(), Uow());
 
         var result = await handler.Handle(new CreateServiceCommand("Corte", 30, 50, null, null), default);
 

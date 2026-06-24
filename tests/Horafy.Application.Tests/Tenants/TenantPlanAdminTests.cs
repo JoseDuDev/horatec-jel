@@ -16,6 +16,14 @@ namespace Horafy.Application.Tests.Tenants;
 
 public class TenantPlanAdminTests
 {
+    private static IPlanLimitsService Limits()
+    {
+        var m = new Mock<IPlanLimitsService>();
+        m.Setup(s => s.GetLimitsAsync(It.IsAny<TenantPlan>(), It.IsAny<CancellationToken>()))
+         .ReturnsAsync((TenantPlan p, CancellationToken _) => PlanLimits.For(p));
+        return m.Object;
+    }
+
     // ── UpdateTenantPlan (plataforma) ───────────────────────────────────────────
 
     [Fact]
@@ -74,7 +82,7 @@ public class TenantPlanAdminTests
         items.Setup(r => r.CountAsync(It.IsAny<Expression<Func<RentableItem, bool>>?>(), It.IsAny<CancellationToken>()))
              .ReturnsAsync(5);
 
-        var handler = new GetTenantUsageQueryHandler(plan.Object, services.Object, resources.Object, items.Object);
+        var handler = new GetTenantUsageQueryHandler(plan.Object, Limits(), services.Object, resources.Object, items.Object);
         var result = await handler.Handle(new GetTenantUsageQuery(), default);
 
         result.IsSuccess.Should().BeTrue();
@@ -91,7 +99,7 @@ public class TenantPlanAdminTests
         plan.Setup(p => p.GetCurrentTenantAsync(It.IsAny<CancellationToken>())).ReturnsAsync((Tenant?)null);
 
         var handler = new GetTenantUsageQueryHandler(
-            plan.Object, new Mock<IServiceRepository>().Object,
+            plan.Object, Limits(), new Mock<IServiceRepository>().Object,
             new Mock<IResourceRepository>().Object, new Mock<IRentableItemRepository>().Object);
         var result = await handler.Handle(new GetTenantUsageQuery(), default);
 

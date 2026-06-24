@@ -29,6 +29,7 @@ public sealed class CreateServiceCommandValidator : AbstractValidator<CreateServ
 internal sealed class CreateServiceCommandHandler(
     IServiceRepository serviceRepository,
     ITenantPlanService tenantPlan,
+    IPlanLimitsService planLimits,
     ITenantUnitOfWork unitOfWork) : IRequestHandler<CreateServiceCommand, Result<Guid>>
 {
     public async Task<Result<Guid>> Handle(
@@ -40,9 +41,10 @@ internal sealed class CreateServiceCommandHandler(
             if (!tenant.Has(TenantCapability.Appointments))
                 return Result.Failure<Guid>(PlanErrors.AppointmentsNotEnabled);
 
-            var count = await serviceRepository.CountAsync(cancellationToken: cancellationToken);
-            if (tenant.Limits.ServicesReached(count))
-                return Result.Failure<Guid>(PlanErrors.ServiceLimitReached(tenant.Limits.MaxServices));
+            var limits = await planLimits.GetLimitsAsync(tenant.Plan, cancellationToken);
+            var count  = await serviceRepository.CountAsync(cancellationToken: cancellationToken);
+            if (limits.ServicesReached(count))
+                return Result.Failure<Guid>(PlanErrors.ServiceLimitReached(limits.MaxServices));
         }
 
         if (await serviceRepository.ExistsByNameAsync(request.Name, cancellationToken))

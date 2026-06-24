@@ -21,6 +21,7 @@ public sealed record TenantUsageResult(
 
 internal sealed class GetTenantUsageQueryHandler(
     ITenantPlanService      tenantPlan,
+    IPlanLimitsService      planLimits,
     IServiceRepository      services,
     IResourceRepository     resources,
     IRentableItemRepository items) : IRequestHandler<GetTenantUsageQuery, Result<TenantUsageResult>>
@@ -32,7 +33,7 @@ internal sealed class GetTenantUsageQueryHandler(
         if (tenant is null)
             return Result.Failure<TenantUsageResult>(TenantErrors.NotFound);
 
-        var limits = tenant.Limits;
+        var limits = await planLimits.GetLimitsAsync(tenant.Plan, cancellationToken);
         var serviceCount  = await services.CountAsync(cancellationToken: cancellationToken);
         var resourceCount = await resources.CountAsync(cancellationToken: cancellationToken);
         var itemCount     = await items.CountAsync(cancellationToken: cancellationToken);

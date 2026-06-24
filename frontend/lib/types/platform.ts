@@ -31,6 +31,14 @@ export const buildCapabilities = (appointments: boolean, rentals: boolean): stri
   return parts.length ? parts.join(', ') : 'None'
 }
 
+/** Limites efetivos de um plano (vindos do backend: GET /platform/plans). -1 = ilimitado. */
+export interface PlanConfig {
+  plan: TenantPlan
+  maxServices: number
+  maxResources: number
+  maxRentableItems: number
+}
+
 export interface PlanLimits {
   plan: TenantPlan
   maxServices: number
