@@ -11,11 +11,24 @@ export interface TenantSummary {
   slug: string
   status: TenantStatus
   plan: TenantPlan
+  /** Enum [Flags] serializado como CSV pelo backend, ex.: "Appointments, Rentals" ou "None". */
+  capabilities: string
   vertical: TenantVertical
   email?: string
   createdAt: string
   trialEndsAt?: string
   planRenewsAt?: string
+}
+
+// ── Capacidades (módulos) — o backend serializa o enum [Flags] como CSV ──────────
+export const hasCapability = (caps: string | undefined, cap: 'Appointments' | 'Rentals'): boolean =>
+  (caps ?? '').includes(cap)
+
+export const buildCapabilities = (appointments: boolean, rentals: boolean): string => {
+  const parts: string[] = []
+  if (appointments) parts.push('Appointments')
+  if (rentals) parts.push('Rentals')
+  return parts.length ? parts.join(', ') : 'None'
 }
 
 export interface PlanLimits {

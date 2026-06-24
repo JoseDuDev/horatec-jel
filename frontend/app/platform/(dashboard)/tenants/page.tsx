@@ -5,7 +5,9 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { usePlatformAdminStore } from '@/store/platform-admin'
 import { platformApi } from '@/lib/api/platform'
-import type { TenantSummary } from '@/lib/types/platform'
+import type { TenantSummary, TenantPlan } from '@/lib/types/platform'
+import { hasCapability } from '@/lib/types/platform'
+import { EditTenantPackageDialog } from '@/components/platform/EditTenantPackageDialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -31,6 +33,11 @@ export default function PlatformTenantsPage() {
   const [search, setSearch] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [editing, setEditing] = useState<TenantSummary | null>(null)
+
+  const handleSaved = (id: string, capabilities: string, plan: TenantPlan) => {
+    setTenants(ts => ts.map(t => t.id === id ? { ...t, capabilities, plan } : t))
+  }
 
   useEffect(() => {
     if (!accessToken) return
@@ -106,6 +113,7 @@ export default function PlatformTenantsPage() {
                     <th className="text-left py-2 pr-4">Slug</th>
                     <th className="text-left py-2 pr-4">Status</th>
                     <th className="text-left py-2 pr-4">Plano</th>
+                    <th className="text-left py-2 pr-4">Módulos</th>
                     <th className="text-left py-2 pr-4">Cadastro</th>
                     <th className="text-left py-2">Ações</th>
                   </tr>
@@ -125,35 +133,50 @@ export default function PlatformTenantsPage() {
                           {t.plan}
                         </span>
                       </td>
+                      <td className="py-3 pr-4">
+                        <div className="flex gap-1 flex-wrap">
+                          {hasCapability(t.capabilities, 'Appointments') && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-sky-100 text-sky-700">Agend.</span>
+                          )}
+                          {hasCapability(t.capabilities, 'Rentals') && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-700">Aluguel</span>
+                          )}
+                        </div>
+                      </td>
                       <td className="py-3 pr-4 text-slate-500">
                         {format(new Date(t.createdAt), 'dd/MM/yyyy', { locale: ptBR })}
                       </td>
                       <td className="py-3">
-                        {t.status === 'Suspended' ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleActivate(t.id)}
-                            disabled={actionLoading === t.id}
-                          >
-                            Reativar
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => setEditing(t)}>
+                            Pacote
                           </Button>
-                        ) : t.status === 'Active' || t.status === 'Trial' ? (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleSuspend(t.id)}
-                            disabled={actionLoading === t.id}
-                          >
-                            Suspender
-                          </Button>
-                        ) : null}
+                          {t.status === 'Suspended' ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleActivate(t.id)}
+                              disabled={actionLoading === t.id}
+                            >
+                              Reativar
+                            </Button>
+                          ) : t.status === 'Active' || t.status === 'Trial' ? (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleSuspend(t.id)}
+                              disabled={actionLoading === t.id}
+                            >
+                              Suspender
+                            </Button>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   ))}
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400">
+                      <td colSpan={7} className="py-8 text-center text-slate-400">
                         Nenhum tenant encontrado.
                       </td>
                     </tr>
@@ -164,6 +187,12 @@ export default function PlatformTenantsPage() {
           </CardContent>
         </Card>
       )}
+
+      <EditTenantPackageDialog
+        tenant={editing}
+        onClose={() => setEditing(null)}
+        onSaved={handleSaved}
+      />
     </div>
   )
 }
