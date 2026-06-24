@@ -1,3 +1,4 @@
+using Horafy.Application.Interfaces;
 using Horafy.Domain.Interfaces.Repositories;
 using Horafy.Shared;
 using MediatR;
@@ -12,7 +13,8 @@ public sealed record GetAvailableSlotsQuery(
 internal sealed class GetAvailableSlotsQueryHandler(
     IAvailabilityRepository availabilityRepository,
     IServiceRepository serviceRepository,
-    IBookingRepository bookingRepository)
+    IBookingRepository bookingRepository,
+    IDateTimeProvider dateTimeProvider)
     : IRequestHandler<GetAvailableSlotsQuery, Result<IReadOnlyList<DateTimeOffset>>>
 {
     public async Task<Result<IReadOnlyList<DateTimeOffset>>> Handle(
@@ -68,7 +70,7 @@ internal sealed class GetAvailableSlotsQueryHandler(
             request.ResourceId, dayStart, dayEnd, cancellationToken);
 
         // 6. Filtrar slots no passado (não faz sentido oferecer horário já vencido)
-        var now = DateTimeOffset.UtcNow;
+        var now = dateTimeProvider.UtcNow;
 
         // 7. Filtrar slots ocupados e passados
         var availableSlots = allSlots

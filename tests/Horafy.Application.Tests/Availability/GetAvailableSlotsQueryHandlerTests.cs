@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Horafy.Application.Features.Availability.Queries;
+using Horafy.Application.Interfaces;
 using Horafy.Domain.Entities.Availability;
 using Horafy.Domain.Entities.Bookings;
 using Horafy.Domain.Entities.Resources;
@@ -137,11 +138,13 @@ public class GetAvailableSlotsQueryHandlerTests
     [Fact]
     public async Task Handle_TodayPastSlots_AreExcluded()
     {
-        // Regra para HOJE cobrindo o dia inteiro → slots anteriores a "agora" são removidos
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        // Relógio fixo ao meio-dia → determinístico (não depende da hora real do CI).
+        var now = new DateTimeOffset(2026, 6, 15, 12, 0, 0, TimeSpan.Zero);
+        var today = DateOnly.FromDateTime(now.UtcDateTime);
+        // Regra cobrindo o dia inteiro → slots da manhã (antes do "agora") devem sair.
         var rule = AvailabilityRule.Create(
             ResourceId, today.DayOfWeek, new TimeOnly(0, 0), new TimeOnly(23, 0), 30);
-        var (handler, availRepo, _, bookingRepo) = BuildHandler();
+        var (handler, availRepo, _, bookingRepo) = BuildHandler(now);
 
         availRepo.Setup(r => r.GetRuleAsync(ResourceId, today.DayOfWeek, default))
             .ReturnsAsync(rule);
@@ -155,7 +158,9 @@ public class GetAvailableSlotsQueryHandlerTests
             new GetAvailableSlotsQuery(ResourceId, today, null), default);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().OnlyContain(s => s > DateTimeOffset.UtcNow);
+        result.Value.Should().NotBeEmpty();                       // há slots à tarde
+        result.Value.Should().OnlyContain(s => s > now);          // nenhum slot vencido
+        result.Value.Should().NotContain(s => s.TimeOfDay < new TimeSpan(12, 0, 0)); // manhã excluída
     }
 
     [Fact]
@@ -186,13 +191,17 @@ public class GetAvailableSlotsQueryHandlerTests
     private static (GetAvailableSlotsQueryHandler handler,
         Mock<IAvailabilityRepository> availRepo,
         Mock<IServiceRepository> serviceRepo,
-        Mock<IBookingRepository> bookingRepo) BuildHandler()
+        Mock<IBookingRepository> bookingRepo) BuildHandler(DateTimeOffset? now = null)
     {
         var availRepo   = new Mock<IAvailabilityRepository>();
         var serviceRepo = new Mock<IServiceRepository>();
         var bookingRepo = new Mock<IBookingRepository>();
 
-        var handler = new GetAvailableSlotsQueryHandler(availRepo.Object, serviceRepo.Object, bookingRepo.Object);
+        var clock = new Mock<IDateTimeProvider>();
+        clock.Setup(c => c.UtcNow).Returns(now ?? DateTimeOffset.UtcNow);
+
+        var handler = new GetAvailableSlotsQueryHandler(
+            availRepo.Object, serviceRepo.Object, bookingRepo.Object, clock.Object);
         return (handler, availRepo, serviceRepo, bookingRepo);
     }
 }

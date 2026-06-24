@@ -60,6 +60,7 @@ public static class DependencyInjection
         services.AddMemoryCache();
 
         // Multi-tenancy — TenantDbContext com search_path dinâmico por tenant
+        services.AddSingleton<IDateTimeProvider, Time.SystemDateTimeProvider>();
         services.AddScoped<ICurrentTenantService, TenantService>();
         services.AddScoped<ITenantPlanService, TenantPlanService>();
         services.AddScoped<IPlanLimitsService, PlanLimitsService>();
