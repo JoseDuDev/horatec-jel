@@ -1,11 +1,12 @@
 import { apiFetch } from './client'
 import type {
-  Tenant, UpdateTenantRequest,
+  Tenant, TenantUsage, UpdateTenantRequest,
   UpdateLoyaltySettingsRequest, UpdateCancellationPolicyRequest,
 } from '../types/tenant'
 
 export const tenantsApi = {
   me: () => apiFetch<Tenant>('/api/v1/tenants/me'),
+  usage: () => apiFetch<TenantUsage>('/api/v1/tenants/me/usage'),
   update: (data: UpdateTenantRequest) =>
     apiFetch<void>('/api/v1/tenants/me', { method: 'PUT', body: JSON.stringify(data) }),
   updateTheme: (primaryColor: string, logoUrl?: string) =>

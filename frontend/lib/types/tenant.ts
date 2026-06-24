@@ -19,9 +19,25 @@ export interface Tenant {
   customDomain?: string
   timezone: string
   plan: string
+  /** Enum [Flags] serializado como CSV pelo backend, ex.: "Appointments, Rentals". */
+  capabilities: string
   cancellationPolicy: CancellationPolicy
   loyaltySettings: LoyaltySettings
   isOnboardingCompleted: boolean
+}
+
+export interface UsageItem {
+  used: number
+  /** -1 = ilimitado. */
+  max: number
+}
+
+export interface TenantUsage {
+  capabilities: string
+  plan: string
+  services: UsageItem
+  resources: UsageItem
+  rentableItems: UsageItem
 }
 
 export interface UpdateTenantRequest {

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { PlanUsageCard } from '@/components/admin/PlanUsageCard'
 
 const identitySchema = z.object({
   name: z.string().min(1, 'Nome obrigatório'),
@@ -237,13 +238,7 @@ export default function ConfiguracoesPage() {
         </TabsContent>
 
         <TabsContent value="plano">
-          <Card>
-            <CardHeader><CardTitle>Plano Atual</CardTitle></CardHeader>
-            <CardContent>
-              <p className="text-slate-600">Plano: <span className="font-semibold">{tenant?.plan ?? '...'}</span></p>
-              <p className="text-sm text-slate-400 mt-2">Gerenciamento de plano será disponibilizado em breve.</p>
-            </CardContent>
-          </Card>
+          <PlanUsageCard />
         </TabsContent>
       </Tabs>
     </div>
