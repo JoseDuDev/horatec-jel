@@ -26,6 +26,7 @@
 | — | **E2E Playwright** (fluxos críticos via API + UI) | ✅ |
 | — | **UI: Selects exibem rótulo** (mapeamento valor→rótulo; antes mostravam o valor cru/GUID) | ✅ |
 | Locação 0–6 | **Módulo de Locação** (item alugável, estoque, diária, caução, ciclo de vida, financeiro, notificações) | ✅ |
+| Planos 0–4 | **Capacidades + Limites por plano** (módulos por tenant + quotas editáveis; pacotes vendáveis) | ✅ |
 
 **Módulo de Locação (`docs/rental-plan.md`) — concluído (Fases 0–6):**
 
@@ -40,11 +41,31 @@
 - Financeiro de locação, lembrete de devolução (D-1) e aviso de atraso (Quartz).
 - E2E: alugar → pagar → retirar → devolver → caução estornada (carteira **e** gateway).
 
-**Testes:** 319 backend (0 falhas) · 46 frontend (0 falhas) · 12 E2E Playwright (0 falhas)
-
 > Pendência menor não bloqueante do módulo: o estado `Overdue` é **computado**
 > (`Booking.IsOverdue`), não persistido como estágio do `RentalLifecycle` — suficiente para
 > notificações; só virar estado persistido se relatórios precisarem filtrar atrasados.
+
+**Capacidades + Limites por plano (`docs/superpowers/plans/2026-06-23-tenant-capacidades-limites.md`) — concluído (Fases 0–4):**
+
+- **Capacidades** por tenant (`TenantCapability` `[Flags]`: Agendamento e/ou Aluguel) — a
+  plataforma define o pacote contratado.
+- **Limites por plano** (`PlanLimits` default em código + `PlanConfiguration` **editável por
+  tabela**, que sobrepõe os defaults): máx. serviços, recursos e itens de locação.
+- **Enforcement** na criação de serviço/recurso/item: bloqueia por capacidade ausente ou quota
+  atingida (`IPlanLimitsService` + `PlanErrors`). Sem tenant resolvido → não bloqueia.
+- **Super Admin** (`/platform`): define capacidades + plano por tenant
+  (`PUT /platform/tenants/{id}/plan`) e edita os limites de cada plano (`GET/PUT /platform/plans`).
+- **Painel do tenant**: menu esconde o módulo não contratado; aba *Plano* mostra uso vs. limite
+  (`GET /tenants/me/usage`); onboarding adaptado ao pacote (pula serviço/recurso/horários se
+  não houver agendamento).
+- Default permissivo (ambos os módulos + plano `Free`) + migrações `AddTenantCapabilities`
+  (coluna `capabilities` default ambos) e `AddPlanConfigurations` preservam tenants existentes.
+
+**Testes:** 347 backend (0 falhas) · 48 frontend (0 falhas) · 12 E2E Playwright (0 falhas)
+
+> Teste pré-existente flaky (alheio às features acima): `GetAvailableSlotsQueryHandlerTests`
+> `.Handle_TodayPastSlots_AreExcluded` depende da hora do dia (UTC) — falha fora do horário
+> comercial por não haver slots futuros "hoje". Estabilizar injetando o relógio.
 
 ---
 
