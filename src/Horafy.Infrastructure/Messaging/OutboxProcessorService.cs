@@ -3,14 +3,14 @@ using Horafy.Infrastructure.Persistence;
 using Horafy.Infrastructure.Persistence.Interceptors;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Horafy.Infrastructure.Messaging;
 
 internal sealed class OutboxProcessorService(
-    HorafyDbContext context,
-    IBus            bus,
+    IServiceScopeFactory scopeFactory,
     ILogger<OutboxProcessorService> logger) : BackgroundService
 {
     private const int MaxRetries      = 3;
@@ -36,6 +36,10 @@ internal sealed class OutboxProcessorService(
 
     public async Task ProcessBatchAsync(CancellationToken ct)
     {
+        await using var scope = scopeFactory.CreateAsyncScope();
+        var context = scope.ServiceProvider.GetRequiredService<HorafyDbContext>();
+        var bus     = scope.ServiceProvider.GetRequiredService<IBus>();
+
         var messages = await context.Set<OutboxMessage>()
             .Where(m => m.ProcessedAt == null && m.RetryCount < MaxRetries)
             .OrderBy(m => m.OccurredAt)
