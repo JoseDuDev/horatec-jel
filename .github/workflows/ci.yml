@@ -69,6 +69,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set lowercase repository name
+        run: echo "REPO_LC=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -83,8 +86,8 @@ jobs:
           file: src/Horafy.API/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/horafy-api:latest
-            ghcr.io/${{ github.repository }}/horafy-api:${{ github.sha }}
+            ghcr.io/${{ env.REPO_LC }}/horafy-api:latest
+            ghcr.io/${{ env.REPO_LC }}/horafy-api:${{ github.sha }}
 
       - name: Build and push Frontend image
         uses: docker/build-push-action@v5
@@ -93,8 +96,8 @@ jobs:
           file: frontend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/horafy-frontend:latest
-            ghcr.io/${{ github.repository }}/horafy-frontend:${{ github.sha }}
+            ghcr.io/${{ env.REPO_LC }}/horafy-frontend:latest
+            ghcr.io/${{ env.REPO_LC }}/horafy-frontend:${{ github.sha }}
           build-args: |
             NEXT_PUBLIC_API_URL=https://horafy.com.br
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
