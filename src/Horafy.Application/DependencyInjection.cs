@@ -21,6 +21,9 @@ public static class DependencyInjection
 
         services.AddValidatorsFromAssembly(assembly);
 
+        // Dispatcher de webhooks de saída (tipo interno deste assembly).
+        services.AddScoped<Features.Integrations.Webhooks.IntegrationWebhookDispatcher>();
+
         return services;
     }
 }

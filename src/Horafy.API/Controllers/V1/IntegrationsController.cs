@@ -41,6 +41,33 @@ public sealed class IntegrationsController(ISender sender) : ApiControllerBase(s
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
 
+    /// <summary>Cria/atualiza o webhook de saída do tenant. Segredo retornado 1x (criação/rotação).</summary>
+    [HttpPut("webhook")]
+    [ProducesResponseType(typeof(WebhookConfigResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpsertWebhook(
+        [FromBody] UpsertWebhookRequest request,
+        CancellationToken cancellationToken) =>
+        ToActionResult(await Sender.Send(
+            new UpsertIntegrationWebhookCommand(request.Url, request.RotateSecret), cancellationToken));
+
+    /// <summary>Retorna a config do webhook do tenant (sem o segredo).</summary>
+    [HttpGet("webhook")]
+    [ProducesResponseType(typeof(WebhookSummary), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetWebhook(CancellationToken cancellationToken) =>
+        ToActionResult(await Sender.Send(new GetIntegrationWebhookQuery(), cancellationToken));
+
+    /// <summary>Desativa o webhook do tenant.</summary>
+    [HttpDelete("webhook")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteWebhook(CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(new DeleteIntegrationWebhookCommand(), cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
+
     /// <summary>
     /// Troca a API key (header <c>X-Api-Key</c>) por um JWT de serviço de curta duração.
     /// Público: a chave identifica o tenant.
@@ -62,3 +89,5 @@ public sealed class IntegrationsController(ISender sender) : ApiControllerBase(s
 }
 
 public sealed record CreateApiKeyRequest(string Name, string? Scopes);
+
+public sealed record UpsertWebhookRequest(string Url, bool RotateSecret = false);

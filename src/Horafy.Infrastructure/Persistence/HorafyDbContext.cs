@@ -30,6 +30,7 @@ public sealed class HorafyDbContext : DbContext
     public DbSet<User>   Users   => Set<User>();
     public DbSet<PlanConfiguration> PlanConfigurations => Set<PlanConfiguration>();
     public DbSet<IntegrationApiKey> IntegrationApiKeys => Set<IntegrationApiKey>();
+    public DbSet<IntegrationWebhook> IntegrationWebhooks => Set<IntegrationWebhook>();
 
     public HorafyDbContext(
         DbContextOptions<HorafyDbContext> options,

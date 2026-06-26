@@ -94,7 +94,12 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPlanConfigurationRepository, PlanConfigurationRepository>();
         services.AddScoped<IIntegrationApiKeyRepository, IntegrationApiKeyRepository>();
+        services.AddScoped<IIntegrationWebhookRepository, IntegrationWebhookRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // Webhooks de saída (write-back) — cliente HTTP de entrega.
+        // O dispatcher (tipo interno do Application) é registrado em AddApplication.
+        services.AddHttpClient("integration-webhook", c => c.Timeout = TimeSpan.FromSeconds(10));
 
         // Repositórios de tenant (tenant_{slug} schema)
         services.AddScoped<IServiceRepository, ServiceRepository>();

@@ -18,4 +18,14 @@ public static class IntegrationErrors
         "Integration.InvalidApiKey",
         "Chave de API inválida ou revogada.",
         ErrorType.Unauthorized);
+
+    public static readonly Error WebhookNotConfigured = new(
+        "Integration.WebhookNotConfigured",
+        "Nenhum webhook configurado para este tenant.",
+        ErrorType.NotFound);
+
+    public static readonly Error InvalidWebhookUrl = new(
+        "Integration.InvalidWebhookUrl",
+        "URL de webhook inválida. Use uma URL http(s) completa.",
+        ErrorType.Validation);
 }
