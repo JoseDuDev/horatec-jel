@@ -9,17 +9,17 @@ Each executor: read the plan fully before starting, honor its STOP conditions, a
 | Plan | Title | Priority | Effort | Depends on | Status |
 |------|-------|----------|--------|------------|--------|
 | [001](001-webhook-signature-required.md) | Tornar validação de assinatura de webhook obrigatória | P1 | S | — | DONE — branch `advisor/001-webhook-signature-required` |
-| [002](002-gateway-timeouts.md) | Adicionar timeout aos HTTP clients de gateways externos | P1 | S | — | TODO |
-| [003](003-health-checks-redis-rabbitmq.md) | Adicionar Redis e RabbitMQ ao health check | P1 | S | — | TODO |
-| [004](004-cookies-httponly.md) | Adicionar flags HttpOnly e Secure nos cookies de autenticação | P1 | S | — | TODO |
-| [005](005-open-redirect.md) | Validar parâmetro `redirect` para evitar open redirect pós-login | P1 | S | — | TODO |
-| [006](006-exception-detail.md) | Sanitizar exception.Message no middleware de tratamento de erros | P1 | S | — | TODO |
-| [007](007-jwt-localstorage-to-cookies.md) | Migrar tokens JWT do localStorage para cookies HttpOnly | P1 | M | 004 | TODO |
-| [008](008-double-booking-transaction.md) | Proteger CreateBookingCommand com transação Serializable | P1 | M | — | TODO |
-| [009](009-webhook-payment-race.md) | Corrigir race condition em ConfirmPaymentCommand (webhook duplo) | P1 | M | 001 | TODO |
-| [010](010-secrets-git-rotation.md) | Remover secrets do git e rotacionar credenciais expostas | P1 | M | — | TODO |
-| [011](011-rate-limiting-auth.md) | Adicionar rate limiting nos endpoints de autenticação | P2 | M | — | TODO |
-| [012](012-booking-pagination.md) | Adicionar paginação em GetByCustomerAsync | P2 | M | — | TODO |
+| [002](002-gateway-timeouts.md) | Adicionar timeout aos HTTP clients de gateways externos | P1 | S | — | DONE — branch `advisor/002-gateway-timeouts` |
+| [003](003-health-checks-redis-rabbitmq.md) | Adicionar Redis e RabbitMQ ao health check | P1 | S | — | DONE — branch `advisor/003-health-checks-redis-rabbitmq` |
+| [004](004-cookies-httponly.md) | Adicionar flags HttpOnly e Secure nos cookies de autenticação | P1 | S | — | DONE — branch `advisor/004-cookies-httponly` |
+| [005](005-open-redirect.md) | Validar parâmetro `redirect` para evitar open redirect pós-login | P1 | S | — | DONE — branch `advisor/005-open-redirect` |
+| [006](006-exception-detail.md) | Sanitizar exception.Message no middleware de tratamento de erros | P1 | S | — | DONE — branch `advisor/006-exception-detail` |
+| [007](007-jwt-localstorage-to-cookies.md) | Migrar tokens JWT do localStorage para cookies HttpOnly | P1 | M | 004 | DONE — branch `advisor/007-jwt-localstorage` |
+| [008](008-double-booking-transaction.md) | Proteger CreateBookingCommand com transação Serializable | P1 | M | — | DONE — branch `advisor/008-double-booking-transaction` |
+| [009](009-webhook-payment-race.md) | Corrigir race condition em ConfirmPaymentCommand (webhook duplo) | P1 | M | 001 | DONE — branch `advisor/009-webhook-payment-race` |
+| [010](010-secrets-git-rotation.md) | Remover secrets do git e rotacionar credenciais expostas | P1 | M | — | DONE — branch `advisor/010-secrets-rotation` |
+| [011](011-rate-limiting-auth.md) | Adicionar rate limiting nos endpoints de autenticação | P2 | M | — | DONE — branch `advisor/011-rate-limiting-auth` |
+| [012](012-booking-pagination.md) | Adicionar paginação em GetByCustomerAsync | P2 | M | — | BLOCKED (frontend portal.ts espera `CustomerBooking[]`; mudar para `PagedResult` quebra o portal — coordenar com Plan 007; também: tipo existente é `PagedResult<T>` em `src/Horafy.Shared/PagedResult.cs`, não `PaginatedResult<T>`) |
 
 Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED (reason)` | `REJECTED (reason)`
 
