@@ -272,6 +272,17 @@ internal sealed class TenantSchemaService(
         ALTER TABLE {s}.bookings
             ADD COLUMN IF NOT EXISTS deposit_refunded NUMERIC(10,2) NOT NULL DEFAULT 0;
 
+        -- ── Integração (write-back): origem e id externo idempotente ───────
+        ALTER TABLE {s}.bookings
+            ADD COLUMN IF NOT EXISTS source VARCHAR(40);
+
+        ALTER TABLE {s}.bookings
+            ADD COLUMN IF NOT EXISTS external_id VARCHAR(128);
+
+        CREATE UNIQUE INDEX IF NOT EXISTS ix_bookings_external_id
+            ON {s}.bookings (external_id)
+            WHERE external_id IS NOT NULL;
+
         -- ── Vínculo da linha com item de locação (snapshot de unidades) ────
         ALTER TABLE {s}.booking_services
             ADD COLUMN IF NOT EXISTS rentable_item_id UUID;
