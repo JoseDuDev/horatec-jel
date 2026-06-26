@@ -52,6 +52,15 @@ internal sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Book
         builder.Property(b => b.RecurrenceGroupId);
         builder.Property(b => b.ExpiresAt);
 
+        builder.Property(b => b.Source).HasMaxLength(40);
+        builder.Property(b => b.ExternalId).HasMaxLength(128);
+
+        // Idempotência por integração: ExternalId único quando presente.
+        builder.HasIndex(b => b.ExternalId)
+            .IsUnique()
+            .HasDatabaseName("ix_bookings_external_id")
+            .HasFilter("external_id IS NOT NULL");
+
         builder.HasIndex(b => b.RecurrenceGroupId)
             .HasDatabaseName("ix_bookings_recurrence_group")
             .HasFilter("recurrence_group_id IS NOT NULL");

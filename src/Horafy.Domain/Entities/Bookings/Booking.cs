@@ -42,6 +42,19 @@ public sealed class Booking : BaseEntity
 
     public BookingPaymentStatus PaymentStatus { get; private set; } = BookingPaymentStatus.NotRequired;
 
+    /// <summary>
+    /// Origem do agendamento (ex.: "atendefy"). Null para os fluxos nativos
+    /// (portal/admin). Usado para suprimir a notificação própria do Horafy quando
+    /// a reserva nasce em outro canal (ver BookingCreatedNotificationPublisher).
+    /// </summary>
+    public string? Source { get; private set; }
+
+    /// <summary>
+    /// Identificador externo idempotente fornecido pela integração. Único por tenant.
+    /// Reenvios com o mesmo ExternalId não criam um novo agendamento.
+    /// </summary>
+    public string? ExternalId { get; private set; }
+
     public IReadOnlyList<BookingService> Services => _services.AsReadOnly();
 
     /// <summary>Valor total = soma dos preços (snapshot) dos serviços/diárias.</summary>
@@ -183,6 +196,16 @@ public sealed class Booking : BaseEntity
             new[] { (serviceId, ServiceName: serviceId.ToString(), durationMinutes, Price: 0m) },
             resourceId, resourceName: string.Empty, customerId, customerName, customerEmail,
             scheduledAt, customerPhone, notes, recurrenceGroupId, expiresAt);
+
+    /// <summary>
+    /// Marca a origem externa do agendamento (integração) e o id idempotente.
+    /// Chamado logo após Create, antes de persistir.
+    /// </summary>
+    public void SetIntegrationOrigin(string source, string? externalId)
+    {
+        Source     = string.IsNullOrWhiteSpace(source) ? null : source.Trim();
+        ExternalId = string.IsNullOrWhiteSpace(externalId) ? null : externalId.Trim();
+    }
 
     public void Confirm()
     {

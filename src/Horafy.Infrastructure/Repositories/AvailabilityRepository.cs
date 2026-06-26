@@ -60,6 +60,13 @@ internal sealed class AvailabilityRepository(TenantDbContext context) : IAvailab
             .Where(rs => resourceIds.Contains(rs.ResourceId))
             .ToListAsync(ct);
 
+    public async Task<IReadOnlyList<ResourceService>> GetResourcesByServiceAsync(
+        Guid serviceId, CancellationToken ct = default) =>
+        await context.Set<ResourceService>()
+            .AsNoTracking()
+            .Where(rs => rs.ServiceId == serviceId)
+            .ToListAsync(ct);
+
     public async Task<bool> ResourceServiceExistsAsync(
         Guid resourceId, Guid serviceId, CancellationToken ct = default) =>
         await context.Set<ResourceService>()

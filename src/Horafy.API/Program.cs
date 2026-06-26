@@ -153,6 +153,8 @@ try
     app.UseHttpsRedirection();
     app.UseAuthentication();
     app.UseMiddleware<TenantMiddleware>();
+    // Hardening: vincula o tenant_id do JWT ao tenant resolvido (impede replay entre tenants).
+    app.UseMiddleware<Horafy.API.Middleware.TenantBindingMiddleware>();
     app.UseAuthorization();
     app.MapControllers();
     app.MapHealthChecks("/health");

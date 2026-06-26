@@ -24,6 +24,22 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
         ToActionResult(await Sender.Send(
             new GetAvailableSlotsQuery(resourceId, date, serviceId), cancellationToken));
 
+    /// <summary>
+    /// Dias com pelo menos um horário livre no intervalo [from, to] (máx. 31 dias).
+    /// Passo do fluxo de agendamento: profissional → dias disponíveis.
+    /// </summary>
+    [HttpGet("resources/{resourceId:guid}/days")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IReadOnlyList<DateOnly>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetDays(
+        Guid resourceId,
+        [FromQuery] DateOnly from,
+        [FromQuery] DateOnly to,
+        [FromQuery] Guid? serviceId = null,
+        CancellationToken cancellationToken = default) =>
+        ToActionResult(await Sender.Send(
+            new GetAvailableDaysQuery(resourceId, from, to, serviceId), cancellationToken));
+
     [HttpGet("business-hours")]
     [Authorize(Roles = "TenantOwner,TenantAdmin")]
     [ProducesResponseType(typeof(IReadOnlyList<BusinessHoursResult>), StatusCodes.Status200OK)]

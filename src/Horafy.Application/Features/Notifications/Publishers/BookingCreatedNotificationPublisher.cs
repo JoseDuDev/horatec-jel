@@ -20,6 +20,13 @@ internal sealed class BookingCreatedNotificationPublisher(
         var booking = await bookingRepository.GetByIdAsync(notification.BookingId, cancellationToken);
         if (booking is null) return;
 
+        // H8 — supressão por origem: quando a reserva nasce numa integração (ex.: Atendefy),
+        // o cliente já está em conversa naquele canal; notificar de outro número seria duplicado.
+        // Fluxos nativos (portal/admin) deixam Source nulo e seguem normalmente.
+        // (Evolução: tornar isto um flag por tenant em vez de incondicional.)
+        if (!string.IsNullOrEmpty(booking.Source))
+            return;
+
         var resource   = await resourceRepository.GetByIdAsync(notification.ResourceId, cancellationToken);
         var tenantName = "Horafy";
         var tenantSlug = currentTenant.Slug ?? "horafy";

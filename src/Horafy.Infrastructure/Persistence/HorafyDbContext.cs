@@ -1,5 +1,6 @@
 using Horafy.Application.Interfaces;
 using Horafy.Domain.Entities.Base;
+using Horafy.Domain.Entities.Integrations;
 using Horafy.Domain.Entities.Tenants;
 using Horafy.Domain.Entities.Users;
 using Horafy.Infrastructure.Persistence.Interceptors;
@@ -28,6 +29,7 @@ public sealed class HorafyDbContext : DbContext
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<User>   Users   => Set<User>();
     public DbSet<PlanConfiguration> PlanConfigurations => Set<PlanConfiguration>();
+    public DbSet<IntegrationApiKey> IntegrationApiKeys => Set<IntegrationApiKey>();
 
     public HorafyDbContext(
         DbContextOptions<HorafyDbContext> options,

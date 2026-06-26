@@ -14,6 +14,11 @@ public interface IBookingRepository : IRepository<Booking>
         Guid customerId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Busca um agendamento pelo id externo idempotente (escopo do tenant).</summary>
+    Task<Booking?> GetByExternalIdAsync(
+        string externalId,
+        CancellationToken cancellationToken = default);
+
     Task<bool> HasConflictAsync(
         Guid resourceId,
         DateTimeOffset start,

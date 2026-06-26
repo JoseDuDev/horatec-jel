@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using Horafy.API.Controllers.Base;
+using Horafy.Application.Features.Resources.Queries;
 using Horafy.Application.Features.Services.Commands;
 using Horafy.Application.Features.Services.Queries;
 using MediatR;
@@ -26,6 +27,20 @@ public sealed class ServicesController(ISender sender) : ApiControllerBase(sende
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken) =>
         ToActionResult(await Sender.Send(new GetServiceByIdQuery(id), cancellationToken));
+
+    /// <summary>
+    /// Lista os profissionais (recursos) que atendem o serviço informado.
+    /// Passo do fluxo de agendamento: serviço → profissionais que o atendem.
+    /// </summary>
+    [HttpGet("{serviceId:guid}/resources")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IReadOnlyList<ResourceResult>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetResourcesForService(
+        Guid serviceId,
+        [FromQuery] bool onlyActive = true,
+        CancellationToken cancellationToken = default) =>
+        ToActionResult(await Sender.Send(
+            new GetResourcesByServiceQuery(serviceId, onlyActive), cancellationToken));
 
     [HttpPost]
     [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]

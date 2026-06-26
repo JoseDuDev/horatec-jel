@@ -61,6 +61,38 @@ internal sealed class JwtTokenService(IOptions<JwtOptions> options) : ITokenServ
         return new TokenPair(accessToken, refreshToken, accessExpires, refreshExpires);
     }
 
+    public ServiceToken GenerateIntegrationToken(Guid tenantId, string? scopes = null)
+    {
+        var key     = BuildKey();
+        var now     = DateTimeOffset.UtcNow;
+        var expires = now.AddMinutes(_opts.IntegrationTokenExpirationMinutes);
+        var handler = new JwtSecurityTokenHandler();
+
+        var claims = new List<Claim>
+        {
+            new(JwtRegisteredClaimNames.Sub, $"integration:{tenantId}"),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(ClaimTypes.Role, UserRole.TenantStaff.ToString()),
+            new(ClaimTenantId, tenantId.ToString()),
+            new("source", "integration"),
+        };
+
+        if (!string.IsNullOrWhiteSpace(scopes))
+            claims.Add(new Claim("scope", scopes));
+
+        var descriptor = new SecurityTokenDescriptor
+        {
+            Subject            = new ClaimsIdentity(claims),
+            Expires            = expires.UtcDateTime,
+            Issuer             = _opts.Issuer,
+            Audience           = _opts.Audience,
+            SigningCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature)
+        };
+
+        var token = handler.WriteToken(handler.CreateToken(descriptor));
+        return new ServiceToken(token, expires);
+    }
+
     public ClaimsPrincipal? ValidateRefreshToken(string refreshToken)
     {
         var handler    = new JwtSecurityTokenHandler();

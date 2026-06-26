@@ -93,6 +93,7 @@ public static class DependencyInjection
         services.AddScoped<ITenantRepository, TenantRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPlanConfigurationRepository, PlanConfigurationRepository>();
+        services.AddScoped<IIntegrationApiKeyRepository, IntegrationApiKeyRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         // Repositórios de tenant (tenant_{slug} schema)

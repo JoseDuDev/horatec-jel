@@ -42,6 +42,13 @@ internal sealed class BookingRepository(TenantDbContext context)
             .OrderByDescending(b => b.ScheduledAt)
             .ToListAsync(cancellationToken);
 
+    public async Task<Booking?> GetByExternalIdAsync(
+        string externalId,
+        CancellationToken cancellationToken = default) =>
+        await DbSet
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.ExternalId == externalId, cancellationToken);
+
     public async Task<bool> HasConflictAsync(
         Guid resourceId,
         DateTimeOffset start,

@@ -16,6 +16,13 @@ public interface ITokenService
     /// Retorna null se o token for inválido ou expirado.
     /// </summary>
     ClaimsPrincipal? ValidateRefreshToken(string refreshToken);
+
+    /// <summary>
+    /// Gera um token de serviço (M2M) de curta duração para uma integração de tenant.
+    /// Carrega role TenantStaff, tenant_id e source=integration. Usado após a troca
+    /// de uma API key válida.
+    /// </summary>
+    ServiceToken GenerateIntegrationToken(Guid tenantId, string? scopes = null);
 }
 
 /// <summary>Par de tokens retornado no login/refresh.</summary>
@@ -24,3 +31,8 @@ public sealed record TokenPair(
     string RefreshToken,
     DateTimeOffset AccessTokenExpiresAt,
     DateTimeOffset RefreshTokenExpiresAt);
+
+/// <summary>Token de serviço (M2M) emitido na troca de API key.</summary>
+public sealed record ServiceToken(
+    string AccessToken,
+    DateTimeOffset ExpiresAt);
