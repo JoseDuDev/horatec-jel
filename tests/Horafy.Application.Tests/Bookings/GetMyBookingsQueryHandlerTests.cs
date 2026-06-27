@@ -5,6 +5,7 @@ using Horafy.Domain.Entities.Bookings;
 using Horafy.Domain.Entities.Resources;
 using Horafy.Domain.Entities.Services;
 using Horafy.Domain.Interfaces.Repositories;
+using Horafy.Shared;
 using Moq;
 using Xunit;
 
@@ -30,14 +31,16 @@ public sealed class GetMyBookingsQueryHandlerTests
 
         _currentUser.SetupGet(u => u.IsAuthenticated).Returns(true);
         _currentUser.SetupGet(u => u.UserId).Returns(userId);
-        _bookingRepo.Setup(r => r.GetByCustomerAsync(userId, default))
-                    .ReturnsAsync(new List<Booking> { booking });
+        _bookingRepo
+            .Setup(r => r.GetByCustomerPagedAsync(userId, 1, 20, default))
+            .ReturnsAsync(((IReadOnlyList<Booking>)new List<Booking> { booking }, 1));
 
         var result = await MakeHandler().Handle(new GetMyBookingsQuery(), default);
 
         result.IsSuccess.Should().BeTrue();
-        result.Value.Should().HaveCount(1);
-        result.Value[0].CustomerId.Should().Be(userId);
+        result.Value.Items.Should().HaveCount(1);
+        result.Value.Items[0].CustomerId.Should().Be(userId);
+        result.Value.TotalCount.Should().Be(1);
     }
 
     [Fact]
@@ -49,6 +52,6 @@ public sealed class GetMyBookingsQueryHandlerTests
         var result = await MakeHandler().Handle(new GetMyBookingsQuery(), default);
 
         result.IsFailure.Should().BeTrue();
-        result.Error.Type.Should().Be(Horafy.Shared.ErrorType.Unauthorized);
+        result.Error.Type.Should().Be(ErrorType.Unauthorized);
     }
 }

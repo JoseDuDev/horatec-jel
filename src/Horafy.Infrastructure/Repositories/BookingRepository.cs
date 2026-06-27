@@ -101,6 +101,54 @@ internal sealed class BookingRepository(TenantDbContext context)
             .Where(predicate)
             .ToListAsync(cancellationToken);
 
+    public async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetByCustomerPagedAsync(
+        Guid customerId,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = DbSet
+            .AsNoTracking()
+            .Include(b => b.Services)
+            .Where(b => b.CustomerId == customerId)
+            .OrderByDescending(b => b.ScheduledAt);
+
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, total);
+    }
+
+    public async Task<(IReadOnlyList<Booking> Items, int TotalCount)> GetPagedAsync(
+        Guid? resourceId,
+        DateTimeOffset from,
+        DateTimeOffset to,
+        int pageNumber,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var query = DbSet
+            .AsNoTracking()
+            .Include(b => b.Services)
+            .Where(b => b.ScheduledAt >= from && b.ScheduledAt < to);
+
+        if (resourceId.HasValue)
+            query = query.Where(b => b.ResourceId == resourceId.Value);
+
+        query = query.OrderBy(b => b.ScheduledAt);
+
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, total);
+    }
+
     public async Task<IReadOnlyList<Booking>> GetByRecurrenceGroupAsync(
         Guid recurrenceGroupId,
         CancellationToken cancellationToken = default) =>

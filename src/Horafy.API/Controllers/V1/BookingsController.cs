@@ -3,6 +3,7 @@ using Horafy.API.Controllers.Base;
 using Horafy.Application.Features.Bookings.Commands;
 using Horafy.Application.Features.Bookings.Queries;
 using Horafy.Domain.Entities.Bookings;
+using Horafy.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,20 +15,25 @@ namespace Horafy.API.Controllers.V1;
 public sealed class BookingsController(ISender sender) : ApiControllerBase(sender)
 {
     [HttpGet("my")]
-    [ProducesResponseType(typeof(IReadOnlyList<BookingResult>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetMine(CancellationToken cancellationToken) =>
-        ToActionResult(await Sender.Send(new GetMyBookingsQuery(), cancellationToken));
+    [ProducesResponseType(typeof(PagedResult<BookingResult>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMine(
+        [FromQuery] int page     = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default) =>
+        ToActionResult(await Sender.Send(new GetMyBookingsQuery(page, pageSize), cancellationToken));
 
     [HttpGet]
     [Authorize(Roles = "TenantOwner,TenantAdmin,TenantStaff,PlatformAdmin")]
-    [ProducesResponseType(typeof(IReadOnlyList<BookingResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedResult<BookingResult>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
         [FromQuery] Guid? resourceId,
         [FromQuery] DateTimeOffset? from,
         [FromQuery] DateTimeOffset? to,
-        CancellationToken cancellationToken) =>
+        [FromQuery] int page     = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default) =>
         ToActionResult(await Sender.Send(
-            new GetBookingsQuery(resourceId, from, to), cancellationToken));
+            new GetBookingsQuery(resourceId, from, to, page, pageSize), cancellationToken));
 
     [HttpGet("{id:guid}", Name = "GetBookingById")]
     [ProducesResponseType(typeof(BookingResult), StatusCodes.Status200OK)]
@@ -136,6 +142,27 @@ public sealed class BookingsController(ISender sender) : ApiControllerBase(sende
         if (result.IsFailure) return ToActionResult(result);
         return Ok(result.Value);
     }
+
+    [HttpGet("recurring/{groupId:guid}")]
+    [ProducesResponseType(typeof(IReadOnlyList<BookingResult>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetRecurringSeries(Guid groupId, CancellationToken cancellationToken) =>
+        ToActionResult(await Sender.Send(new GetRecurringSeriesQuery(groupId), cancellationToken));
+
+    [HttpDelete("recurring/{groupId:guid}")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,TenantStaff,PlatformAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CancelRecurringSeries(
+        Guid groupId,
+        [FromBody] CancelRecurringSeriesRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new CancelRecurringSeriesCommand(groupId, request.Reason, request.FromDate),
+            cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
 }
 
 public sealed record CreateBookingRequest(
@@ -153,6 +180,8 @@ public sealed record CreateRecurringBookingRequest(
     RecurrenceFrequency Frequency,
     int OccurrenceCount,
     string? Notes);
+
+public sealed record CancelRecurringSeriesRequest(string? Reason, DateTimeOffset? FromDate);
 
 public sealed record AdminCreateBookingRequest(
     IReadOnlyList<Guid> ServiceIds,

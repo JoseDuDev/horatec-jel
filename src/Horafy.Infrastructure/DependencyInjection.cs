@@ -210,6 +210,10 @@ public static class DependencyInjection
 
         services.AddHostedService<OutboxProcessorService>();
 
+        // Logging de notificações enviadas
+        services.AddScoped<INotificationLogger, NotificationLogger>();
+        services.AddScoped<INotificationLogReader, NotificationLogReader>();
+
         return services;
     }
 }

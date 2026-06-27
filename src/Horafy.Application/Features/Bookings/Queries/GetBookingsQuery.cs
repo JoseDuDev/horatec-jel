@@ -8,7 +8,9 @@ namespace Horafy.Application.Features.Bookings.Queries;
 public sealed record GetBookingsQuery(
     Guid? ResourceId,
     DateTimeOffset? From,
-    DateTimeOffset? To) : IRequest<Result<IReadOnlyList<BookingResult>>>;
+    DateTimeOffset? To,
+    int PageNumber = 1,
+    int PageSize   = 20) : IRequest<Result<PagedResult<BookingResult>>>;
 
 public sealed record BookingServiceResult(Guid ServiceId, string ServiceName, int DurationMinutes);
 
@@ -35,22 +37,19 @@ public sealed record BookingResult(
 
 internal sealed class GetBookingsQueryHandler(
     IBookingRepository bookingRepository)
-    : IRequestHandler<GetBookingsQuery, Result<IReadOnlyList<BookingResult>>>
+    : IRequestHandler<GetBookingsQuery, Result<PagedResult<BookingResult>>>
 {
-    public async Task<Result<IReadOnlyList<BookingResult>>> Handle(
+    public async Task<Result<PagedResult<BookingResult>>> Handle(
         GetBookingsQuery request, CancellationToken cancellationToken)
     {
         var from = request.From ?? DateTimeOffset.UtcNow.Date;
         var to   = request.To   ?? from.AddDays(7);
 
-        IReadOnlyList<Domain.Entities.Bookings.Booking> bookings = request.ResourceId.HasValue
-            ? await bookingRepository.GetByResourceAsync(
-                request.ResourceId.Value, from, to, cancellationToken)
-            : await bookingRepository.FindAsync(
-                b => b.ScheduledAt >= from && b.ScheduledAt < to, cancellationToken);
+        var (bookings, total) = await bookingRepository.GetPagedAsync(
+            request.ResourceId, from, to, request.PageNumber, request.PageSize, cancellationToken);
 
-        var result = bookings.Select(ToResult).ToList();
-        return Result.Success<IReadOnlyList<BookingResult>>(result);
+        var items = bookings.Select(ToResult).ToList();
+        return Result.Success(PagedResult<BookingResult>.Create(items, total, request.PageNumber, request.PageSize));
     }
 
     private static BookingResult ToResult(Domain.Entities.Bookings.Booking b) => new(

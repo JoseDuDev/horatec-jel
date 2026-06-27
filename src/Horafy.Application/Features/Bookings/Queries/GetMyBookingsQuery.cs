@@ -5,23 +5,25 @@ using MediatR;
 
 namespace Horafy.Application.Features.Bookings.Queries;
 
-public sealed record GetMyBookingsQuery : IRequest<Result<IReadOnlyList<BookingResult>>>;
+public sealed record GetMyBookingsQuery(
+    int PageNumber = 1,
+    int PageSize   = 20) : IRequest<Result<PagedResult<BookingResult>>>;
 
 internal sealed class GetMyBookingsQueryHandler(
     IBookingRepository bookingRepository,
     ICurrentUserService currentUser)
-    : IRequestHandler<GetMyBookingsQuery, Result<IReadOnlyList<BookingResult>>>
+    : IRequestHandler<GetMyBookingsQuery, Result<PagedResult<BookingResult>>>
 {
-    public async Task<Result<IReadOnlyList<BookingResult>>> Handle(
+    public async Task<Result<PagedResult<BookingResult>>> Handle(
         GetMyBookingsQuery request, CancellationToken cancellationToken)
     {
         if (!currentUser.IsAuthenticated || !currentUser.UserId.HasValue)
-            return Result.Failure<IReadOnlyList<BookingResult>>(Error.Unauthorized);
+            return Result.Failure<PagedResult<BookingResult>>(Error.Unauthorized);
 
-        var bookings = await bookingRepository.GetByCustomerAsync(
-            currentUser.UserId.Value, cancellationToken);
+        var (bookings, total) = await bookingRepository.GetByCustomerPagedAsync(
+            currentUser.UserId.Value, request.PageNumber, request.PageSize, cancellationToken);
 
-        var result = bookings.Select(b => new BookingResult(
+        var items = bookings.Select(b => new BookingResult(
             b.Id, b.ServiceId, b.ResourceId, b.CustomerId,
             b.CustomerName, b.CustomerEmail, b.ScheduledAt, b.EndsAt,
             b.DurationMinutes, b.Notes, b.Status, b.CancellationReason,
@@ -34,6 +36,6 @@ internal sealed class GetMyBookingsQueryHandler(
             RentalStatus: b.RentalStatus))
             .ToList();
 
-        return Result.Success<IReadOnlyList<BookingResult>>(result);
+        return Result.Success(PagedResult<BookingResult>.Create(items, total, request.PageNumber, request.PageSize));
     }
 }

@@ -6,6 +6,8 @@ public enum NotificationEventType
     BookingConfirmed = 1,
     BookingCancelled = 2,
     BookingReminder  = 3,
-    PaymentPending   = 4,
-    PaymentConfirmed = 5
+    PaymentPending        = 4,
+    PaymentConfirmed      = 5,
+    RentalReturnReminder  = 6,
+    RentalOverdue         = 7
 }

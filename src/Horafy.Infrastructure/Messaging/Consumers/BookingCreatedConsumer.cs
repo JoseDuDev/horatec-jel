@@ -1,17 +1,20 @@
 using Horafy.Application.Features.Notifications;
 using Horafy.Application.Features.Notifications.Messages;
 using Horafy.Application.Interfaces;
+using Horafy.Domain.Entities.Notifications;
 using MassTransit;
 
 namespace Horafy.Infrastructure.Messaging.Consumers;
 
 internal sealed class BookingCreatedConsumer(
-    IWhatsAppService whatsAppService,
-    IEmailService    emailService) : IConsumer<BookingCreatedMessage>
+    IWhatsAppService    whatsAppService,
+    IEmailService       emailService,
+    INotificationLogger logger) : IConsumer<BookingCreatedMessage>
 {
     public async Task Consume(ConsumeContext<BookingCreatedMessage> context)
     {
         var msg  = context.Message;
+        var ct   = context.CancellationToken;
         var vars = new Dictionary<string, string>
         {
             ["customer_name"] = msg.CustomerName,
@@ -24,11 +27,17 @@ internal sealed class BookingCreatedConsumer(
         if (!string.IsNullOrEmpty(msg.CustomerPhone))
         {
             var text = TemplateRenderer.Render(DefaultTemplates.WhatsApp.BookingCreated, vars);
-            await whatsAppService.SendTextAsync(msg.CustomerPhone, text, context.CancellationToken);
+            await logger.SendAndLogAsync(
+                () => whatsAppService.SendTextAsync(msg.CustomerPhone, text, ct),
+                NotificationEventType.BookingCreated, NotificationChannel.WhatsApp,
+                msg.CustomerPhone, msg.TenantSlug, ct);
         }
 
         var subject = TemplateRenderer.Render(DefaultTemplates.EmailSubject.BookingCreated, vars);
         var body    = TemplateRenderer.Render(DefaultTemplates.EmailBody.BookingCreated, vars);
-        await emailService.SendAsync(msg.CustomerEmail, subject, body, context.CancellationToken);
+        await logger.SendAndLogAsync(
+            () => emailService.SendAsync(msg.CustomerEmail, subject, body, ct),
+            NotificationEventType.BookingCreated, NotificationChannel.Email,
+            msg.CustomerEmail, msg.TenantSlug, ct);
     }
 }

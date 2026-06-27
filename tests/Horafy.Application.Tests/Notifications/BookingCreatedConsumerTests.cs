@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Horafy.Application.Features.Notifications.Messages;
 using Horafy.Application.Interfaces;
+using Horafy.Infrastructure.Messaging;
 using Horafy.Infrastructure.Messaging.Consumers;
 using MassTransit;
 using Moq;
@@ -10,11 +11,12 @@ namespace Horafy.Application.Tests.Notifications;
 
 public sealed class BookingCreatedConsumerTests
 {
-    private readonly Mock<IWhatsAppService> _whatsApp = new();
-    private readonly Mock<IEmailService>    _email    = new();
+    private readonly Mock<IWhatsAppService>    _whatsApp = new();
+    private readonly Mock<IEmailService>       _email    = new();
+    private readonly Mock<INotificationLogger> _logger   = new();
 
     private BookingCreatedConsumer MakeConsumer() =>
-        new(_whatsApp.Object, _email.Object);
+        new(_whatsApp.Object, _email.Object, _logger.Object);
 
     private static ConsumeContext<BookingCreatedMessage> MakeContext(string? phone = "5511999999999")
     {
@@ -32,6 +34,15 @@ public sealed class BookingCreatedConsumerTests
     [Fact]
     public async Task Consume_WithPhone_SendsWhatsAppAndEmail()
     {
+        _logger.Setup(l => l.SendAndLogAsync(
+            It.IsAny<Func<Task>>(),
+            It.IsAny<Domain.Entities.Notifications.NotificationEventType>(),
+            It.IsAny<Domain.Entities.Notifications.NotificationChannel>(),
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns<Func<Task>, Domain.Entities.Notifications.NotificationEventType,
+                Domain.Entities.Notifications.NotificationChannel, string, string, CancellationToken>(
+                async (send, _, _, _, _, _) => await send());
+
         var ctx = MakeContext(phone: "5511999999999");
         await MakeConsumer().Consume(ctx);
 
@@ -44,6 +55,15 @@ public sealed class BookingCreatedConsumerTests
     [Fact]
     public async Task Consume_WithoutPhone_SendsEmailOnly()
     {
+        _logger.Setup(l => l.SendAndLogAsync(
+            It.IsAny<Func<Task>>(),
+            It.IsAny<Domain.Entities.Notifications.NotificationEventType>(),
+            It.IsAny<Domain.Entities.Notifications.NotificationChannel>(),
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns<Func<Task>, Domain.Entities.Notifications.NotificationEventType,
+                Domain.Entities.Notifications.NotificationChannel, string, string, CancellationToken>(
+                async (send, _, _, _, _, _) => await send());
+
         var ctx = MakeContext(phone: null);
         await MakeConsumer().Consume(ctx);
 
