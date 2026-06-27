@@ -4,6 +4,7 @@ using Horafy.Infrastructure.Persistence;
 using Horafy.Infrastructure.Persistence.Interceptors;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
@@ -18,6 +19,21 @@ public sealed class OutboxProcessorServiceTests
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
         return new HorafyDbContext(opts);
+    }
+
+    private static IServiceScopeFactory MakeScopeFactory(HorafyDbContext context, IBus bus)
+    {
+        var serviceProvider = new Mock<IServiceProvider>();
+        serviceProvider.Setup(sp => sp.GetService(typeof(HorafyDbContext))).Returns(context);
+        serviceProvider.Setup(sp => sp.GetService(typeof(IBus))).Returns(bus);
+
+        var scope = new Mock<IServiceScope>();
+        scope.Setup(s => s.ServiceProvider).Returns(serviceProvider.Object);
+
+        var scopeFactory = new Mock<IServiceScopeFactory>();
+        scopeFactory.Setup(f => f.CreateScope()).Returns(scope.Object);
+
+        return scopeFactory.Object;
     }
 
     [Fact]
@@ -36,7 +52,7 @@ public sealed class OutboxProcessorServiceTests
         await context.SaveChangesAsync();
 
         var processor = new OutboxProcessorService(
-            context, bus.Object, NullLogger<OutboxProcessorService>.Instance);
+            MakeScopeFactory(context, bus.Object), NullLogger<OutboxProcessorService>.Instance);
 
         await processor.ProcessBatchAsync(default);
 
@@ -64,7 +80,7 @@ public sealed class OutboxProcessorServiceTests
         await context.SaveChangesAsync();
 
         var processor = new OutboxProcessorService(
-            context, bus.Object, NullLogger<OutboxProcessorService>.Instance);
+            MakeScopeFactory(context, bus.Object), NullLogger<OutboxProcessorService>.Instance);
 
         await processor.ProcessBatchAsync(default);
 
@@ -91,7 +107,7 @@ public sealed class OutboxProcessorServiceTests
         await context.SaveChangesAsync();
 
         var processor = new OutboxProcessorService(
-            context, bus.Object, NullLogger<OutboxProcessorService>.Instance);
+            MakeScopeFactory(context, bus.Object), NullLogger<OutboxProcessorService>.Instance);
 
         await processor.ProcessBatchAsync(default);
 
