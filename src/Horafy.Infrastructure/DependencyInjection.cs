@@ -193,7 +193,7 @@ public static class DependencyInjection
 
             x.UsingRabbitMq((ctx, cfg) =>
             {
-                cfg.Host(rabbitOpts.Host, rabbitOpts.VirtualHost, h =>
+                cfg.Host(rabbitOpts.Host, rabbitOpts.Port, rabbitOpts.VirtualHost, h =>
                 {
                     h.Username(rabbitOpts.Username);
                     h.Password(rabbitOpts.Password);
