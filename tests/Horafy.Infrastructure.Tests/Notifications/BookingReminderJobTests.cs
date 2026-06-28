@@ -115,6 +115,32 @@ public sealed class BookingReminderJobTests
             default), Times.Once);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_TwoConsecutiveHourlyRuns_PublishesReminderOnce()
+    {
+        var now     = DateTimeOffset.UtcNow;
+        var booking = MakeConfirmedBookingAt(now.AddHours(24).AddMinutes(30)); // 24.5h away
+        var tenant  = Tenant.Create("Barbearia", "barbearia", TenantVertical.Barbershop);
+        tenant.UpdateReminderSettings(enabled: true, firstReminderHours: 24, secondReminderHours: 0);
+
+        var list = new List<Booking> { booking };
+        _bookingRepo.Setup(r => r.FindAsync(
+            It.IsAny<System.Linq.Expressions.Expression<Func<Booking, bool>>>(), default))
+            .ReturnsAsync((System.Linq.Expressions.Expression<Func<Booking, bool>> pred, CancellationToken _) =>
+                list.Where(pred.Compile()).ToList());
+        _resourceRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default))
+            .ReturnsAsync(Resource.Create("Ana", ResourceType.Professional));
+        _tenantRepo.Setup(r => r.GetAllAsync(default)).ReturnsAsync(new List<Tenant> { tenant });
+
+        var job = MakeJob();
+        await job.ExecuteAsync(now, default);                 // window [24h,25h) → 24.5h matches
+        await job.ExecuteAsync(now.AddHours(1), default);     // window [25h,26h) → 24.5h excluded
+
+        _bus.Verify(b => b.Publish(
+            It.Is<BookingReminderMessage>(m => m.BookingId == booking.Id), default),
+            Times.Once);
+    }
+
     private static Booking MakeRentalPickedUpEndingAt(DateTimeOffset endsAt)
     {
         var b = Booking.CreateRental(
