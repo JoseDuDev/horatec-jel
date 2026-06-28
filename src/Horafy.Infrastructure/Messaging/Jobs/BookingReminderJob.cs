@@ -39,7 +39,8 @@ public sealed class BookingReminderJob(
             var resourceRepo = tenantScope.ServiceProvider.GetRequiredService<IResourceRepository>();
 
             // Lembretes de agendamento: janelas vêm das configurações do tenant.
-            // Mantém a largura histórica (1º ±2h, 2º ±1h) para não duplicar entre execuções horárias.
+            // Janela de 1h meio-aberta [now+H, now+H+1) alinhada à execução horária do job,
+            // para que cada agendamento caia em exatamente uma execução (sem duplicar).
             var reminders = tenant.ReminderSettings;
             if (reminders.Enabled)
             {
@@ -47,21 +48,21 @@ public sealed class BookingReminderJob(
 
                 if (reminders.FirstReminderHours > 0)
                 {
-                    var min = now.AddHours(reminders.FirstReminderHours - 2);
-                    var max = now.AddHours(reminders.FirstReminderHours + 2);
+                    var min = now.AddHours(reminders.FirstReminderHours);
+                    var max = now.AddHours(reminders.FirstReminderHours + 1);
                     var first = await bookingRepo.FindAsync(
                         b => b.Status == BookingStatus.Confirmed &&
-                             b.ScheduledAt >= min && b.ScheduledAt <= max, ct);
+                             b.ScheduledAt >= min && b.ScheduledAt < max, ct);
                     pending.AddRange(first.Select(b => (b, true)));
                 }
 
                 if (reminders.SecondReminderHours > 0)
                 {
-                    var min = now.AddHours(reminders.SecondReminderHours - 1);
+                    var min = now.AddHours(reminders.SecondReminderHours);
                     var max = now.AddHours(reminders.SecondReminderHours + 1);
                     var second = await bookingRepo.FindAsync(
                         b => b.Status == BookingStatus.Confirmed &&
-                             b.ScheduledAt >= min && b.ScheduledAt <= max, ct);
+                             b.ScheduledAt >= min && b.ScheduledAt < max, ct);
                     pending.AddRange(second.Select(b => (b, false)));
                 }
 
@@ -106,7 +107,7 @@ public sealed class BookingReminderJob(
             var returnReminders = await bookingRepo.FindAsync(
                 b => b.Kind == BookingKind.Rental
                   && b.RentalStatus == RentalLifecycle.PickedUp
-                  && b.EndsAt >= returnMin && b.EndsAt <= returnMax, ct);
+                  && b.EndsAt >= returnMin && b.EndsAt < returnMax, ct);
 
             foreach (var booking in returnReminders)
             {
@@ -123,7 +124,7 @@ public sealed class BookingReminderJob(
             var overdueRentals = await bookingRepo.FindAsync(
                 b => b.Kind == BookingKind.Rental
                   && b.RentalStatus == RentalLifecycle.PickedUp
-                  && b.EndsAt >= overdueMin && b.EndsAt <= overdueMax, ct);
+                  && b.EndsAt >= overdueMin && b.EndsAt < overdueMax, ct);
 
             foreach (var booking in overdueRentals)
             {
