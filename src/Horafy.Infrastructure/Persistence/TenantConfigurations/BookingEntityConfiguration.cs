@@ -73,5 +73,13 @@ internal sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Book
 
         builder.HasIndex(b => b.Status)
             .HasDatabaseName("ix_bookings_status");
+
+        // Lembretes de agendamento e relatórios filtram por Status + intervalo de ScheduledAt.
+        builder.HasIndex(b => new { b.Status, b.ScheduledAt })
+            .HasDatabaseName("ix_bookings_status_scheduled");
+
+        // Lembretes de locação filtram por Kind + RentalStatus + intervalo de EndsAt.
+        builder.HasIndex(b => new { b.Kind, b.RentalStatus, b.EndsAt })
+            .HasDatabaseName("ix_bookings_kind_rentalstatus_ends");
     }
 }
