@@ -9,6 +9,9 @@ public sealed record GetBookingsQuery(
     Guid? ResourceId,
     DateTimeOffset? From,
     DateTimeOffset? To,
+    string? Q          = null,
+    BookingStatus? Status = null,
+    BookingKind? Kind  = null,
     int PageNumber = 1,
     int PageSize   = 20) : IRequest<Result<PagedResult<BookingResult>>>;
 
@@ -46,7 +49,9 @@ internal sealed class GetBookingsQueryHandler(
         var to   = request.To   ?? from.AddDays(7);
 
         var (bookings, total) = await bookingRepository.GetPagedAsync(
-            request.ResourceId, from, to, request.PageNumber, request.PageSize, cancellationToken);
+            request.ResourceId, from, to,
+            request.Q, request.Status, request.Kind,
+            request.PageNumber, request.PageSize, cancellationToken);
 
         var items = bookings.Select(ToResult).ToList();
         return Result.Success(PagedResult<BookingResult>.Create(items, total, request.PageNumber, request.PageSize));

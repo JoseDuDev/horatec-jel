@@ -24,8 +24,11 @@ public interface IBookingRepository : IRepository<Booking>
         Guid? resourceId,
         DateTimeOffset from,
         DateTimeOffset to,
-        int pageNumber,
-        int pageSize,
+        string? q = null,
+        BookingStatus? status = null,
+        BookingKind? kind = null,
+        int pageNumber = 1,
+        int pageSize = 20,
         CancellationToken cancellationToken = default);
 
     /// <summary>Busca um agendamento pelo id externo idempotente (escopo do tenant).</summary>

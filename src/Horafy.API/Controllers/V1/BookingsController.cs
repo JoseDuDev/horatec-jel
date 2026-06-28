@@ -29,11 +29,14 @@ public sealed class BookingsController(ISender sender) : ApiControllerBase(sende
         [FromQuery] Guid? resourceId,
         [FromQuery] DateTimeOffset? from,
         [FromQuery] DateTimeOffset? to,
+        [FromQuery] string? q             = null,
+        [FromQuery] BookingStatus? status = null,
+        [FromQuery] BookingKind? kind     = null,
         [FromQuery] int page     = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default) =>
         ToActionResult(await Sender.Send(
-            new GetBookingsQuery(resourceId, from, to, page, pageSize), cancellationToken));
+            new GetBookingsQuery(resourceId, from, to, q, status, kind, page, pageSize), cancellationToken));
 
     [HttpGet("{id:guid}", Name = "GetBookingById")]
     [ProducesResponseType(typeof(BookingResult), StatusCodes.Status200OK)]

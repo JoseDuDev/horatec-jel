@@ -30,6 +30,17 @@ public sealed class CustomersController(ISender sender)
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
 
+    [HttpPatch("me/profile")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateProfile(
+        [FromBody] UpdateProfileRequest request, CancellationToken ct)
+    {
+        var result = await Sender.Send(
+            new UpdateCustomerProfileCommand(request.Name, request.AvatarUrl), ct);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
+
     [HttpGet("me/bookings")]
     [ProducesResponseType(typeof(IReadOnlyList<CustomerBookingResult>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetBookings(CancellationToken ct) =>
@@ -37,3 +48,4 @@ public sealed class CustomersController(ISender sender)
 }
 
 public sealed record UpdatePhoneRequest(string? Phone);
+public sealed record UpdateProfileRequest(string? Name, string? AvatarUrl);

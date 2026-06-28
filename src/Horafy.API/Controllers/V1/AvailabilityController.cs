@@ -40,6 +40,19 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
         ToActionResult(await Sender.Send(
             new GetAvailableDaysQuery(resourceId, from, to, serviceId), cancellationToken));
 
+    [HttpGet("resources/{resourceId:guid}/availability-calendar")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IReadOnlyList<DayAvailability>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetCalendar(
+        Guid resourceId,
+        [FromQuery] int year,
+        [FromQuery] int month,
+        [FromQuery] Guid? serviceId       = null,
+        CancellationToken cancellationToken = default) =>
+        ToActionResult(await Sender.Send(
+            new GetAvailabilityCalendarQuery(resourceId, year, month, serviceId), cancellationToken));
+
     [HttpGet("business-hours")]
     [Authorize(Roles = "TenantOwner,TenantAdmin")]
     [ProducesResponseType(typeof(IReadOnlyList<BusinessHoursResult>), StatusCodes.Status200OK)]

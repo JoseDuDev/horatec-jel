@@ -126,8 +126,11 @@ internal sealed class BookingRepository(TenantDbContext context)
         Guid? resourceId,
         DateTimeOffset from,
         DateTimeOffset to,
-        int pageNumber,
-        int pageSize,
+        string? q = null,
+        BookingStatus? status = null,
+        BookingKind? kind = null,
+        int pageNumber = 1,
+        int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
         var query = DbSet
@@ -137,6 +140,17 @@ internal sealed class BookingRepository(TenantDbContext context)
 
         if (resourceId.HasValue)
             query = query.Where(b => b.ResourceId == resourceId.Value);
+
+        if (!string.IsNullOrWhiteSpace(q))
+            query = query.Where(b =>
+                EF.Functions.ILike(b.CustomerName, $"%{q}%") ||
+                EF.Functions.ILike(b.CustomerEmail, $"%{q}%"));
+
+        if (status.HasValue)
+            query = query.Where(b => b.Status == status.Value);
+
+        if (kind.HasValue)
+            query = query.Where(b => b.Kind == kind.Value);
 
         query = query.OrderBy(b => b.ScheduledAt);
 
