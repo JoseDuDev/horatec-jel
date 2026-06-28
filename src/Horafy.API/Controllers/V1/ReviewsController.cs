@@ -26,7 +26,7 @@ public sealed class ReviewsController(ISender sender)
 
         return result.IsSuccess
             ? CreatedAtAction(nameof(GetByResource),
-                new { resourceId = result.Value }, result.Value)
+                new { resourceId = result.Value.ResourceId }, result.Value.ReviewId)
             : ToActionResult(result);
     }
 
