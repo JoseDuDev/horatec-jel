@@ -39,6 +39,25 @@ public sealed class ConfirmPaymentCommandHandlerTests
         payment.Status.Should().Be(PaymentStatus.Approved);
     }
 
+    [Theory]
+    [InlineData(PaymentStatus.Rejected)]
+    [InlineData(PaymentStatus.Cancelled)]
+    public async Task Handle_RejectedOrCancelled_RejectsPayment(PaymentStatus mpStatus)
+    {
+        var payment = MakePendingPayment(Guid.NewGuid());
+        _paymentRepo.Setup(r => r.GetByMpPaymentIdAsync("mp_999", default)).ReturnsAsync((Payment?)null);
+        _paymentRepo.Setup(r => r.GetByPreferenceIdAsync("pref_123", default)).ReturnsAsync(payment);
+        _gateway.Setup(g => g.GetPaymentStatusAsync("mp_999", default))
+            .ReturnsAsync(new PaymentStatusResult("mp_999", "pref_123", mpStatus, DateTimeOffset.UtcNow));
+
+        var result = await MakeHandler().Handle(new ConfirmPaymentCommand("mp_999"), default);
+
+        result.IsSuccess.Should().BeTrue();
+        payment.Status.Should().Be(PaymentStatus.Rejected);
+        _paymentRepo.Verify(r => r.Update(payment), Times.Once);
+        _unitOfWork.Verify(u => u.SaveChangesAsync(default), Times.Once);
+    }
+
     [Fact]
     public async Task Handle_AlreadyApproved_ReturnsSuccessWithoutProcessing()
     {

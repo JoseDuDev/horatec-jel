@@ -40,6 +40,22 @@ public sealed class RefundPaymentCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_PartialRefund_PassesRequestedAmountToGateway()
+    {
+        var payment = MakeApprovedPayment(); // amount 100m
+        _paymentRepo.Setup(r => r.GetByIdAsync(payment.Id, default)).ReturnsAsync(payment);
+        _gateway.Setup(g => g.RefundAsync("mp_1", 50m, default))
+            .ReturnsAsync(new RefundResult(true, null));
+
+        var result = await MakeHandler().Handle(
+            new RefundPaymentCommand(payment.Id, Amount: 50m), default);
+
+        result.IsSuccess.Should().BeTrue();
+        _gateway.Verify(g => g.RefundAsync("mp_1", 50m, default), Times.Once);
+        _gateway.Verify(g => g.RefundAsync("mp_1", 100m, default), Times.Never);
+    }
+
+    [Fact]
     public async Task Handle_PaymentNotFound_ReturnsNotFoundError()
     {
         _paymentRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default))
