@@ -217,6 +217,7 @@ public static class DependencyInjection
         // Dashboard e relatórios
         services.AddScoped<IDashboardReader, DashboardReader>();
         services.AddScoped<IRevenueReportReader, RevenueReportReader>();
+        services.AddScoped<ICustomerListReader, CustomerListReader>();
 
         return services;
     }

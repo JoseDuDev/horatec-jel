@@ -60,6 +60,7 @@ public sealed class Tenant : BaseEntity
     public CancellationPolicy CancellationPolicy { get; private set; } = CancellationPolicy.Default;
     public PaymentSettings PaymentSettings { get; private set; } = PaymentSettings.Default;
     public LoyaltySettings LoyaltySettings { get; private set; } = LoyaltySettings.Default;
+    public ReminderSettings ReminderSettings { get; private set; } = ReminderSettings.Default;
     public DateTimeOffset? OnboardingCompletedAt { get; private set; }
     public bool IsOnboardingCompleted => OnboardingCompletedAt.HasValue;
 
@@ -185,6 +186,12 @@ public sealed class Tenant : BaseEntity
     public void UpdateLoyaltySettings(bool isEnabled, decimal ratePercent, decimal minAmount)
     {
         LoyaltySettings = LoyaltySettings.Create(isEnabled, ratePercent, minAmount);
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void UpdateReminderSettings(bool enabled, int firstReminderHours, int secondReminderHours)
+    {
+        ReminderSettings = ReminderSettings.Create(enabled, firstReminderHours, secondReminderHours);
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 

@@ -21,11 +21,6 @@ public sealed class BookingReminderJob(
 
     public async Task ExecuteAsync(DateTimeOffset now, CancellationToken ct)
     {
-        var oneDayMin = now.AddHours(22);
-        var oneDayMax = now.AddHours(26);
-        var twoHrMin  = now.AddHours(1);
-        var twoHrMax  = now.AddHours(3);
-
         IReadOnlyList<Domain.Entities.Tenants.Tenant> tenants;
         using (var scope = scopeFactory.CreateScope())
         {
@@ -43,44 +38,62 @@ public sealed class BookingReminderJob(
             var bookingRepo  = tenantScope.ServiceProvider.GetRequiredService<IBookingRepository>();
             var resourceRepo = tenantScope.ServiceProvider.GetRequiredService<IResourceRepository>();
 
-            var oneDayBookings = await bookingRepo.FindAsync(
-                b => b.Status == BookingStatus.Confirmed &&
-                     b.ScheduledAt >= oneDayMin && b.ScheduledAt <= oneDayMax, ct);
-
-            var twoHourBookings = await bookingRepo.FindAsync(
-                b => b.Status == BookingStatus.Confirmed &&
-                     b.ScheduledAt >= twoHrMin && b.ScheduledAt <= twoHrMax, ct);
-
-            foreach (var (booking, isOneDay) in
-                oneDayBookings.Select(b => (b, true))
-                .Concat(twoHourBookings.Select(b => (b, false))))
+            // Lembretes de agendamento: janelas vêm das configurações do tenant.
+            // Mantém a largura histórica (1º ±2h, 2º ±1h) para não duplicar entre execuções horárias.
+            var reminders = tenant.ReminderSettings;
+            if (reminders.Enabled)
             {
-                // Locação tem fluxo de lembrete próprio (ver Fase 6) — pula agendamento.
-                if (booking.Kind == BookingKind.Rental) continue;
+                var pending = new List<(Booking Booking, bool IsFirst)>();
 
-                var resource    = booking.ResourceId is { } rid
-                    ? await resourceRepo.GetByIdAsync(rid, ct)
-                    : null;
-                var serviceName = booking.Services.FirstOrDefault()?.ServiceName
-                                  ?? booking.ServiceId?.ToString() ?? "Reserva";
+                if (reminders.FirstReminderHours > 0)
+                {
+                    var min = now.AddHours(reminders.FirstReminderHours - 2);
+                    var max = now.AddHours(reminders.FirstReminderHours + 2);
+                    var first = await bookingRepo.FindAsync(
+                        b => b.Status == BookingStatus.Confirmed &&
+                             b.ScheduledAt >= min && b.ScheduledAt <= max, ct);
+                    pending.AddRange(first.Select(b => (b, true)));
+                }
 
-                var msg = new BookingReminderMessage(
-                    BookingId:      booking.Id,
-                    CustomerName:   booking.CustomerName,
-                    CustomerEmail:  booking.CustomerEmail,
-                    CustomerPhone:  booking.CustomerPhone,
-                    ServiceName:    serviceName,
-                    ResourceName:   resource?.Name ?? "Profissional",
-                    ScheduledAt:    booking.ScheduledAt,
-                    TenantSlug:     tenant.Slug,
-                    TenantName:     tenant.Name,
-                    IsOneDayBefore: isOneDay);
+                if (reminders.SecondReminderHours > 0)
+                {
+                    var min = now.AddHours(reminders.SecondReminderHours - 1);
+                    var max = now.AddHours(reminders.SecondReminderHours + 1);
+                    var second = await bookingRepo.FindAsync(
+                        b => b.Status == BookingStatus.Confirmed &&
+                             b.ScheduledAt >= min && b.ScheduledAt <= max, ct);
+                    pending.AddRange(second.Select(b => (b, false)));
+                }
 
-                await bus.Publish(msg, ct);
+                foreach (var (booking, isFirst) in pending)
+                {
+                    // Locação tem fluxo de lembrete próprio (ver abaixo) — pula agendamento.
+                    if (booking.Kind == BookingKind.Rental) continue;
 
-                logger?.LogInformation(
-                    "Lembrete {Type} publicado para booking {Id} (tenant {Slug})",
-                    isOneDay ? "D-1" : "H-2", booking.Id, tenant.Slug);
+                    var resource    = booking.ResourceId is { } rid
+                        ? await resourceRepo.GetByIdAsync(rid, ct)
+                        : null;
+                    var serviceName = booking.Services.FirstOrDefault()?.ServiceName
+                                      ?? booking.ServiceId?.ToString() ?? "Reserva";
+
+                    var msg = new BookingReminderMessage(
+                        BookingId:      booking.Id,
+                        CustomerName:   booking.CustomerName,
+                        CustomerEmail:  booking.CustomerEmail,
+                        CustomerPhone:  booking.CustomerPhone,
+                        ServiceName:    serviceName,
+                        ResourceName:   resource?.Name ?? "Profissional",
+                        ScheduledAt:    booking.ScheduledAt,
+                        TenantSlug:     tenant.Slug,
+                        TenantName:     tenant.Name,
+                        IsOneDayBefore: isFirst);
+
+                    await bus.Publish(msg, ct);
+
+                    logger?.LogInformation(
+                        "Lembrete {Type} publicado para booking {Id} (tenant {Slug})",
+                        isFirst ? "1º" : "2º", booking.Id, tenant.Slug);
+                }
             }
 
             // ── Locação: lembrete de devolução (D-1) e aviso de atraso ─────────

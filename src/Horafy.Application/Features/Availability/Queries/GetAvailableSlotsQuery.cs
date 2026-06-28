@@ -27,7 +27,11 @@ internal sealed class GetAvailableSlotsQueryHandler(
         if (rule is null)
             return Result.Success<IReadOnlyList<DateTimeOffset>>(Array.Empty<DateTimeOffset>());
 
-        // 2. Verificar exceção para a data
+        // 2. Bloqueio global do tenant (fecha todos os recursos na data)
+        if (await availabilityRepository.IsBlackoutAsync(request.Date, cancellationToken))
+            return Result.Success<IReadOnlyList<DateTimeOffset>>(Array.Empty<DateTimeOffset>());
+
+        // 3. Verificar exceção para a data
         var exception = await availabilityRepository.GetExceptionAsync(
             request.ResourceId, request.Date, cancellationToken);
 

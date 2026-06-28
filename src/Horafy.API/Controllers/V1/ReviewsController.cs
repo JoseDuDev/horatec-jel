@@ -30,11 +30,34 @@ public sealed class ReviewsController(ISender sender)
             : ToActionResult(result);
     }
 
+    /// <summary>
+    /// Avaliações públicas de um recurso (paginadas) com média e total.
+    /// Usado no catálogo público e no perfil do profissional.
+    /// </summary>
     [HttpGet("resources/{resourceId:guid}")]
     [AllowAnonymous]
-    [ProducesResponseType(typeof(IReadOnlyList<ReviewResult>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetByResource(Guid resourceId, CancellationToken ct) =>
-        ToActionResult(await Sender.Send(new GetResourceReviewsQuery(resourceId), ct));
+    [ProducesResponseType(typeof(ResourceReviewsResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByResource(
+        Guid resourceId,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize   = 20,
+        CancellationToken ct = default) =>
+        ToActionResult(await Sender.Send(
+            new GetResourceReviewsQuery(resourceId, pageNumber, pageSize), ct));
+
+    /// <summary>Responde publicamente a uma avaliação (estabelecimento).</summary>
+    [HttpPost("{reviewId:guid}/reply")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Reply(
+        Guid reviewId, [FromBody] ReplyToReviewRequest request, CancellationToken ct)
+    {
+        var result = await Sender.Send(new ReplyToReviewCommand(reviewId, request.Reply), ct);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
 }
 
 public sealed record CreateReviewRequest(Guid BookingId, int Stars, string? Comment);
+public sealed record ReplyToReviewRequest(string Reply);

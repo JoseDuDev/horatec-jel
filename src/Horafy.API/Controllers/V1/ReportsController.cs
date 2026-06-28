@@ -39,6 +39,46 @@ public sealed class ReportsController(ISender sender) : ApiControllerBase(sender
         return File(bytes, "text/csv", name);
     }
 
+    [HttpGet("reports/customers")]
+    [ProducesResponseType(typeof(IReadOnlyList<CustomerExportRecord>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCustomers(CancellationToken cancellationToken = default) =>
+        ToActionResult(await Sender.Send(new GetCustomersReportQuery(), cancellationToken));
+
+    [HttpGet("reports/customers/export")]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ExportCustomersCsv(CancellationToken cancellationToken = default)
+    {
+        var result = await Sender.Send(new GetCustomersReportQuery(), cancellationToken);
+        if (!result.IsSuccess) return ToActionResult(result);
+
+        var csv   = BuildCustomersCsv(result.Value);
+        var bytes = Encoding.UTF8.GetBytes(csv);
+        var name  = $"clientes_{DateOnly.FromDateTime(DateTime.UtcNow):yyyy-MM-dd}.csv";
+
+        return File(bytes, "text/csv", name);
+    }
+
+    private static string BuildCustomersCsv(IReadOnlyList<CustomerExportRecord> customers)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("Nome,E-mail,Telefone,Agendamentos,Último agendamento,Total gasto (R$)");
+        foreach (var c in customers)
+            sb.AppendLine(string.Join(',',
+                Csv(c.Name),
+                Csv(c.Email),
+                Csv(c.Phone ?? ""),
+                c.BookingCount,
+                c.LastBookingAt?.ToString("dd/MM/yyyy HH:mm") ?? "",
+                c.TotalSpent.ToString("F2")));
+        return sb.ToString();
+    }
+
+    /// <summary>Escapa um campo CSV (aspas e separadores) conforme RFC 4180.</summary>
+    private static string Csv(string value) =>
+        value.Contains(',') || value.Contains('"') || value.Contains('\n')
+            ? $"\"{value.Replace("\"", "\"\"")}\""
+            : value;
+
     private static string BuildCsv(RevenueReport report)
     {
         var sb = new StringBuilder();

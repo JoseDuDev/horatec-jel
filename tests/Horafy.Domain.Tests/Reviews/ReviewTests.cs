@@ -40,4 +40,25 @@ public sealed class ReviewTests
         review.Stars.Should().Be(5);
         review.Comment.Should().Be("Excelente!");
     }
+
+    [Fact]
+    public void Reply_SetsOwnerReplyAndTimestamp()
+    {
+        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 4, "Bom");
+
+        review.Reply("  Obrigado pelo feedback!  ");
+
+        review.OwnerReply.Should().Be("Obrigado pelo feedback!");
+        review.OwnerRepliedAt.Should().NotBeNull();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Reply_EmptyText_Throws(string reply)
+    {
+        var review = Review.Create(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), 4, "Bom");
+        var action = () => review.Reply(reply);
+        action.Should().Throw<ArgumentException>();
+    }
 }

@@ -30,7 +30,8 @@ public sealed record TenantResult(
     DateTimeOffset? PlanRenewsAt,
     bool                     IsOnboardingCompleted,
     CancellationPolicyResult CancellationPolicy,
-    LoyaltySettingsResult    LoyaltySettings);
+    LoyaltySettingsResult    LoyaltySettings,
+    ReminderSettingsResult   ReminderSettings);
 
 public sealed record CancellationPolicyResult(
     int     MinCancellationHours,
@@ -41,6 +42,11 @@ public sealed record LoyaltySettingsResult(
     bool    IsEnabled,
     decimal CreditRatePercent,
     decimal MinBookingAmount);
+
+public sealed record ReminderSettingsResult(
+    bool Enabled,
+    int  FirstReminderHours,
+    int  SecondReminderHours);
 
 public sealed record TenantThemeResult(
     string PrimaryColor,
@@ -99,5 +105,9 @@ internal sealed class GetCurrentTenantQueryHandler(
         new LoyaltySettingsResult(
             t.LoyaltySettings.IsEnabled,
             t.LoyaltySettings.CreditRatePercent,
-            t.LoyaltySettings.MinBookingAmount));
+            t.LoyaltySettings.MinBookingAmount),
+        new ReminderSettingsResult(
+            t.ReminderSettings.Enabled,
+            t.ReminderSettings.FirstReminderHours,
+            t.ReminderSettings.SecondReminderHours));
 }

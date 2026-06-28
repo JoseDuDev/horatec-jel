@@ -58,6 +58,25 @@ public class GetAvailableSlotsQueryHandlerTests
     }
 
     [Fact]
+    public async Task Handle_GlobalBlackoutDate_ReturnsEmptyList()
+    {
+        // Há regra e nenhuma exceção do recurso, mas a data é bloqueio global do tenant.
+        var rule = BuildRule(new TimeOnly(8, 0), new TimeOnly(12, 0), 60);
+        var (handler, availRepo, _, _) = BuildHandler();
+
+        availRepo.Setup(r => r.GetRuleAsync(ResourceId, TestDate.DayOfWeek, default))
+            .ReturnsAsync(rule);
+        availRepo.Setup(r => r.IsBlackoutAsync(TestDate, default))
+            .ReturnsAsync(true);
+
+        var result = await handler.Handle(
+            new GetAvailableSlotsQuery(ResourceId, TestDate, null), default);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task Handle_NoExceptionNoBookings_ReturnsAllSlots()
     {
         // 08:00–10:00, slot 60min, sem break → espera 2 slots: 08:00 e 09:00

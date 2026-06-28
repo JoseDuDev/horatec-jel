@@ -115,6 +115,14 @@ public sealed class TenantEntityConfiguration : IEntityTypeConfiguration<Tenant>
               .HasColumnType("numeric(10,2)").HasDefaultValue(0m);
         });
 
+        // Lembretes automáticos. Defaults preservam o comportamento histórico (D-1 24h / H-2 2h).
+        builder.OwnsOne(t => t.ReminderSettings, rs =>
+        {
+            rs.Property(r => r.Enabled).HasDefaultValue(true);
+            rs.Property(r => r.FirstReminderHours).HasDefaultValue(24);
+            rs.Property(r => r.SecondReminderHours).HasDefaultValue(2);
+        });
+
         builder.Property(t => t.CreatedAt).IsRequired();
         builder.Property(t => t.IsDeleted).HasDefaultValue(false);
     }
