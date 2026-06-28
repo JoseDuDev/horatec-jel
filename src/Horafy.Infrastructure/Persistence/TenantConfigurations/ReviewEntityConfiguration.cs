@@ -12,6 +12,7 @@ internal sealed class ReviewEntityConfiguration : IEntityTypeConfiguration<Revie
         builder.HasKey(r => r.Id);
         builder.Property(r => r.Stars).IsRequired();
         builder.Property(r => r.Comment).HasMaxLength(1000);
+        builder.Property(r => r.OwnerReply).HasMaxLength(1000);
         builder.HasIndex(r => r.BookingId)
             .IsUnique()
             .HasFilter("is_deleted = FALSE")

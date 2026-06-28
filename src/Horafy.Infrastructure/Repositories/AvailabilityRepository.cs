@@ -45,6 +45,24 @@ internal sealed class AvailabilityRepository(TenantDbContext context) : IAvailab
             .AsNoTracking()
             .FirstOrDefaultAsync(h => h.Id == id, ct);
 
+    public async Task<IReadOnlyList<TenantBlackoutDate>> GetBlackoutDatesAsync(
+        int? year = null, CancellationToken ct = default) =>
+        await context.Set<TenantBlackoutDate>()
+            .AsNoTracking()
+            .Where(b => year == null || b.Date.Year == year)
+            .OrderBy(b => b.Date)
+            .ToListAsync(ct);
+
+    public async Task<TenantBlackoutDate?> GetBlackoutDateAsync(
+        DateOnly date, CancellationToken ct = default) =>
+        await context.Set<TenantBlackoutDate>()
+            .FirstOrDefaultAsync(b => b.Date == date, ct);
+
+    public async Task<bool> IsBlackoutAsync(DateOnly date, CancellationToken ct = default) =>
+        await context.Set<TenantBlackoutDate>()
+            .AsNoTracking()
+            .AnyAsync(b => b.Date == date, ct);
+
     public async Task<AvailabilityException?> GetExceptionAsync(
         Guid resourceId, DateOnly date, CancellationToken ct = default) =>
         await context.Set<AvailabilityException>()

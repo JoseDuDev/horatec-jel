@@ -10,6 +10,7 @@ using Horafy.Application.Features.Tenants.Commands.UpdateCancellationPolicy;
 using Horafy.Application.Features.Tenants.Commands.CompleteOnboarding;
 using Horafy.Application.Features.Tenants.Commands.UpdateLoyaltySettings;
 using Horafy.Application.Features.Tenants.Commands.UpdatePaymentSettings;
+using Horafy.Application.Features.Tenants.Commands.UpdateReminderSettings;
 using Horafy.Application.Features.Tenants.Commands.UpdateTenant;
 using Horafy.Application.Features.Tenants.Commands.UpdateTenantPlan;
 using Horafy.Application.Features.Tenants.Commands.UpdateTenantTheme;
@@ -214,6 +215,22 @@ public sealed class TenantsController(ISender sender) : ApiControllerBase(sender
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
 
+    /// <summary>Atualiza as configurações de lembretes automáticos do tenant.</summary>
+    [HttpPut("reminder-settings")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateReminderSettings(
+        [FromBody] UpdateReminderSettingsRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new UpdateReminderSettingsCommand(
+                request.Enabled, request.FirstReminderHours, request.SecondReminderHours),
+            cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
+
     /// <summary>Marca o onboarding do tenant como concluído.</summary>
     [HttpPost("me/onboarding-complete")]
     [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
@@ -277,6 +294,11 @@ public sealed record UpdateLoyaltySettingsRequest(
     bool    IsEnabled,
     decimal CreditRatePercent,
     decimal MinBookingAmount);
+
+public sealed record UpdateReminderSettingsRequest(
+    bool Enabled,
+    int  FirstReminderHours,
+    int  SecondReminderHours);
 
 public sealed record UpdateCancellationPolicyRequest(
     int     MinCancellationHours,

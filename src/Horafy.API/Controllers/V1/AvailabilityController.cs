@@ -139,6 +139,42 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
 
+    // ── Bloqueios globais por data (fecham todos os recursos) ────────────
+
+    [HttpGet("blackouts")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [ProducesResponseType(typeof(IReadOnlyList<BlackoutDateResult>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetBlackouts(
+        [FromQuery] int? year = null,
+        CancellationToken cancellationToken = default) =>
+        ToActionResult(await Sender.Send(new GetBlackoutDatesQuery(year), cancellationToken));
+
+    [HttpPost("blackouts")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreateBlackout(
+        [FromBody] CreateBlackoutDateRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new CreateBlackoutDateCommand(request.Date, request.Reason), cancellationToken);
+        return result.IsSuccess
+            ? CreatedAtAction(nameof(GetBlackouts), new { }, result.Value)
+            : ToActionResult(result);
+    }
+
+    [HttpDelete("blackouts/{date}")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteBlackout(
+        DateOnly date, CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(new DeleteBlackoutDateCommand(date), cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
+
     [HttpPost("resources/{resourceId:guid}/services/{serviceId:guid}")]
     [Authorize(Roles = "TenantOwner,TenantAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -172,3 +208,5 @@ public sealed record SetAvailabilityRuleRequest(
 public sealed record SetAvailabilityExceptionRequest(
     DateOnly Date, bool IsBlocked,
     TimeOnly? CustomStart, TimeOnly? CustomEnd, string? Reason);
+
+public sealed record CreateBlackoutDateRequest(DateOnly Date, string? Reason);

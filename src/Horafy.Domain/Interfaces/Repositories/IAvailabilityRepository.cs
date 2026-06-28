@@ -19,6 +19,10 @@ public interface IAvailabilityRepository
     Task<IReadOnlyList<Holiday>> GetHolidaysAsync(int? year = null, CancellationToken ct = default);
     Task<Holiday?> GetHolidayAsync(Guid id, CancellationToken ct = default);
 
+    Task<IReadOnlyList<TenantBlackoutDate>> GetBlackoutDatesAsync(int? year = null, CancellationToken ct = default);
+    Task<TenantBlackoutDate?> GetBlackoutDateAsync(DateOnly date, CancellationToken ct = default);
+    Task<bool> IsBlackoutAsync(DateOnly date, CancellationToken ct = default);
+
     Task<IReadOnlyList<ResourceService>> GetResourceServicesAsync(Guid resourceId, CancellationToken ct = default);
     Task<IReadOnlyList<ResourceService>> GetServicesByResourcesAsync(IEnumerable<Guid> resourceIds, CancellationToken ct = default);
     Task<IReadOnlyList<ResourceService>> GetResourcesByServiceAsync(Guid serviceId, CancellationToken ct = default);

@@ -25,4 +25,12 @@ public static class AvailabilityErrors
 
     public static readonly Error HolidayNotFound = new(
         "Availability.HolidayNotFound", "Feriado não encontrado.", ErrorType.NotFound);
+
+    public static readonly Error BlackoutNotFound = new(
+        "Availability.BlackoutNotFound", "Data de bloqueio não encontrada.", ErrorType.NotFound);
+
+    public static readonly Error BlackoutAlreadyExists = new(
+        "Availability.BlackoutAlreadyExists",
+        "Já existe um bloqueio para esta data.",
+        ErrorType.Conflict);
 }

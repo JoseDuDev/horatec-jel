@@ -72,6 +72,49 @@ public sealed class BookingReminderJobTests
             default), Times.AtLeastOnce);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_RemindersDisabled_DoesNotPublishBookingReminder()
+    {
+        var now     = DateTimeOffset.UtcNow;
+        var booking = MakeConfirmedBookingAt(now.AddHours(24));
+        var tenant  = Tenant.Create("Barbearia", "barbearia", TenantVertical.Barbershop);
+        tenant.UpdateReminderSettings(enabled: false, firstReminderHours: 24, secondReminderHours: 2);
+
+        _bookingRepo.Setup(r => r.FindAsync(
+            It.IsAny<System.Linq.Expressions.Expression<Func<Booking, bool>>>(), default))
+            .ReturnsAsync(new List<Booking> { booking });
+        _tenantRepo.Setup(r => r.GetAllAsync(default)).ReturnsAsync(new List<Tenant> { tenant });
+
+        await MakeJob().ExecuteAsync(now, default);
+
+        _bus.Verify(b => b.Publish(It.IsAny<BookingReminderMessage>(), default), Times.Never);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_CustomFirstReminderHours_PublishesInCustomWindow()
+    {
+        var now     = DateTimeOffset.UtcNow;
+        var booking = MakeConfirmedBookingAt(now.AddHours(48));
+        var tenant  = Tenant.Create("Barbearia", "barbearia", TenantVertical.Barbershop);
+        tenant.UpdateReminderSettings(enabled: true, firstReminderHours: 48, secondReminderHours: 0);
+
+        // Aplica o predicado para respeitar a janela configurada.
+        var list = new List<Booking> { booking };
+        _bookingRepo.Setup(r => r.FindAsync(
+            It.IsAny<System.Linq.Expressions.Expression<Func<Booking, bool>>>(), default))
+            .ReturnsAsync((System.Linq.Expressions.Expression<Func<Booking, bool>> pred, CancellationToken _) =>
+                list.Where(pred.Compile()).ToList());
+        _resourceRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), default))
+            .ReturnsAsync(Resource.Create("Ana", ResourceType.Professional));
+        _tenantRepo.Setup(r => r.GetAllAsync(default)).ReturnsAsync(new List<Tenant> { tenant });
+
+        await MakeJob().ExecuteAsync(now, default);
+
+        _bus.Verify(b => b.Publish(
+            It.Is<BookingReminderMessage>(m => m.BookingId == booking.Id && m.IsOneDayBefore),
+            default), Times.Once);
+    }
+
     private static Booking MakeRentalPickedUpEndingAt(DateTimeOffset endsAt)
     {
         var b = Booking.CreateRental(

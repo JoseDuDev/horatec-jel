@@ -12,6 +12,10 @@ public sealed class Review : BaseEntity
     public int     Stars      { get; private set; }
     public string? Comment    { get; private set; }
 
+    /// <summary>Resposta pública do estabelecimento à avaliação (opcional).</summary>
+    public string?         OwnerReply     { get; private set; }
+    public DateTimeOffset? OwnerRepliedAt { get; private set; }
+
     public static Review Create(
         Guid    bookingId,
         Guid    resourceId,
@@ -40,5 +44,16 @@ public sealed class Review : BaseEntity
         Stars     = stars;
         Comment   = comment?.Trim();
         UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>Registra (ou edita) a resposta pública do estabelecimento.</summary>
+    public void Reply(string reply)
+    {
+        if (string.IsNullOrWhiteSpace(reply))
+            throw new ArgumentException("A resposta não pode ser vazia.", nameof(reply));
+
+        OwnerReply     = reply.Trim();
+        OwnerRepliedAt = DateTimeOffset.UtcNow;
+        UpdatedAt      = DateTimeOffset.UtcNow;
     }
 }
