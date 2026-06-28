@@ -22,4 +22,7 @@ public static class AvailabilityErrors
 
     public static readonly Error ExceptionNotFound = new(
         "Availability.ExceptionNotFound", "Exceção não encontrada.", ErrorType.NotFound);
+
+    public static readonly Error HolidayNotFound = new(
+        "Availability.HolidayNotFound", "Feriado não encontrado.", ErrorType.NotFound);
 }

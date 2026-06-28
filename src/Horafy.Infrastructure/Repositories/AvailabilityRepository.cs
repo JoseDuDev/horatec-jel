@@ -32,6 +32,19 @@ internal sealed class AvailabilityRepository(TenantDbContext context) : IAvailab
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.ResourceId == resourceId && r.DayOfWeek == day, ct);
 
+    public async Task<IReadOnlyList<Holiday>> GetHolidaysAsync(
+        int? year = null, CancellationToken ct = default) =>
+        await context.Set<Holiday>()
+            .AsNoTracking()
+            .Where(h => year == null || h.Date.Year == year)
+            .OrderBy(h => h.Date)
+            .ToListAsync(ct);
+
+    public async Task<Holiday?> GetHolidayAsync(Guid id, CancellationToken ct = default) =>
+        await context.Set<Holiday>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(h => h.Id == id, ct);
+
     public async Task<AvailabilityException?> GetExceptionAsync(
         Guid resourceId, DateOnly date, CancellationToken ct = default) =>
         await context.Set<AvailabilityException>()

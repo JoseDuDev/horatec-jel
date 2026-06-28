@@ -27,6 +27,7 @@ public sealed class TenantDbContext : DbContext
     public DbSet<BusinessHours>         BusinessHours          => Set<BusinessHours>();
     public DbSet<AvailabilityRule>      AvailabilityRules      => Set<AvailabilityRule>();
     public DbSet<AvailabilityException> AvailabilityExceptions => Set<AvailabilityException>();
+    public DbSet<Holiday>               Holidays               => Set<Holiday>();
     public DbSet<WaitlistEntry>         WaitlistEntries        => Set<WaitlistEntry>();
     public DbSet<BookingService>        BookingServices        => Set<BookingService>();
     public DbSet<Payment>               Payments               => Set<Payment>();
