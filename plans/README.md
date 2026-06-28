@@ -23,6 +23,39 @@ Each executor: read the plan fully before starting, honor its STOP conditions, a
 
 Status values: `TODO` | `IN PROGRESS` | `DONE` | `BLOCKED (reason)` | `REJECTED (reason)`
 
+---
+
+## Sprint 8 — auditoria `/improve` em 2026-06-28 (commit `2a9b001`)
+
+Segunda passada de auditoria, focada no código adicionado **depois** da auditoria de
+2026-06-26 (features das Sprints 5–7: slots/calendário, reviews, lembretes, blackout,
+export de clientes, busca/paginação de bookings). Reconciliada com os planos 001–012
+acima (nenhuma duplicação).
+
+| Plan | Title | Priority | Effort | Depends on | Status |
+|------|-------|----------|--------|------------|--------|
+| [013](013-availability-calendar-n-plus-1.md) | Eliminar N+1 do calendário/dias de disponibilidade (batch-load + SlotCalculator) | P1 | M | — | DONE — branch `advisor/013-availability-calendar-n-plus-1` (revisado e aprovado; aguarda merge) |
+| [014](014-duplicate-reminders.md) | Eliminar lembretes duplicados (janelas de 1h alinhadas à execução horária) | P1 | S | — | DONE — branch `advisor/014-duplicate-reminders` (revisado e aprovado; aguarda merge) |
+| [015](015-review-location-header.md) | Corrigir Location header do POST /reviews (aponta para recurso errado) | P2 | S | — | DONE — branch `advisor/015-review-location-header` (revisado e aprovado; aguarda merge) |
+| [016](016-payment-branch-test-coverage.md) | Cobrir ramos não testados de confirmação/reembolso de pagamento | P2 | S | — | TODO |
+
+Os quatro são independentes e podem ser executados em paralelo (PRs separados).
+Recomendação de ordem por leverage: 013 → 014 → 015 → 016.
+
+### Achados desta auditoria considerados e NÃO planejados (Sprint 8)
+
+- **Readers carregam tudo em memória e agregam em LINQ** (`CustomerListReader`, `DashboardReader`, `RevenueReportReader`): carga ilimitada conforme o tenant cresce, mas são endpoints admin de baixa frequência. Real (perf, M) — adiado; empacotar como "empurrar agregação para SQL" numa sprint de perf futura.
+- **Índices compostos do job de lembrete** (Status+ScheduledAt, Kind+RentalStatus+EndsAt): MÉDIA confiança, exige `EXPLAIN ANALYZE` antes de planejar. Adiado.
+- **Over-fetch de `.Include(b => b.Services)`** em caminhos de leitura paginados: design, MÉDIA confiança. Adiado.
+- **Tests com `DateTimeOffset.UtcNow` real (~97 ocorrências)**: a maioria é robusta ao relógio; refactor geral é esforço L / risco MED com baixo retorno. **Rejeitado como item único** — tratar pontualmente quando um teste realmente piscar.
+- **TEST-08 (`BookingReminderJobTests` custom-window usa `UtcNow`)**: **falso positivo** — `now` é capturado uma vez e passado a `ExecuteAsync(now)`, determinístico. Não planejar.
+- **BUG-003/004 — `customerId: Guid.NewGuid()` em `AdminCreateBookingCommand:76` e `CreateIntegrationBookingCommand:94`**: reais, mas **são os mesmos "BUG-14/15" já registrados na auditoria de 2026-06-26 como "possivelmente intencional para bookings ad-hoc — decidir com o time"**. Continua sendo **decisão de produto**, não plano técnico, até o time definir se admin/integração devem vincular um cliente real por e-mail.
+
+### Direção (features — decisão do mantenedor, fora dos planos)
+
+- **i18n / multi-idioma**: gap real (`Tenant.Locale` existe mas não localiza respostas/erros). Esforço L; toca todas as mensagens + catálogo público + frontend. Vale se houver clientes não-PT.
+- **Estado `Overdue` persistido na locação**: hoje computado (`Booking.IsOverdue`); só vale se relatórios precisarem filtrar atrasados (o próprio `docs/STATUS.md` registra como pendência opcional).
+
 ## Dependency notes
 
 - **007 depende de 004**: Plan 007 (migração para HttpOnly cookies) pressupõe que os cookies básicos foram corrigidos (Plan 004). Execute 004 primeiro — se preferir, os dois podem ser feitos juntos em um único PR.
