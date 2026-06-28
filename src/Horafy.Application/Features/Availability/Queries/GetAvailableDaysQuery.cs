@@ -1,4 +1,7 @@
 using FluentValidation;
+using Horafy.Application.Interfaces;
+using Horafy.Domain.Entities.Bookings;
+using Horafy.Domain.Interfaces.Repositories;
 using Horafy.Shared;
 using MediatR;
 
@@ -30,23 +33,52 @@ public sealed class GetAvailableDaysQueryValidator : AbstractValidator<GetAvaila
     }
 }
 
-internal sealed class GetAvailableDaysQueryHandler(ISender sender)
+internal sealed class GetAvailableDaysQueryHandler(
+    IAvailabilityRepository availabilityRepository,
+    IServiceRepository serviceRepository,
+    IBookingRepository bookingRepository,
+    IDateTimeProvider dateTimeProvider)
     : IRequestHandler<GetAvailableDaysQuery, Result<IReadOnlyList<DateOnly>>>
 {
     public async Task<Result<IReadOnlyList<DateOnly>>> Handle(
-        GetAvailableDaysQuery request, CancellationToken cancellationToken)
+        GetAvailableDaysQuery request, CancellationToken ct)
     {
-        var days = new List<DateOnly>();
+        var rules = (await availabilityRepository.GetRulesByResourceAsync(request.ResourceId, ct))
+            .GroupBy(r => r.DayOfWeek).ToDictionary(g => g.Key, g => g.First());
+        var exceptions = (await availabilityRepository.GetExceptionsByResourceAsync(request.ResourceId, request.From, request.To, ct))
+            .GroupBy(e => e.Date).ToDictionary(g => g.Key, g => g.First());
 
+        var blackouts = new HashSet<DateOnly>();
+        for (var year = request.From.Year; year <= request.To.Year; year++)
+            foreach (var b in await availabilityRepository.GetBlackoutDatesAsync(year, ct))
+                blackouts.Add(b.Date);
+
+        int? serviceDuration = null;
+        if (request.ServiceId.HasValue)
+        {
+            var service = await serviceRepository.GetByIdAsync(request.ServiceId.Value, ct);
+            serviceDuration = service?.DurationMinutes;
+        }
+
+        var rangeStart = new DateTimeOffset(request.From.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
+        var rangeEnd   = new DateTimeOffset(request.To.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
+        var bookingsByDate = (await bookingRepository.GetByResourceAsync(request.ResourceId, rangeStart, rangeEnd, ct))
+            .GroupBy(b => DateOnly.FromDateTime(b.ScheduledAt.UtcDateTime))
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<Booking>)g.ToList());
+
+        var now  = dateTimeProvider.UtcNow;
+        var days = new List<DateOnly>();
         for (var date = request.From; date <= request.To; date = date.AddDays(1))
         {
-            var slots = await sender.Send(
-                new GetAvailableSlotsQuery(request.ResourceId, date, request.ServiceId),
-                cancellationToken);
+            rules.TryGetValue(date.DayOfWeek, out var rule);
+            exceptions.TryGetValue(date, out var exception);
+            bookingsByDate.TryGetValue(date, out var dayBookings);
 
-            // Falha numa query individual não derruba a varredura: apenas pula o dia.
-            if (slots.IsSuccess && slots.Value.Count > 0)
-                days.Add(date);
+            var slots = SlotCalculator.ComputeAvailableSlots(
+                date, rule, blackouts.Contains(date), exception, serviceDuration,
+                dayBookings ?? Array.Empty<Booking>(), now);
+
+            if (slots.Count > 0) days.Add(date);
         }
 
         return Result.Success<IReadOnlyList<DateOnly>>(days);
