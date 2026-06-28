@@ -251,6 +251,21 @@ public sealed class Booking : BaseEntity
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    public void Reschedule(DateTimeOffset newScheduledAt)
+    {
+        if (Status is BookingStatus.Cancelled or BookingStatus.Completed or BookingStatus.NoShow)
+            throw new InvalidOperationException($"Não é possível reagendar um agendamento no status {Status}.");
+
+        if (newScheduledAt <= DateTimeOffset.UtcNow)
+            throw new ArgumentException("A nova data deve ser futura.", nameof(newScheduledAt));
+
+        ScheduledAt = newScheduledAt;
+        EndsAt      = newScheduledAt.AddMinutes(DurationMinutes);
+        UpdatedAt   = DateTimeOffset.UtcNow;
+
+        RaiseDomainEvent(new BookingRescheduledEvent(Id, CustomerId, CustomerPhone, newScheduledAt));
+    }
+
     // ── Ciclo de vida da locação ───────────────────────────────────────────────
 
     /// <summary>Marca a retirada do item (Reserved → PickedUp). Exige reserva confirmada.</summary>

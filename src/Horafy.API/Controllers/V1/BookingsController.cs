@@ -143,6 +143,21 @@ public sealed class BookingsController(ISender sender) : ApiControllerBase(sende
         return Ok(result.Value);
     }
 
+    [HttpPost("{id:guid}/reschedule")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Reschedule(
+        Guid id,
+        [FromBody] RescheduleBookingRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new RescheduleBookingCommand(id, request.NewScheduledAt), cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
+
     [HttpGet("recurring/{groupId:guid}")]
     [ProducesResponseType(typeof(IReadOnlyList<BookingResult>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -172,6 +187,7 @@ public sealed record CreateBookingRequest(
     string? Notes);
 
 public sealed record CancelBookingRequest(string? Reason);
+public sealed record RescheduleBookingRequest(DateTimeOffset NewScheduledAt);
 
 public sealed record CreateRecurringBookingRequest(
     Guid ServiceId,

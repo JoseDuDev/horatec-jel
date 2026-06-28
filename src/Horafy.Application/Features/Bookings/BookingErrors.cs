@@ -42,4 +42,9 @@ public static class BookingErrors
         "Booking.CancellationNotAllowed",
         "O cancelamento pelo cliente não é permitido neste estabelecimento.",
         ErrorType.Validation);
+
+    public static readonly Error NotReschedulable = new(
+        "Booking.NotReschedulable",
+        "O agendamento não pode ser reagendado no status atual.",
+        ErrorType.Validation);
 }

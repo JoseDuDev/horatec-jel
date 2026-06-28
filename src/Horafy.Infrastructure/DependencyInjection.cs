@@ -214,6 +214,10 @@ public static class DependencyInjection
         services.AddScoped<INotificationLogger, NotificationLogger>();
         services.AddScoped<INotificationLogReader, NotificationLogReader>();
 
+        // Dashboard e relatórios
+        services.AddScoped<IDashboardReader, DashboardReader>();
+        services.AddScoped<IRevenueReportReader, RevenueReportReader>();
+
         return services;
     }
 }

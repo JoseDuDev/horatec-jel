@@ -43,6 +43,16 @@ public static class DefaultTemplates
             "⚠️ Locação em atraso. Olá, {{customer_name}}. A devolução de *{{item_name}}* " +
             "venceu em *{{due_at}}* ({{days_overdue}} dia(s) de atraso). " +
             "Por favor, devolva o quanto antes para evitar multas. — {{tenant_name}}";
+
+        public const string BookingRescheduled =
+            "🔄 Reagendamento confirmado! Olá, {{customer_name}}. Seu agendamento de " +
+            "*{{service_name}}* com *{{resource_name}}* foi reagendado para " +
+            "*{{new_scheduled_at}}*. — {{tenant_name}}";
+
+        public const string WaitlistSlotAvailable =
+            "🎉 Vaga disponível! Olá, {{customer_name}}. Uma vaga em *{{service_name}}* " +
+            "com *{{resource_name}}* está disponível para *{{preferred_date}}*. " +
+            "Agende agora antes que acabe! — {{tenant_name}}";
     }
 
     public static class EmailSubject
@@ -55,6 +65,8 @@ public static class DefaultTemplates
         public const string PaymentConfirmed = "Pagamento confirmado — R$ {{amount}}";
         public const string RentalReturnReminder = "Lembrete de devolução — {{item_name}}";
         public const string RentalOverdue        = "Locação em atraso — {{item_name}}";
+        public const string BookingRescheduled   = "Agendamento reagendado — {{service_name}}";
+        public const string WaitlistSlotAvailable = "Vaga disponível — {{service_name}}";
     }
 
     public static class EmailBody
@@ -102,5 +114,18 @@ public static class DefaultTemplates
             "<strong>{{item_name}}</strong> venceu em <strong>{{due_at}}</strong> " +
             "({{days_overdue}} dia(s) de atraso). Por favor, devolva o quanto antes " +
             "para evitar multas.</p><p>— {{tenant_name}}</p>";
+
+        public const string BookingRescheduled =
+            "<h2>🔄 Agendamento reagendado!</h2>" +
+            "<p>Olá, {{customer_name}}. Seu agendamento de <strong>{{service_name}}</strong> " +
+            "com <strong>{{resource_name}}</strong> foi reagendado para " +
+            "<strong>{{new_scheduled_at}}</strong>.</p><p>— {{tenant_name}}</p>";
+
+        public const string WaitlistSlotAvailable =
+            "<h2>🎉 Vaga disponível!</h2>" +
+            "<p>Olá, {{customer_name}}. Uma vaga em <strong>{{service_name}}</strong> " +
+            "com <strong>{{resource_name}}</strong> está disponível para " +
+            "<strong>{{preferred_date}}</strong>. " +
+            "<a href=\"#\">Agende agora</a> antes que acabe!</p><p>— {{tenant_name}}</p>";
     }
 }
