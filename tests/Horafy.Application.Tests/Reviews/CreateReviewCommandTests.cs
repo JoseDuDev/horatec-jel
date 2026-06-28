@@ -52,6 +52,8 @@ public sealed class CreateReviewCommandTests
             new CreateReviewCommand(booking.Id, Stars: 5, Comment: "Ótimo!"), default);
 
         result.IsSuccess.Should().BeTrue();
+        result.Value.ReviewId.Should().NotBeEmpty();
+        result.Value.ResourceId.Should().Be(resourceId);
         _reviewRepo.Verify(r => r.Add(It.IsAny<Review>()), Times.Once);
         _uow.Verify(u => u.SaveChangesAsync(default), Times.Once);
     }
