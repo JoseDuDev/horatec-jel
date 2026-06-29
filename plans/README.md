@@ -37,16 +37,24 @@ acima (nenhuma duplicação).
 | [013](013-availability-calendar-n-plus-1.md) | Eliminar N+1 do calendário/dias de disponibilidade (batch-load + SlotCalculator) | P1 | M | — | DONE — branch `advisor/013-availability-calendar-n-plus-1` (revisado e aprovado; aguarda merge) |
 | [014](014-duplicate-reminders.md) | Eliminar lembretes duplicados (janelas de 1h alinhadas à execução horária) | P1 | S | — | DONE — branch `advisor/014-duplicate-reminders` (revisado e aprovado; aguarda merge) |
 | [015](015-review-location-header.md) | Corrigir Location header do POST /reviews (aponta para recurso errado) | P2 | S | — | DONE — branch `advisor/015-review-location-header` (revisado e aprovado; aguarda merge) |
-| [016](016-payment-branch-test-coverage.md) | Cobrir ramos não testados de confirmação/reembolso de pagamento | P2 | S | — | TODO |
+| [016](016-payment-branch-test-coverage.md) | Cobrir ramos não testados de confirmação/reembolso de pagamento | P2 | S | — | DONE — branch `advisor/016-payment-branch-tests` (revisado, aprovado e mergeado na main) |
 
-Os quatro são independentes e podem ser executados em paralelo (PRs separados).
-Recomendação de ordem por leverage: 013 → 014 → 015 → 016.
+013–016 foram independentes e já mergeados na `main` (ordem executada: 013 → 014 → 015 → 016).
+
+#### Itens adiados, agora planejados (2026-06-28, planejados em `74ded3f`)
+
+| Plan | Title | Priority | Effort | Depends on | Status |
+|------|-------|----------|--------|------------|--------|
+| [017](017-booking-composite-indexes.md) | Índices compostos para queries de bookings (job de lembrete + status/data) | P2 | S | — | DONE — branch `advisor/017-booking-composite-indexes` (revisado, aprovado e mergeado na main; migration `AddBookingReminderIndexes`) |
+| [018](018-customer-reader-sql-aggregation.md) | Agregar CustomerListReader em SQL (elimina carga ilimitada do tenant) | P3 | M | — | DONE — branch `advisor/018-customer-reader-sql-aggregation` (revisado, aprovado, mergeado; teste de paridade Testcontainers) |
+| [019](019-dashboard-revenue-readers-sql.md) | Agregar DashboardReader e RevenueReportReader em SQL | P3 | M | — | DONE — branch `advisor/019-dashboard-revenue-readers-sql` (revisado, aprovado, mergeado; testes de paridade Testcontainers) |
+
+Ordem recomendada: **017** (limpo, ganho amplo) → **018** (o reader sem limite, maior valor) → **019** (date-bounded, menor valor; só se dashboards ficarem lentos). 018/019 exigem **Docker** (testes de paridade em Testcontainers) e têm risco MED (tradução EF de GroupBy/argmax — cada plano tem STOP/fallback).
 
 ### Achados desta auditoria considerados e NÃO planejados (Sprint 8)
 
-- **Readers carregam tudo em memória e agregam em LINQ** (`CustomerListReader`, `DashboardReader`, `RevenueReportReader`): carga ilimitada conforme o tenant cresce, mas são endpoints admin de baixa frequência. Real (perf, M) — adiado; empacotar como "empurrar agregação para SQL" numa sprint de perf futura.
-- **Índices compostos do job de lembrete** (Status+ScheduledAt, Kind+RentalStatus+EndsAt): MÉDIA confiança, exige `EXPLAIN ANALYZE` antes de planejar. Adiado.
-- **Over-fetch de `.Include(b => b.Services)`** em caminhos de leitura paginados: design, MÉDIA confiança. Adiado.
+- **Over-fetch de `.Include(b => b.Services)`** em caminhos de leitura paginados (lista de bookings): design, MÉDIA confiança, exige auditoria de call-sites. Adiado.
+- **Extrair `ReminderWindowCalculator`** (DEBT-02): o Plan 014 já alinhou as janelas; extrair um helper é refactor menor de baixo retorno. Não planejado.
 - **Tests com `DateTimeOffset.UtcNow` real (~97 ocorrências)**: a maioria é robusta ao relógio; refactor geral é esforço L / risco MED com baixo retorno. **Rejeitado como item único** — tratar pontualmente quando um teste realmente piscar.
 - **TEST-08 (`BookingReminderJobTests` custom-window usa `UtcNow`)**: **falso positivo** — `now` é capturado uma vez e passado a `ExecuteAsync(now)`, determinístico. Não planejar.
 - **BUG-003/004 — `customerId: Guid.NewGuid()` em `AdminCreateBookingCommand:76` e `CreateIntegrationBookingCommand:94`**: reais, mas **são os mesmos "BUG-14/15" já registrados na auditoria de 2026-06-26 como "possivelmente intencional para bookings ad-hoc — decidir com o time"**. Continua sendo **decisão de produto**, não plano técnico, até o time definir se admin/integração devem vincular um cliente real por e-mail.
