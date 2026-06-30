@@ -5,6 +5,8 @@ import type {
   AvailabilityExceptionDto,
   SetResourceRuleRequest,
   SetResourceExceptionRequest,
+  BlackoutDateDto,
+  CreateBlackoutDateRequest,
 } from '../types/availability'
 
 export const availabilityApi = {
@@ -49,6 +51,22 @@ export const availabilityApi = {
       `/api/v1/availability/resources/${resourceId}/exceptions/${date}`,
       { method: 'DELETE' }
     ),
+
+  getBlackouts: (year?: number) =>
+    apiFetch<BlackoutDateDto[]>(
+      `/api/v1/availability/blackouts${year ? `?year=${year}` : ''}`
+    ),
+
+  createBlackout: (data: CreateBlackoutDateRequest) =>
+    apiFetch<BlackoutDateDto>('/api/v1/availability/blackouts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  deleteBlackout: (date: string) =>
+    apiFetch<void>(`/api/v1/availability/blackouts/${date}`, {
+      method: 'DELETE',
+    }),
 
   getSlots: (resourceId: string, date: string, serviceId?: string) => {
     const qs = new URLSearchParams({

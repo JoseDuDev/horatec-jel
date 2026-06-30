@@ -10,6 +10,14 @@ export interface LoyaltySettings {
   minBookingAmount: number
 }
 
+export interface ReminderSettings {
+  enabled: boolean
+  /** Antecedência do 1º lembrete, em horas (0–168). */
+  firstReminderHours: number
+  /** Antecedência do 2º lembrete, em horas (0–168). 0 = desativado. */
+  secondReminderHours: number
+}
+
 export interface Tenant {
   id: string
   name: string
@@ -23,6 +31,7 @@ export interface Tenant {
   capabilities: string
   cancellationPolicy: CancellationPolicy
   loyaltySettings: LoyaltySettings
+  reminderSettings: ReminderSettings
   isOnboardingCompleted: boolean
 }
 
@@ -57,4 +66,10 @@ export interface UpdateCancellationPolicyRequest {
   minCancellationHours: number
   cancellationFeePercent: number
   allowCustomerCancellation: boolean
+}
+
+export interface UpdateReminderSettingsRequest {
+  enabled: boolean
+  firstReminderHours: number
+  secondReminderHours: number
 }

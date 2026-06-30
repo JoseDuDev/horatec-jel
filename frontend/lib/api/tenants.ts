@@ -2,6 +2,7 @@ import { apiFetch } from './client'
 import type {
   Tenant, TenantUsage, UpdateTenantRequest,
   UpdateLoyaltySettingsRequest, UpdateCancellationPolicyRequest,
+  UpdateReminderSettingsRequest,
 } from '../types/tenant'
 
 export const tenantsApi = {
@@ -21,6 +22,11 @@ export const tenantsApi = {
     }),
   updateCancellationPolicy: (data: UpdateCancellationPolicyRequest) =>
     apiFetch<void>('/api/v1/tenants/cancellation-policy', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  updateReminderSettings: (data: UpdateReminderSettingsRequest) =>
+    apiFetch<void>('/api/v1/tenants/reminder-settings', {
       method: 'PUT',
       body: JSON.stringify(data),
     }),

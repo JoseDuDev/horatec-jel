@@ -17,11 +17,13 @@ vi.mock('@/lib/api/tenants', () => ({
       id: 't1', name: 'Barbearia', slug: 'barb', timezone: 'America/Sao_Paulo', plan: 'Free',
       cancellationPolicy: { minCancellationHours: 2, cancellationFeePercent: 0, allowCustomerCancellation: true },
       loyaltySettings: { isEnabled: true, creditRatePercent: 5, minBookingAmount: 0 },
+      reminderSettings: { enabled: true, firstReminderHours: 24, secondReminderHours: 2 },
     }),
     update: vi.fn().mockResolvedValue(undefined),
     updateTheme: vi.fn().mockResolvedValue(undefined),
     updateLoyaltySettings: vi.fn().mockResolvedValue(undefined),
     updateCancellationPolicy: vi.fn().mockResolvedValue(undefined),
+    updateReminderSettings: vi.fn().mockResolvedValue(undefined),
   },
 }))
 

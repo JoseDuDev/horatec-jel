@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, CalendarDays, ClipboardList, Users,
-  Scissors, Briefcase, Clock, DollarSign, Bell, Settings, Rocket, Wallet2, Package
+  Scissors, Briefcase, Clock, DollarSign, Bell, Settings, Rocket, Wallet2, Package, Star
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -30,6 +30,7 @@ const NAV: NavItem[] = [
   { href: '/admin/recursos',        label: 'Recursos',        icon: Briefcase,   capability: 'Appointments' },
   { href: '/admin/locacoes',        label: 'Locações',        icon: Package,     capability: 'Rentals' },
   { href: '/admin/disponibilidade', label: 'Disponibilidade', icon: Clock,       capability: 'Appointments' },
+  { href: '/admin/avaliacoes',      label: 'Avaliações',      icon: Star,        capability: 'Appointments' },
   { href: '/admin/financeiro',      label: 'Financeiro',      icon: DollarSign },
   { href: '/admin/carteira',       label: 'Carteira',      icon: Wallet2 },
   { href: '/admin/notificacoes',   label: 'Notificações',  icon: Bell },

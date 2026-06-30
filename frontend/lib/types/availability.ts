@@ -40,3 +40,15 @@ export interface SetResourceExceptionRequest {
   customEnd?: string          // "HH:mm:ss"
   reason?: string
 }
+
+/** Bloqueio global por data — afeta todos os recursos do tenant. */
+export interface BlackoutDateDto {
+  id: string
+  date: string                // "yyyy-MM-dd"
+  reason?: string
+}
+
+export interface CreateBlackoutDateRequest {
+  date: string                // "yyyy-MM-dd"
+  reason?: string
+}

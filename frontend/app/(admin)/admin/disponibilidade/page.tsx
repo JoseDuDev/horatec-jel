@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BusinessHoursEditor } from '@/components/availability/BusinessHoursEditor'
 import { ResourceRulesEditor } from '@/components/availability/ResourceRulesEditor'
 import { ExceptionsEditor } from '@/components/availability/ExceptionsEditor'
+import { BlackoutEditor } from '@/components/availability/BlackoutEditor'
 
 export default function DisponibilidadePage() {
   const [resources, setResources] = useState<Resource[]>([])
@@ -24,6 +25,7 @@ export default function DisponibilidadePage() {
           <TabsTrigger value="horarios">Horários Globais</TabsTrigger>
           <TabsTrigger value="grade">Grade por Recurso</TabsTrigger>
           <TabsTrigger value="excecoes">Exceções</TabsTrigger>
+          <TabsTrigger value="bloqueios">Bloqueios Globais</TabsTrigger>
         </TabsList>
 
         <TabsContent value="horarios" className="mt-6">
@@ -48,6 +50,15 @@ export default function DisponibilidadePage() {
             dia (folgas, feriados, manutenção).
           </p>
           <ExceptionsEditor resources={resources} />
+        </TabsContent>
+
+        <TabsContent value="bloqueios" className="mt-6">
+          <p className="text-sm text-slate-500 mb-6">
+            Bloqueie uma data para <strong>todos os recursos</strong> de uma vez
+            (feriados nacionais, recesso, eventos). Diferente das exceções, que
+            valem por recurso.
+          </p>
+          <BlackoutEditor />
         </TabsContent>
       </Tabs>
     </div>

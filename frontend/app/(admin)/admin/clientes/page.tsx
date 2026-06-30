@@ -1,71 +1,58 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { format, subDays } from 'date-fns'
-import { bookingsApi } from '@/lib/api/bookings'
-import type { Booking } from '@/lib/types/booking'
+import { format } from 'date-fns'
+import { Download } from 'lucide-react'
+import { reportsApi } from '@/lib/api/reports'
+import type { CustomerReportItem } from '@/lib/types/report'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from '@/components/ui/table'
 import { Input } from '@/components/ui/input'
-
-interface CustomerSummary {
-  customerId: string
-  customerName: string
-  customerEmail: string
-  bookingCount: number
-  completedCount: number
-  totalSpent: number
-  lastVisit: string
-}
-
-function buildCustomerSummaries(bookings: Booking[]): CustomerSummary[] {
-  const map = new Map<string, CustomerSummary>()
-  for (const b of bookings) {
-    const existing = map.get(b.customerId)
-    if (existing) {
-      existing.bookingCount++
-      if (b.status === 'Completed') {
-        existing.completedCount++
-        existing.totalSpent += b.totalAmount
-      }
-      if (b.scheduledAt > existing.lastVisit) existing.lastVisit = b.scheduledAt
-    } else {
-      map.set(b.customerId, {
-        customerId: b.customerId,
-        customerName: b.customerName,
-        customerEmail: b.customerEmail,
-        bookingCount: 1,
-        completedCount: b.status === 'Completed' ? 1 : 0,
-        totalSpent: b.status === 'Completed' ? b.totalAmount : 0,
-        lastVisit: b.scheduledAt,
-      })
-    }
-  }
-  return Array.from(map.values()).sort((a, b) => b.totalSpent - a.totalSpent)
-}
+import { Button } from '@/components/ui/button'
 
 export default function ClientesPage() {
-  const [summaries, setSummaries] = useState<CustomerSummary[]>([])
+  const [customers, setCustomers] = useState<CustomerReportItem[]>([])
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
 
   useEffect(() => {
-    const from = format(subDays(new Date(), 365), "yyyy-MM-dd'T'HH:mm:ss")
-    const to = format(new Date(), "yyyy-MM-dd'T'HH:mm:ss")
-    bookingsApi.list({ from, to }).then(bookings => {
-      setSummaries(buildCustomerSummaries(bookings))
-    }).finally(() => setLoading(false))
+    reportsApi.customers()
+      .then(setCustomers)
+      .finally(() => setLoading(false))
   }, [])
 
-  const filtered = summaries.filter(
-    s => s.customerName.toLowerCase().includes(search.toLowerCase()) ||
-         s.customerEmail.toLowerCase().includes(search.toLowerCase())
+  const handleExport = async () => {
+    setExportError(null)
+    setExporting(true)
+    try {
+      await reportsApi.exportCustomersCsv()
+    } catch (e) {
+      setExportError(e instanceof Error ? e.message : 'Falha ao exportar')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const filtered = customers.filter(
+    c => c.name.toLowerCase().includes(search.toLowerCase()) ||
+         c.email.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-slate-900">Clientes</h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold text-slate-900">Clientes</h1>
+        <Button onClick={handleExport} disabled={exporting || customers.length === 0} variant="outline">
+          <Download className="h-4 w-4" />
+          {exporting ? 'Exportando...' : 'Exportar CSV'}
+        </Button>
+      </div>
+
+      {exportError && <p className="text-sm text-red-500">{exportError}</p>}
+
       <Input
         placeholder="Buscar por nome ou email..."
         value={search}
@@ -79,23 +66,25 @@ export default function ClientesPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Cliente</TableHead>
+              <TableHead>Telefone</TableHead>
               <TableHead>Agendamentos</TableHead>
-              <TableHead>Concluídos</TableHead>
               <TableHead>Valor Gasto</TableHead>
-              <TableHead>Última Visita</TableHead>
+              <TableHead>Último Agendamento</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.map(c => (
               <TableRow key={c.customerId}>
                 <TableCell>
-                  <div className="font-medium">{c.customerName}</div>
-                  <div className="text-xs text-slate-500">{c.customerEmail}</div>
+                  <div className="font-medium">{c.name}</div>
+                  <div className="text-xs text-slate-500">{c.email}</div>
                 </TableCell>
+                <TableCell>{c.phone || '—'}</TableCell>
                 <TableCell>{c.bookingCount}</TableCell>
-                <TableCell>{c.completedCount}</TableCell>
                 <TableCell>R$ {c.totalSpent.toFixed(2)}</TableCell>
-                <TableCell>{format(new Date(c.lastVisit), 'dd/MM/yyyy')}</TableCell>
+                <TableCell>
+                  {c.lastBookingAt ? format(new Date(c.lastBookingAt), 'dd/MM/yyyy HH:mm') : '—'}
+                </TableCell>
               </TableRow>
             ))}
             {filtered.length === 0 && (

@@ -35,15 +35,27 @@ const cancellationSchema = z.object({
 })
 type CancellationForm = z.infer<typeof cancellationSchema>
 
+const reminderSchema = z.object({
+  enabled: z.boolean(),
+  firstReminderHours: z.number().int().min(0, 'Mínimo 0').max(168, 'Máximo 168 (7 dias)'),
+  secondReminderHours: z.number().int().min(0, 'Mínimo 0').max(168, 'Máximo 168 (7 dias)'),
+}).refine(
+  d => d.firstReminderHours === 0 || d.secondReminderHours === 0 || d.secondReminderHours < d.firstReminderHours,
+  { message: 'O 2º lembrete deve ter antecedência menor que o 1º.', path: ['secondReminderHours'] }
+)
+type ReminderForm = z.infer<typeof reminderSchema>
+
 export default function ConfiguracoesPage() {
   const [tenant, setTenant] = useState<Tenant | null>(null)
   const [savedIdentity, setSavedIdentity] = useState(false)
   const [savedLoyalty, setSavedLoyalty] = useState(false)
   const [savedCancel, setSavedCancel] = useState(false)
+  const [savedReminder, setSavedReminder] = useState(false)
 
   const identityForm = useForm<IdentityForm>({ resolver: zodResolver(identitySchema) })
   const loyaltyForm  = useForm<LoyaltyForm>({ resolver: zodResolver(loyaltySchema) })
   const cancelForm   = useForm<CancellationForm>({ resolver: zodResolver(cancellationSchema) })
+  const reminderForm = useForm<ReminderForm>({ resolver: zodResolver(reminderSchema) })
 
   useEffect(() => {
     tenantsApi.me().then(t => {
@@ -64,8 +76,13 @@ export default function ConfiguracoesPage() {
         minCancellationHours: t.cancellationPolicy.minCancellationHours,
         cancellationFeePercent: t.cancellationPolicy.cancellationFeePercent,
       })
+      reminderForm.reset({
+        enabled: t.reminderSettings.enabled,
+        firstReminderHours: t.reminderSettings.firstReminderHours,
+        secondReminderHours: t.reminderSettings.secondReminderHours,
+      })
     })
-  }, [identityForm, loyaltyForm, cancelForm])
+  }, [identityForm, loyaltyForm, cancelForm, reminderForm])
 
   const onIdentitySubmit = async (data: IdentityForm) => {
     await tenantsApi.update(data)
@@ -86,6 +103,12 @@ export default function ConfiguracoesPage() {
     setTimeout(() => setSavedCancel(false), 3000)
   }
 
+  const onReminderSubmit = async (data: ReminderForm) => {
+    await tenantsApi.updateReminderSettings(data)
+    setSavedReminder(true)
+    setTimeout(() => setSavedReminder(false), 3000)
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-slate-900">Configurações</h1>
@@ -94,6 +117,7 @@ export default function ConfiguracoesPage() {
         <TabsList>
           <TabsTrigger value="identidade">Identidade Visual</TabsTrigger>
           <TabsTrigger value="cancelamentos">Cancelamentos</TabsTrigger>
+          <TabsTrigger value="lembretes">Lembretes</TabsTrigger>
           <TabsTrigger value="fidelidade">Fidelidade</TabsTrigger>
           <TabsTrigger value="plano">Plano</TabsTrigger>
         </TabsList>
@@ -179,6 +203,63 @@ export default function ConfiguracoesPage() {
                 <div className="flex items-center gap-4">
                   <Button type="submit">Salvar</Button>
                   {savedCancel && <span className="text-sm text-green-600">Salvo com sucesso!</span>}
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="lembretes">
+          <Card>
+            <CardHeader><CardTitle>Lembretes de Agendamento</CardTitle></CardHeader>
+            <CardContent>
+              <form onSubmit={reminderForm.handleSubmit(onReminderSubmit)} className="space-y-4 max-w-md">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="reminderEnabled"
+                    {...reminderForm.register('enabled')}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="reminderEnabled">Enviar lembretes automáticos aos clientes</Label>
+                </div>
+                <div>
+                  <Label htmlFor="firstReminderHours">Antecedência do 1º lembrete (horas)</Label>
+                  <Input
+                    id="firstReminderHours"
+                    type="number"
+                    min={0}
+                    max={168}
+                    {...reminderForm.register('firstReminderHours', { valueAsNumber: true })}
+                    placeholder="Ex: 24"
+                  />
+                  {reminderForm.formState.errors.firstReminderHours && (
+                    <p className="text-sm text-red-500 mt-1">{reminderForm.formState.errors.firstReminderHours.message}</p>
+                  )}
+                  <p className="text-xs text-slate-500 mt-1">
+                    Quantas horas antes do agendamento enviar o primeiro lembrete. 0 = desativado.
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="secondReminderHours">Antecedência do 2º lembrete (horas)</Label>
+                  <Input
+                    id="secondReminderHours"
+                    type="number"
+                    min={0}
+                    max={168}
+                    {...reminderForm.register('secondReminderHours', { valueAsNumber: true })}
+                    placeholder="Ex: 2"
+                  />
+                  {reminderForm.formState.errors.secondReminderHours && (
+                    <p className="text-sm text-red-500 mt-1">{reminderForm.formState.errors.secondReminderHours.message}</p>
+                  )}
+                  <p className="text-xs text-slate-500 mt-1">
+                    Lembrete adicional mais próximo do horário. Deve ser menor que o 1º. 0 = desativado.
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Button type="submit">Salvar</Button>
+                  {savedReminder && <span className="text-sm text-green-600">Salvo com sucesso!</span>}
                 </div>
               </form>
             </CardContent>
