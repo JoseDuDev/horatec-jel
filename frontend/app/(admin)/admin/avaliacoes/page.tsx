@@ -88,7 +88,7 @@ export default function AvaliacoesPage() {
 
   useEffect(() => { load(resourceId) }, [resourceId, load])
 
-  const handleResourceChange = (v: string) => {
+  const handleResourceChange = (v: string | null) => {
     setLoading(true)
     setData(null)
     setResourceId(v ?? '')
