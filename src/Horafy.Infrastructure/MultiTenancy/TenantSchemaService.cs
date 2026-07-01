@@ -549,6 +549,34 @@ internal sealed class TenantSchemaService(
             ADD COLUMN IF NOT EXISTS voucher_discount_amount NUMERIC(10,2) NOT NULL DEFAULT 0;
         ALTER TABLE {s}.payments
             ADD COLUMN IF NOT EXISTS wallet_amount NUMERIC(10,2) NOT NULL DEFAULT 0;
+
+        -- ── Sprint 7: resposta do estabelecimento às avaliações ─────────────
+        ALTER TABLE {s}.reviews
+            ADD COLUMN IF NOT EXISTS owner_reply VARCHAR(1000);
+
+        ALTER TABLE {s}.reviews
+            ADD COLUMN IF NOT EXISTS owner_replied_at TIMESTAMPTZ;
+
+        -- ── Sprint 7: bloqueios globais por data (tenant-wide) ──────────────
+        -- Consultado por GetAvailableSlotsQuery — a ausência desta tabela derruba
+        -- a geração de slots (500) para o tenant inteiro.
+        CREATE TABLE IF NOT EXISTS {s}.tenant_blackout_dates (
+            id          UUID        NOT NULL DEFAULT gen_random_uuid(),
+            date        DATE        NOT NULL,
+            reason      VARCHAR(500),
+            created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            updated_at  TIMESTAMPTZ,
+            created_by  TEXT,
+            updated_by  TEXT,
+            is_deleted  BOOLEAN     NOT NULL DEFAULT FALSE,
+            deleted_at  TIMESTAMPTZ,
+            deleted_by  TEXT,
+            CONSTRAINT pk_tenant_blackout_dates PRIMARY KEY (id)
+        );
+
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_tenant_blackout_dates_date
+            ON {s}.tenant_blackout_dates (date)
+            WHERE is_deleted = FALSE;
         """;
     }
 }
