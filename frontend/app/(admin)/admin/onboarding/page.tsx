@@ -10,15 +10,17 @@ import type {
   OnboardingServiceData,
   OnboardingResourceData,
   OnboardingHoursData,
+  OnboardingRentalData,
 } from '@/lib/api/onboarding'
 import { OnboardingStepTenant } from '@/components/onboarding/OnboardingStepTenant'
 import { OnboardingStepTheme } from '@/components/onboarding/OnboardingStepTheme'
 import { OnboardingStepService } from '@/components/onboarding/OnboardingStepService'
 import { OnboardingStepResource } from '@/components/onboarding/OnboardingStepResource'
 import { OnboardingStepHours } from '@/components/onboarding/OnboardingStepHours'
+import { OnboardingStepRental } from '@/components/onboarding/OnboardingStepRental'
 import { cn } from '@/lib/utils'
 
-type StepKey = 'tenant' | 'theme' | 'service' | 'resource' | 'hours'
+type StepKey = 'tenant' | 'theme' | 'service' | 'resource' | 'hours' | 'rental'
 
 const STEP_LABEL: Record<StepKey, string> = {
   tenant:   'Negócio',
@@ -26,6 +28,7 @@ const STEP_LABEL: Record<StepKey, string> = {
   service:  'Serviço',
   resource: 'Recurso',
   hours:    'Horários',
+  rental:   'Locação',
 }
 
 export default function OnboardingPage() {
@@ -45,10 +48,15 @@ export default function OnboardingPage() {
       .catch(() => setCapabilities('Appointments, Rentals'))
   }, [])
 
-  // Passos de agendamento só entram se o tenant tiver a capacidade Appointments.
+  // Passos por módulo contratado. Locação entra antes dos passos de agendamento
+  // para que 'hours' permaneça o último quando houver agendamento (é ele que
+  // finaliza o onboarding); em tenant só-locação, 'rental' vira o último.
   const steps = useMemo<StepKey[]>(() => {
-    const hasAppointments = (capabilities ?? '').includes('Appointments')
+    const caps = capabilities ?? ''
+    const hasAppointments = caps.includes('Appointments')
+    const hasRentals = caps.includes('Rentals')
     const s: StepKey[] = ['tenant', 'theme']
+    if (hasRentals) s.push('rental')
     if (hasAppointments) s.push('service', 'resource', 'hours')
     return s
   }, [capabilities])
@@ -84,6 +92,7 @@ export default function OnboardingPage() {
   const handleThemeNext    = (data: OnboardingThemeData)    => run(() => onboardingApi.updateTheme(data))
   const handleServiceNext  = (data: OnboardingServiceData)  => run(() => onboardingApi.createService(data))
   const handleResourceNext = (data: OnboardingResourceData) => run(() => onboardingApi.createResource(data))
+  const handleRentalNext   = (data: OnboardingRentalData)   => run(() => onboardingApi.createRentableItem(data))
 
   const handleHoursFinish = async (data: OnboardingHoursData) => {
     setLoading(true)
@@ -152,6 +161,13 @@ export default function OnboardingPage() {
         )}
         {current === 'resource' && (
           <OnboardingStepResource onNext={handleResourceNext} onBack={back} />
+        )}
+        {current === 'rental' && (
+          <OnboardingStepRental
+            onNext={handleRentalNext}
+            onBack={back}
+            isLast={stepIndex === steps.length - 1}
+          />
         )}
         {current === 'hours' && (
           <OnboardingStepHours onFinish={handleHoursFinish} onBack={back} loading={loading} />

@@ -1,12 +1,17 @@
 # Caddyfile — Horafy production reverse proxy
-# Substitua horafy.com.br pelo domínio real
+# Duas marcas (agendamento e locação) sobre o MESMO frontend + API.
+# A marca é resolvida pelo Host da requisição (ver frontend/lib/brand.ts):
+# um domínio "agendafy" cai na marca de agendamento; "alugafy", na de locação.
+# Substitua os domínios de exemplo pelos reais.
 
 {
   email ops@horafy.com.br
 }
 
-horafy.com.br {
-  # API: rota /api/* e /health para o backend .NET
+# Bloco reutilizável: /api|/health|/scalar|/webhooks → API; resto → Next.js.
+# Como cada domínio serve seu próprio /api (mesma origem), não há CORS entre
+# frontend e API.
+(app) {
   handle /api/* {
     reverse_proxy api:8080
   }
@@ -15,7 +20,6 @@ horafy.com.br {
     reverse_proxy api:8080
   }
 
-  # Scalar UI e webhooks também vão para o backend
   handle /scalar/* {
     reverse_proxy api:8080
   }
@@ -24,15 +28,25 @@ horafy.com.br {
     reverse_proxy api:8080
   }
 
-  # Tudo mais vai para o Next.js
+  # Tudo mais vai para o Next.js (uma imagem serve as duas marcas).
   handle {
     reverse_proxy frontend:3000
   }
 
   log {
-    output file /var/log/caddy/horafy.log {
+    output file /var/log/caddy/access.log {
       roll_size 10mb
       roll_keep 5
     }
   }
+}
+
+# Marca 1 — agendamento
+agendafy.com.br {
+  import app
+}
+
+# Marca 2 — locação
+alugafy.com.br {
+  import app
 }

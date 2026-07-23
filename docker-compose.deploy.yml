@@ -73,6 +73,7 @@ services:
       Jwt__RefreshTokenExpirationDays: "7"
       MercadoPago__AccessToken: "fake-token"
       AllowedOrigins__0: "${APP_PUBLIC_URL}"    # origem pública do frontend (CORS)
+      AllowedOrigins__1: "${APP_PUBLIC_URL_2:-}" # 2ª marca (opcional) — origem cross-site do API host
     depends_on:
       postgres: { condition: service_healthy }
       redis:    { condition: service_healthy }
@@ -95,6 +96,7 @@ services:
     container_name: horafy-frontend
     environment:
       INTERNAL_API_URL: http://api:8080        # server components chamam a API pela rede interna
+      BRAND_CONFIG: "${BRAND_CONFIG:-}"         # opcional: JSON host->marca p/ domínios custom (ver lib/brand.ts)
     depends_on:
       api: { condition: service_healthy }
     healthcheck:
@@ -109,7 +111,8 @@ services:
     container_name: horafy-caddy
     restart: unless-stopped
     environment:
-      APP_HOST: ${APP_HOST}                     # ex.: 203-0-113-5.sslip.io
+      APP_HOST: ${APP_HOST}                     # ex.: agendafy.203-0-113-5.sslip.io
+      APP_HOST_2: "${APP_HOST_2:-}"             # 2ª marca (opcional): ex.: alugafy.203-0-113-5.sslip.io
       API_HOST: ${API_HOST}                     # ex.: api.203-0-113-5.sslip.io
       ACME_EMAIL: ${ACME_EMAIL}
     ports:

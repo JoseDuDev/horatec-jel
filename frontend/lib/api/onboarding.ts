@@ -22,6 +22,14 @@ export interface OnboardingResourceData {
   type: string
 }
 
+export interface OnboardingRentalData {
+  name: string
+  description?: string
+  quantity: number
+  dailyRate: number
+  securityDeposit: number
+}
+
 export interface OnboardingHoursData {
   schedule: Array<{
     dayOfWeek: number
@@ -54,6 +62,12 @@ export const onboardingApi = {
     apiFetch<{ id: string }>('/api/v1/resources', {
       method: 'POST',
       body: JSON.stringify({ ...data, serviceIds: [] }),
+    }),
+
+  createRentableItem: (data: OnboardingRentalData) =>
+    apiFetch<string>('/api/v1/rentals/items', {
+      method: 'POST',
+      body: JSON.stringify({ ...data, bufferDays: 0 }),
     }),
 
   setBusinessHours: (dayOfWeek: number, isOpen: boolean, openTime: string, closeTime: string) =>

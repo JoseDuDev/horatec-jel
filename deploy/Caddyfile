@@ -13,6 +13,14 @@
 	reverse_proxy frontend:3000
 }
 
+# Segunda marca (opcional): defina APP_HOST_2 no .env para publicar a 2ª marca
+# no MESMO frontend/back-end — a marca é resolvida pelo Host (ver lib/brand.ts).
+# Sem APP_HOST_2, cai em app2.localhost (TLS interno, inócuo, sem tráfego externo).
+{$APP_HOST_2:app2.localhost} {
+	encode gzip
+	reverse_proxy frontend:3000
+}
+
 {$API_HOST} {
 	encode gzip
 	reverse_proxy api:8080

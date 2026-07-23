@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Building2, CreditCard, BarChart3, LogOut } from 'lucide-react'
 import { usePlatformAdminStore } from '@/store/platform-admin'
 import { cn } from '@/lib/utils'
+import { DEFAULT_BRAND } from '@/lib/brand'
 
 const NAV = [
   { href: '/platform/tenants',    label: 'Tenants',    icon: Building2 },
@@ -27,7 +28,7 @@ export function PlatformSidebar() {
     <aside className="w-60 min-h-screen bg-slate-900 text-white flex flex-col">
       <div className="h-16 flex items-center px-6 border-b border-slate-700">
         <div>
-          <span className="font-bold text-lg">Horafy</span>
+          <span className="font-bold text-lg">{DEFAULT_BRAND.name}</span>
           <span className="ml-2 text-xs text-slate-400 bg-slate-700 px-1.5 py-0.5 rounded">Platform</span>
         </div>
       </div>

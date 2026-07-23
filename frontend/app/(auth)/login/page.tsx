@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useBrand } from '@/components/brand-provider'
 
 const schema = z.object({
   email: z.string().min(1, 'Email obrigatório').email('Email inválido'),
@@ -85,11 +86,12 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
+  const brand = useBrand()
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">Horafy Admin</CardTitle>
+          <CardTitle className="text-2xl text-center">{brand.name} Admin</CardTitle>
         </CardHeader>
         <CardContent>
           <Suspense fallback={<div className="h-48 flex items-center justify-center">Carregando...</div>}>

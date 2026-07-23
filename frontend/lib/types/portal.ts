@@ -10,6 +10,8 @@ export interface TenantPublicInfo {
   logoUrl?: string
   primaryColor?: string
   timezone: string
+  /** Enum [Flags] serializado como CSV pelo backend, ex.: "Appointments, Rentals". */
+  capabilities?: string
 }
 
 export interface AvailableSlot {

@@ -10,6 +10,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { tenantsApi } from '@/lib/api/tenants'
+import { useBrand } from '@/components/brand-provider'
 
 type Capability = 'Appointments' | 'Rentals'
 
@@ -40,6 +41,7 @@ const NAV: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const brand = useBrand()
   // null = ainda carregando → mostra tudo para evitar "piscar" itens.
   const [capabilities, setCapabilities] = useState<string | null>(null)
 
@@ -56,7 +58,7 @@ export function Sidebar() {
   return (
     <aside className="w-60 min-h-screen bg-white border-r flex flex-col">
       <div className="h-16 flex items-center px-6 border-b">
-        <span className="font-bold text-xl text-slate-800">Horafy</span>
+        <span className="font-bold text-xl text-slate-800">{brand.name}</span>
       </div>
       <nav className="flex-1 p-4 space-y-1">
         {items.map(({ href, label, icon: Icon }) => (

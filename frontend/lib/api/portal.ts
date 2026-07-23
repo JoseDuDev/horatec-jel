@@ -44,8 +44,27 @@ import type {
 } from '../types/rental'
 
 export const portalApi = {
-  tenant: (slug: string) =>
-    portalFetch<TenantPublicInfo>('/api/v1/tenants/me', slug),
+  // Endpoint público (AllowAnonymous) do tenant pelo slug — usado pela landing/portal.
+  // (GET /tenants/me exige auth de admin; aqui precisamos de dados anônimos + capabilities.)
+  tenant: async (slug: string): Promise<TenantPublicInfo> => {
+    const t = await portalFetch<{
+      id: string
+      name: string
+      slug: string
+      timeZoneId: string
+      capabilities: string
+      theme?: { primaryColor?: string; logoUrl?: string }
+    }>(`/api/v1/platform/tenants/${slug}`, slug)
+    return {
+      id: t.id,
+      name: t.name,
+      slug: t.slug,
+      logoUrl: t.theme?.logoUrl,
+      primaryColor: t.theme?.primaryColor,
+      timezone: t.timeZoneId,
+      capabilities: t.capabilities,
+    }
+  },
 
   services: (slug: string) =>
     portalFetch<Service[]>('/api/v1/services', slug),

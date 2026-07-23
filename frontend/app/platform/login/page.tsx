@@ -7,6 +7,7 @@ import { usePlatformAdminStore } from '@/store/platform-admin'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { DEFAULT_BRAND } from '@/lib/brand'
 
 export default function PlatformLoginPage() {
   const router = useRouter()
@@ -36,7 +37,7 @@ export default function PlatformLoginPage() {
     <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg w-full max-w-sm p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">Horafy Platform</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{DEFAULT_BRAND.name} Platform</h1>
           <p className="text-sm text-slate-500 mt-1">Acesso restrito — administradores da plataforma</p>
         </div>
 
