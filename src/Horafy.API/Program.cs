@@ -91,12 +91,38 @@ try
     });
 
     // ── CORS
+    var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
+        ?? ["http://localhost:3000"];
+
+    // Cada tenant é servido em um subdomínio (cliente.agenda.mjml.com.br), então
+    // o browser manda o host DO TENANT no header Origin — não o da marca. Listar
+    // origem por origem é impossível: a lista cresceria a cada cliente novo.
+    var platformDomains = (builder.Configuration.GetSection("Platform:Domains").Get<string[]>() ?? [])
+        .Where(d => !string.IsNullOrWhiteSpace(d))
+        .Select(d => d.Trim().ToLowerInvariant())
+        .ToArray();
+
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("HorafyCors", policy =>
         {
             policy
-                .WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? ["http://localhost:3000"])
+                .SetIsOriginAllowed(origin =>
+                {
+                    if (allowedOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase))
+                        return true;
+
+                    if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                        return false;
+
+                    // Subdomínio de tenant só via HTTPS: em dev, o localhost
+                    // entra pela lista explícita de AllowedOrigins.
+                    if (uri.Scheme != Uri.UriSchemeHttps)
+                        return false;
+
+                    var host = uri.Host.ToLowerInvariant();
+                    return platformDomains.Any(d => host.EndsWith($".{d}", StringComparison.Ordinal));
+                })
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();

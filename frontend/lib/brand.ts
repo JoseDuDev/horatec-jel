@@ -33,8 +33,8 @@ export interface Brand {
 
 /** Marca-mãe / fallback quando o host não casa com nenhuma marca configurada. */
 export const DEFAULT_BRAND: Brand = {
-  id: 'horafy',
-  name: 'Horafy',
+  id: 'mjml',
+  name: 'MJML',
   tagline: 'Agendamentos e locações online, fáceis e rápidos',
   primaryModule: 'Appointments',
   defaultCapabilities: 'Appointments, Rentals',
@@ -47,16 +47,16 @@ export const DEFAULT_BRAND: Brand = {
  */
 const BUILTIN_BRANDS: Brand[] = [
   {
-    id: 'agendafy',
-    name: 'Agendafy',
+    id: 'agenda',
+    name: 'Agenda',
     tagline: 'Agende serviços com facilidade',
     primaryModule: 'Appointments',
     defaultCapabilities: 'Appointments',
     themeColor: '#6366f1',
   },
   {
-    id: 'alugafy',
-    name: 'Alugafy',
+    id: 'alugue',
+    name: 'Alugue',
     tagline: 'Alugue itens de forma simples e segura',
     primaryModule: 'Rentals',
     defaultCapabilities: 'Rentals',
@@ -65,18 +65,38 @@ const BUILTIN_BRANDS: Brand[] = [
 ]
 
 interface HostRule {
-  /** Substring do host que ativa a regra (ex.: "alugafy"). */
+  /** Host que ativa a regra (ex.: "alugue.mjml.com.br"). */
   match: string
+  /**
+   * Como comparar `match` com o host:
+   *   - 'domain'    → host igual a `match` ou terminado em `.match`.
+   *   - 'substring' → `match` aparece em qualquer posição do host.
+   *
+   * As marcas embutidas usam 'domain' porque os nomes viraram palavras comuns:
+   * com 'substring', o tenant `agenda-da-maria.alugue.mjml.com.br` casaria com
+   * a regra "agenda" e receberia a marca errada. 'substring' segue sendo o
+   * padrão de `BRAND_CONFIG` por compatibilidade.
+   */
+  mode?: 'domain' | 'substring'
   /** Id de uma marca embutida. */
   brandId?: string
   /** Sobrescrita/definição inline de marca. */
   brand?: Partial<Brand>
 }
 
+function hostMatches(host: string, rule: HostRule): boolean {
+  const match = rule.match.toLowerCase()
+  if (!match) return false
+
+  return rule.mode === 'domain'
+    ? host === match || host.endsWith(`.${match}`)
+    : host.includes(match)
+}
+
 /**
  * `BRAND_CONFIG` (env, só no servidor) permite sobrescrever o mapeamento
  * host→marca sem rebuild. Formato JSON, valor por host pode ser:
- *   - string: id de uma marca embutida — `{ "meudominio.com": "alugafy" }`
+ *   - string: id de uma marca embutida — `{ "meudominio.com": "alugue" }`
  *   - objeto: marca inline/parcial — `{ "x.com": { "name": "X", "primaryModule": "Rentals", ... } }`
  */
 function parseConfigRules(raw: string | undefined): HostRule[] {
@@ -91,10 +111,18 @@ function parseConfigRules(raw: string | undefined): HostRule[] {
   }
 }
 
-/** Regras default (aplicadas após as de `BRAND_CONFIG`). */
+/**
+ * Regras default (aplicadas após as de `BRAND_CONFIG`).
+ *
+ * O domínio da plataforma vem de `NEXT_PUBLIC_PLATFORM_DOMAIN` para o mesmo
+ * bundle servir produção e ambientes de teste. Precisa ser NEXT_PUBLIC_ porque
+ * a marca também é resolvida no cliente.
+ */
+const PLATFORM_DOMAIN = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN ?? 'mjml.com.br'
+
 const DEFAULT_HOST_RULES: HostRule[] = [
-  { match: 'agendafy', brandId: 'agendafy' },
-  { match: 'alugafy', brandId: 'alugafy' },
+  { match: `agenda.${PLATFORM_DOMAIN}`, mode: 'domain', brandId: 'agenda' },
+  { match: `alugue.${PLATFORM_DOMAIN}`, mode: 'domain', brandId: 'alugue' },
 ]
 
 function resolveById(id: string | undefined): Brand | undefined {
@@ -113,7 +141,7 @@ export function resolveBrandFromHost(host: string | null | undefined, configRaw?
   const rules = [...parseConfigRules(configRaw), ...DEFAULT_HOST_RULES]
 
   for (const rule of rules) {
-    if (!rule.match || !normalizedHost.includes(rule.match.toLowerCase())) continue
+    if (!hostMatches(normalizedHost, rule)) continue
     const base = resolveById(rule.brandId) ?? DEFAULT_BRAND
     return rule.brand ? { ...base, ...rule.brand, id: rule.brand.id ?? base.id } : base
   }

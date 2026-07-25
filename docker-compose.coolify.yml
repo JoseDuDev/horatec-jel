@@ -1,0 +1,89 @@
+# docker-compose.coolify.yml — Produção sob Coolify (Hetzner / mjml.com.br)
+#
+# Diferenças em relação ao docker-compose.prod.yml:
+#   - sem `caddy`: quem é dono das portas 80/443 é o Traefik do Coolify.
+#     Três projetos trazendo o próprio proxy colidiriam no mesmo host.
+#   - sem `postgres`, `redis` e `rabbitmq`: usa as instâncias compartilhadas
+#     criadas como recursos do Coolify, junto com Atendefy, Delify e Lojas.
+#   - nenhuma porta publicada: o Traefik alcança os containers pela rede.
+#
+# Domínios a configurar no Coolify:
+#   frontend → agenda.mjml.com.br,  *.agenda.mjml.com.br
+#              alugue.mjml.com.br,  *.alugue.mjml.com.br
+#   api      → api.mjml.com.br
+#
+# ATENÇÃO ao certificado: os tenants ficam no 3º nível
+# (cliente.agenda.mjml.com.br), e o Universal SSL grátis do Cloudflare só cobre
+# UM nível de wildcard. O certificado precisa vir do Let's Encrypt por desafio
+# DNS-01 com token da API do Cloudflare — configurar no Coolify antes do deploy.
+#
+# A marca é resolvida pelo Host da requisição (frontend/lib/brand.ts), então
+# UMA imagem de frontend serve as duas marcas. Já a NEXT_PUBLIC_API_URL fica
+# assada na imagem em tempo de build (ver .github/workflows/ci.yml) — por isso
+# a API é um host único compartilhado pelas duas marcas.
+#
+# Variáveis a definir na UI do Coolify:
+#   GITHUB_REPOSITORY, IMAGE_TAG
+#   POSTGRES_HOST/USER/PASSWORD, REDIS_HOST/PASSWORD, RABBITMQ_HOST/USER/PASSWORD
+#   JWT_SECRET, JWT_ISSUER, JWT_AUDIENCE
+#   MERCADOPAGO_ACCESS_TOKEN, GOOGLE_CLIENT_ID
+#   APP_HOST, APP_HOST_2, API_HOST  (para CORS e links de e-mail)
+name: horafy
+
+services:
+  api:
+    image: ghcr.io/${GITHUB_REPOSITORY:?defina GITHUB_REPOSITORY}/horafy-api:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+
+      # Serviços compartilhados do Coolify — hosts vêm da UI, não do compose.
+      ConnectionStrings__DefaultConnection: "Host=${POSTGRES_HOST:?defina POSTGRES_HOST};Port=5432;Database=${POSTGRES_DB:-horafy};Username=${POSTGRES_USER:-horafy};Password=${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD}"
+      Redis__ConnectionString: "${REDIS_HOST:?defina REDIS_HOST}:6379,password=${REDIS_PASSWORD:?defina REDIS_PASSWORD},defaultDatabase=${REDIS_DB:-1}"
+      RabbitMQ__Host: ${RABBITMQ_HOST:?defina RABBITMQ_HOST}
+      RabbitMQ__VirtualHost: ${RABBITMQ_VHOST:-horafy}
+      RabbitMQ__Username: ${RABBITMQ_USER:-horafy}
+      RabbitMQ__Password: ${RABBITMQ_PASSWORD:?defina RABBITMQ_PASSWORD}
+
+      JWT__Secret: ${JWT_SECRET:?defina JWT_SECRET}
+      JWT__Issuer: ${JWT_ISSUER}
+      JWT__Audience: ${JWT_AUDIENCE}
+      MercadoPago__AccessToken: ${MERCADOPAGO_ACCESS_TOKEN}
+      Google__ClientId: ${GOOGLE_CLIENT_ID}
+
+      # Domínios da plataforma: o TenantMiddleware extrai o slug do tenant do
+      # subdomínio (cliente.agenda.mjml.com.br → "cliente").
+      Platform__Domains__0: ${APP_HOST:-agenda.mjml.com.br}
+      Platform__Domains__1: ${APP_HOST_2:-alugue.mjml.com.br}
+
+      # CORS: as duas marcas batem nesta API.
+      AllowedOrigins__0: https://${APP_HOST:-agenda.mjml.com.br}
+      AllowedOrigins__1: https://${APP_HOST_2:-alugue.mjml.com.br}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    networks:
+      - horafy-net
+
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY:?defina GITHUB_REPOSITORY}/horafy-frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      # Server-side (Server Components) fala com a API pela rede interna,
+      # sem sair para a internet — ver frontend/lib/api/portal.ts.
+      INTERNAL_API_URL: http://api:8080
+      # BRAND_CONFIG permite ajustar/estender as marcas sem rebuild.
+      BRAND_CONFIG: ${BRAND_CONFIG:-}
+    depends_on:
+      - api
+    networks:
+      - horafy-net
+
+networks:
+  horafy-net:
+    driver: bridge

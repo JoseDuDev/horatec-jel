@@ -3,6 +3,7 @@ using Horafy.Domain.Entities.Tenants;
 using Horafy.Domain.Interfaces.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Horafy.Infrastructure.MultiTenancy;
@@ -12,7 +13,7 @@ namespace Horafy.Infrastructure.MultiTenancy;
 ///
 /// Estratégia de resolução (ordem de prioridade):
 ///   1. Domínio próprio do cliente    (barbeariadojoao.com.br)
-///   2. Subdomínio da plataforma      (joao.horafy.com.br)
+///   2. Subdomínio da plataforma      (joao.agendafy.com.br)
 ///   3. Header X-Tenant-Slug          (para uso interno / mobile)
 ///
 /// Retorna 404 se tenant não for encontrado ou estiver inativo.
@@ -21,10 +22,40 @@ namespace Horafy.Infrastructure.MultiTenancy;
 /// </summary>
 public sealed class TenantMiddleware(
     RequestDelegate next,
-    ILogger<TenantMiddleware> logger)
+    ILogger<TenantMiddleware> logger,
+    IConfiguration configuration)
 {
-    private const string PlatformDomain = "horafy.com.br";
     private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// Domínios da plataforma, resolvidos da configuração.
+    ///
+    /// São VÁRIOS porque a separação de marcas publica o mesmo backend sob
+    /// Agendafy e Alugafy (ver frontend/lib/brand.ts). Um subdomínio de
+    /// qualquer um deles é um tenant: joao.agendafy.com.br → "joao".
+    ///
+    /// Config: `Platform:Domains` (array); `Platform:Domain` (string) segue
+    /// aceito por compatibilidade. Na env:
+    ///   Platform__Domains__0=agendafy.com.br
+    ///   Platform__Domains__1=alugafy.com.br
+    /// </summary>
+    private readonly string[] _platformDomains = ResolvePlatformDomains(configuration);
+
+    private static string[] ResolvePlatformDomains(IConfiguration configuration)
+    {
+        var domains = configuration.GetSection("Platform:Domains").Get<string[]>();
+
+        if (domains is null || domains.Length == 0)
+        {
+            var single = configuration["Platform:Domain"];
+            domains = string.IsNullOrWhiteSpace(single) ? [] : [single];
+        }
+
+        return [.. domains
+            .Where(d => !string.IsNullOrWhiteSpace(d))
+            .Select(d => d.Trim().ToLowerInvariant())
+            .Distinct()];
+    }
 
     public async Task InvokeAsync(
         HttpContext context,
@@ -97,23 +128,29 @@ public sealed class TenantMiddleware(
     /// <summary>
     /// Extrai o slug do tenant a partir do host ou do header X-Tenant-Slug.
     /// </summary>
-    private static string? ResolveTenantSlug(HttpContext context, string host)
+    private string? ResolveTenantSlug(HttpContext context, string host)
     {
         // Header explícito (chamadas internas, apps mobile)
         if (context.Request.Headers.TryGetValue("X-Tenant-Slug", out var headerSlug))
             return headerSlug.ToString().ToLowerInvariant();
 
-        // Subdomínio: joao.horafy.com.br → "joao"
-        if (host.EndsWith($".{PlatformDomain}"))
+        // Subdomínio: joao.agendafy.com.br → "joao"
+        foreach (var platformDomain in _platformDomains)
         {
-            var subdomain = host[..^(PlatformDomain.Length + 1)];
+            if (!host.EndsWith($".{platformDomain}", StringComparison.Ordinal))
+                continue;
+
+            var subdomain = host[..^(platformDomain.Length + 1)];
             if (!string.IsNullOrWhiteSpace(subdomain) && subdomain != "www" && subdomain != "api")
                 return subdomain;
+
+            // www./api. do domínio da plataforma não são tenant.
+            return null;
         }
 
         // Domínio próprio: será resolvido depois por GetByCustomDomainAsync
         // Retorna o host como tentativa de slug para o cache key
-        return host == PlatformDomain ? null : host;
+        return _platformDomains.Contains(host) ? null : host;
     }
 
     private static bool IsPublicEndpoint(PathString path)

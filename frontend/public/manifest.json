@@ -1,7 +1,7 @@
 {
-  "name": "Horafy",
-  "short_name": "Horafy",
-  "description": "Agendamentos online fáceis e rápidos",
+  "name": "MJML",
+  "short_name": "MJML",
+  "description": "Agendamentos e locações online, fáceis e rápidos",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

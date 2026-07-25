@@ -9,8 +9,12 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+# Domínio da plataforma: as regras host→marca em lib/brand.ts são montadas a
+# partir dele (agenda.<domínio>, alugue.<domínio>).
+ARG NEXT_PUBLIC_PLATFORM_DOMAIN=mjml.com.br
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+ENV NEXT_PUBLIC_PLATFORM_DOMAIN=${NEXT_PUBLIC_PLATFORM_DOMAIN}
 RUN npm run build
 
 FROM node:20-alpine AS runner

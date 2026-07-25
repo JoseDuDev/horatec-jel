@@ -98,6 +98,17 @@ jobs:
           tags: |
             ghcr.io/${{ env.REPO_LC }}/horafy-frontend:latest
             ghcr.io/${{ env.REPO_LC }}/horafy-frontend:${{ github.sha }}
+          # O Next inlina NEXT_PUBLIC_* no bundle, então esta URL fica ASSADA na
+          # imagem publicada — trocar de domínio exige rebuild, não só redeploy.
+          # Vem de repository variables para a imagem não ficar presa a um
+          # domínio no código. Defina em Settings > Variables > Actions:
+          #   NEXT_PUBLIC_API_URL            = https://api.mjml.com.br
+          #   NEXT_PUBLIC_PLATFORM_DOMAIN    = mjml.com.br
+          #
+          # É uma URL de API só para as duas marcas de propósito: Agenda e
+          # Alugue rodam sobre o MESMO backend (ver frontend/lib/brand.ts — a
+          # marca é resolvida pelo Host do frontend, não pelo host da API).
           build-args: |
-            NEXT_PUBLIC_API_URL=https://horafy.com.br
+            NEXT_PUBLIC_API_URL=${{ vars.NEXT_PUBLIC_API_URL || 'https://api.mjml.com.br' }}
+            NEXT_PUBLIC_PLATFORM_DOMAIN=${{ vars.NEXT_PUBLIC_PLATFORM_DOMAIN || 'mjml.com.br' }}
             NEXT_PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}

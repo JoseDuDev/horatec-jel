@@ -49,7 +49,7 @@ export default function PlatformLoginPage() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="admin@horafy.com.br"
+              placeholder="admin@mjml.com.br"
               required
             />
           </div>

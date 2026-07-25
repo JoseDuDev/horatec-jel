@@ -1,4 +1,4 @@
-// Smoke tests — executar após deploy com: SMOKE_API_URL=https://horafy.com.br npm run test:run
+// Smoke tests — executar após deploy com: SMOKE_API_URL=https://api.mjml.com.br npm run test:run
 // Em CI sem backend ativo, os testes de API são pulados automaticamente.
 import { describe, it, expect } from 'vitest'
 
