@@ -72,6 +72,7 @@ services:
       start_period: 40s
     networks:
       - horafy-net
+      - coolify
     # Roteamento declarado aqui, não na UI: o wildcard do §4.2 exige labels que
     # o Coolify não gera sozinho, e manter tudo no mesmo lugar evita dois
     # roteadores disputando o mesmo host. O certificado wildcard já está
@@ -104,6 +105,7 @@ services:
       - api
     networks:
       - horafy-net
+      - coolify
     # $$ nos regex: o docker compose interpola $ — $$ vira $ literal.
     # Sintaxe Traefik v3 (regexp Go pura), ver §4.2 do PLANO-DEPLOY-FASE1.md.
     labels:
@@ -124,3 +126,9 @@ services:
 networks:
   horafy-net:
     driver: bridge
+  # Rede do Coolify: é onde vivem o Traefik e os serviços compartilhados
+  # (Postgres/Redis/RabbitMQ). Declarada explicitamente porque o toggle
+  # "Connect To Predefined Network" do Coolify v4.1.2 não anexa a rede quando
+  # o compose já define `networks:` próprias nos serviços.
+  coolify:
+    external: true
