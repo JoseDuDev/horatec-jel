@@ -61,13 +61,34 @@ services:
       AllowedOrigins__0: https://${APP_HOST:-agenda.mjml.com.br}
       AllowedOrigins__1: https://${APP_HOST_2:-alugue.mjml.com.br}
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      # curl, não wget: a imagem aspnet instala só curl. E 127.0.0.1, não
+      # localhost: dentro do container o localhost resolve ::1 primeiro e um
+      # healthcheck que falha faz o Traefik REMOVER o container do roteamento
+      # (aconteceu com o site em 03/08/2026).
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 40s
     networks:
       - horafy-net
+    # Roteamento declarado aqui, não na UI: o wildcard do §4.2 exige labels que
+    # o Coolify não gera sozinho, e manter tudo no mesmo lugar evita dois
+    # roteadores disputando o mesmo host. O certificado wildcard já está
+    # emitido no resolver `cf` (acme-cf.json do proxy).
+    labels:
+      - traefik.enable=true
+      - 'traefik.http.routers.horafy-api.rule=Host(`api.mjml.com.br`)'
+      - traefik.http.routers.horafy-api.entrypoints=https
+      - traefik.http.routers.horafy-api.tls=true
+      - traefik.http.routers.horafy-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.horafy-api.service=horafy-api
+      - traefik.http.services.horafy-api.loadbalancer.server.port=8080
+      - 'traefik.http.routers.horafy-api-http.rule=Host(`api.mjml.com.br`)'
+      - traefik.http.routers.horafy-api-http.entrypoints=http
+      - traefik.http.routers.horafy-api-http.middlewares=horafy-https
+      - traefik.http.routers.horafy-api-http.service=horafy-api
+      - traefik.http.middlewares.horafy-https.redirectscheme.scheme=https
 
   frontend:
     image: ghcr.io/${GITHUB_REPOSITORY:?defina GITHUB_REPOSITORY}/horafy-frontend:${IMAGE_TAG:-latest}
@@ -83,6 +104,22 @@ services:
       - api
     networks:
       - horafy-net
+    # $$ nos regex: o docker compose interpola $ — $$ vira $ literal.
+    # Sintaxe Traefik v3 (regexp Go pura), ver §4.2 do PLANO-DEPLOY-FASE1.md.
+    labels:
+      - traefik.enable=true
+      - 'traefik.http.routers.horafy-fe.rule=Host(`agenda.mjml.com.br`) || HostRegexp(`^.+\.agenda\.mjml\.com\.br$$`)'
+      - traefik.http.routers.horafy-fe.entrypoints=https
+      - traefik.http.routers.horafy-fe.tls=true
+      - traefik.http.routers.horafy-fe.tls.certresolver=cf
+      - traefik.http.routers.horafy-fe.tls.domains[0].main=agenda.mjml.com.br
+      - 'traefik.http.routers.horafy-fe.tls.domains[0].sans=*.agenda.mjml.com.br'
+      - traefik.http.routers.horafy-fe.service=horafy-fe
+      - traefik.http.services.horafy-fe.loadbalancer.server.port=3000
+      - 'traefik.http.routers.horafy-fe-http.rule=Host(`agenda.mjml.com.br`) || HostRegexp(`^.+\.agenda\.mjml\.com\.br$$`)'
+      - traefik.http.routers.horafy-fe-http.entrypoints=http
+      - traefik.http.routers.horafy-fe-http.middlewares=horafy-https
+      - traefik.http.routers.horafy-fe-http.service=horafy-fe
 
 networks:
   horafy-net:
