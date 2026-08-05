@@ -95,6 +95,7 @@ public static class DependencyInjection
         services.AddScoped<IPlanConfigurationRepository, PlanConfigurationRepository>();
         services.AddScoped<IIntegrationApiKeyRepository, IntegrationApiKeyRepository>();
         services.AddScoped<IIntegrationWebhookRepository, IntegrationWebhookRepository>();
+        services.AddScoped<IPlatformLeadRepository, PlatformLeadRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         // Webhooks de saída (write-back) — cliente HTTP de entrega.

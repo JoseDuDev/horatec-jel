@@ -1,6 +1,7 @@
 using Horafy.Application.Interfaces;
 using Horafy.Domain.Entities.Base;
 using Horafy.Domain.Entities.Integrations;
+using Horafy.Domain.Entities.Leads;
 using Horafy.Domain.Entities.Notifications;
 using Horafy.Domain.Entities.Tenants;
 using Horafy.Domain.Entities.Users;
@@ -33,6 +34,7 @@ public sealed class HorafyDbContext : DbContext
     public DbSet<IntegrationApiKey> IntegrationApiKeys   => Set<IntegrationApiKey>();
     public DbSet<IntegrationWebhook> IntegrationWebhooks => Set<IntegrationWebhook>();
     public DbSet<NotificationLog>   NotificationLogs     => Set<NotificationLog>();
+    public DbSet<PlatformLead>      PlatformLeads        => Set<PlatformLead>();
 
     public HorafyDbContext(
         DbContextOptions<HorafyDbContext> options,
