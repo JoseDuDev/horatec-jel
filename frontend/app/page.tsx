@@ -321,6 +321,15 @@ export default async function LandingPage() {
           <span className="font-semibold text-foreground">{brand.name}</span> — {brand.tagline}
         </p>
         <p className="text-sm text-muted-foreground">
+          Um produto{' '}
+          <a
+            href="https://mjml.com.br"
+            className="font-medium text-(--brand-ink) underline-offset-4 hover:underline"
+          >
+            MJML
+          </a>
+        </p>
+        <p className="text-sm text-muted-foreground">
           Já sou cliente:{' '}
           <Link href="/login" className="font-medium text-(--brand-ink) underline-offset-4 hover:underline">
             entrar no painel
