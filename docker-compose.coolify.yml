@@ -28,6 +28,7 @@
 #   JWT_SECRET, JWT_ISSUER, JWT_AUDIENCE
 #   MERCADOPAGO_ACCESS_TOKEN, GOOGLE_CLIENT_ID
 #   APP_HOST, APP_HOST_2, API_HOST  (para CORS e links de e-mail)
+#   PLATFORM_ADMIN_EMAIL, PLATFORM_ADMIN_PASSWORD (opcional — bootstrap do 1º superadmin)
 name: horafy
 
 services:
@@ -60,6 +61,10 @@ services:
       # CORS: as duas marcas batem nesta API.
       AllowedOrigins__0: https://${APP_HOST:-agenda.mjml.com.br}
       AllowedOrigins__1: https://${APP_HOST_2:-alugue.mjml.com.br}
+
+      # Bootstrap do primeiro PlatformAdmin (opcional — pulado se não definido).
+      PLATFORM_ADMIN_EMAIL: ${PLATFORM_ADMIN_EMAIL:-}
+      PLATFORM_ADMIN_PASSWORD: ${PLATFORM_ADMIN_PASSWORD:-}
     healthcheck:
       # curl, não wget: a imagem aspnet instala só curl. E 127.0.0.1, não
       # localhost: dentro do container o localhost resolve ::1 primeiro e um

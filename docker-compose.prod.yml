@@ -89,6 +89,9 @@ services:
       JWT__Audience: ${JWT_AUDIENCE}
       MercadoPago__AccessToken: ${MERCADOPAGO_ACCESS_TOKEN}
       Google__ClientId: ${GOOGLE_CLIENT_ID}
+      # Bootstrap do primeiro PlatformAdmin (opcional — pulado se não definido).
+      PLATFORM_ADMIN_EMAIL: ${PLATFORM_ADMIN_EMAIL:-}
+      PLATFORM_ADMIN_PASSWORD: ${PLATFORM_ADMIN_PASSWORD:-}
     depends_on:
       postgres:
         condition: service_healthy

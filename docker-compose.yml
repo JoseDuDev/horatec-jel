@@ -89,6 +89,9 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=horafy;Username=horafy;Password=${POSTGRES_PASSWORD:-horafy_dev_pass}"
       Serilog__WriteTo__1__Args__serverUrl: "http://seq"
+      # Bootstrap do primeiro PlatformAdmin (opcional — pulado se não definido).
+      PLATFORM_ADMIN_EMAIL: "${PLATFORM_ADMIN_EMAIL:-}"
+      PLATFORM_ADMIN_PASSWORD: "${PLATFORM_ADMIN_PASSWORD:-}"
     ports:
       - "8083:8080"
       - "8443:8443"

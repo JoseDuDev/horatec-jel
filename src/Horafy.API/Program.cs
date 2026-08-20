@@ -1,4 +1,5 @@
 using Horafy.Application;
+using Horafy.Application.Interfaces;
 using Horafy.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Horafy.Infrastructure.Auth;
@@ -6,6 +7,7 @@ using Horafy.Infrastructure.MultiTenancy;
 using Horafy.Infrastructure.Persistence;
 using Horafy.API.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using Asp.Versioning;
@@ -152,6 +154,23 @@ try
 
     builder.Services.AddAuthorization();
 
+    // ── Rate Limiting — mínimo, escopado só ao fluxo novo de "esqueci minha senha"
+    // (login/register/refresh ficam de fora; tratados separadamente pelo plano
+    // 011-rate-limiting-auth.md já cadastrado no backlog do próprio repo).
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+        // Limite por IP: 5 solicitações a cada 5 minutos.
+        options.AddFixedWindowLimiter("auth-forgot-password", limiterOptions =>
+        {
+            limiterOptions.Window = TimeSpan.FromMinutes(5);
+            limiterOptions.PermitLimit = 5;
+            limiterOptions.QueueLimit = 0;
+            limiterOptions.AutoReplenishment = true;
+        });
+    });
+
     // ── Health Checks
     builder.Services.AddHealthChecks()
         .AddNpgSql(
@@ -178,6 +197,7 @@ try
     app.UseCors("HorafyCors");
     app.UseHttpsRedirection();
     app.UseAuthentication();
+    app.UseRateLimiter();
     app.UseMiddleware<TenantMiddleware>();
     // Hardening: vincula o tenant_id do JWT ao tenant resolvido (impede replay entre tenants).
     app.UseMiddleware<Horafy.API.Middleware.TenantBindingMiddleware>();
@@ -192,6 +212,9 @@ try
         if (!app.Environment.IsProduction())
             await db.Database.MigrateAsync();
         await GlobalMigrations.RunAsync(db, logger);
+
+        var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+        await PlatformAdminSeeder.RunAsync(db, passwordHasher, builder.Configuration, logger);
     }
 
     app.Run();

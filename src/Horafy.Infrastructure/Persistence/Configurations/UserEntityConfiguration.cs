@@ -48,6 +48,13 @@ internal sealed class UserEntityConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.PasswordHash)
             .HasMaxLength(256);
 
+        // Token de "esqueci minha senha": guardamos o hash SHA-256 (hex, 64 chars),
+        // nunca o token puro — ele fica persistido em Postgres/backups.
+        builder.Property(u => u.PasswordResetTokenHash)
+            .HasMaxLength(64);
+
+        builder.Property(u => u.PasswordResetExpiresAt);
+
         builder.Property(u => u.Role)
             .HasConversion<string>()
             .HasMaxLength(32);

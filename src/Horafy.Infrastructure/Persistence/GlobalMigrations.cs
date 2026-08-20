@@ -10,6 +10,10 @@ public static class GlobalMigrations
         const string sql = """
             ALTER TABLE public.users
                 ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
+
+            ALTER TABLE public.users
+                ADD COLUMN IF NOT EXISTS password_reset_token_hash VARCHAR(64),
+                ADD COLUMN IF NOT EXISTS password_reset_expires_at TIMESTAMPTZ;
             """;
 
         logger.LogInformation("Running global migrations...");

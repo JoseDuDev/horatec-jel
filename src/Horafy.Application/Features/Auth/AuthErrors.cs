@@ -34,4 +34,9 @@ public static class AuthErrors
         "Auth.UserNotFound",
         "Usuário não encontrado.",
         ErrorType.NotFound);
+
+    public static readonly Error InvalidOrExpiredResetToken = new(
+        "Auth.InvalidOrExpiredResetToken",
+        "Token de redefinição de senha inválido ou expirado.",
+        ErrorType.Validation);
 }

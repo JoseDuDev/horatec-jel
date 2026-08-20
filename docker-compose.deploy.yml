@@ -74,6 +74,9 @@ services:
       MercadoPago__AccessToken: "fake-token"
       AllowedOrigins__0: "${APP_PUBLIC_URL}"    # origem pública do frontend (CORS)
       AllowedOrigins__1: "${APP_PUBLIC_URL_2:-}" # 2ª marca (opcional) — origem cross-site do API host
+      # Bootstrap do primeiro PlatformAdmin (opcional — pulado se não definido).
+      PLATFORM_ADMIN_EMAIL: "${PLATFORM_ADMIN_EMAIL:-}"
+      PLATFORM_ADMIN_PASSWORD: "${PLATFORM_ADMIN_PASSWORD:-}"
     depends_on:
       postgres: { condition: service_healthy }
       redis:    { condition: service_healthy }

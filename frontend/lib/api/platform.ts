@@ -1,4 +1,4 @@
-import type { TenantSummary, TenantPlan, PlanConfig } from '../types/platform'
+import type { TenantSummary, TenantPlan, TenantVertical, PlanConfig } from '../types/platform'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000'
 
@@ -44,9 +44,46 @@ export const platformLogin = async (email: string, password: string): Promise<Lo
   return res.json()
 }
 
+export interface CreateTenantBody {
+  name: string
+  slug: string
+  vertical: TenantVertical
+  email?: string
+  phone?: string
+  city?: string
+  state?: string
+  ownerName: string
+  ownerEmail: string
+  ownerPassword: string
+  capabilities: string
+  plan: TenantPlan
+}
+
+export interface CreateTenantResult {
+  tenantId: string
+  slug: string
+  tokens: { accessToken: string; refreshToken: string; expiresAt: string }
+}
+
 export const platformApi = {
   tenants: (token: string) =>
     platformFetch<TenantSummary[]>('/api/v1/platform/tenants', token),
+
+  // Onboarding completo (cria o tenant + o usuário TenantOwner) — endpoint já
+  // existente (usado hoje pelo self-signup público), agora exposto pelo painel.
+  createTenant: (token: string, body: CreateTenantBody) =>
+    platformFetch<CreateTenantResult>('/api/v1/platform/tenants', token, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+
+  // Cria um novo PlatformAdmin (superadmin) — evita que o admin seedado via
+  // env var vire ponto único de falha.
+  createAdmin: (token: string, body: { email: string; password: string; name: string }) =>
+    platformFetch<{ id: string; email: string; name: string }>('/api/v1/platform/admins', token, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
 
   suspendTenant: (token: string, id: string, reason: string) =>
     platformFetch<void>(`/api/v1/platform/tenants/${id}/suspend`, token, {

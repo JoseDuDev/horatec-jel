@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { platformLogin } from '@/lib/api/platform'
 import { usePlatformAdminStore } from '@/store/platform-admin'
 import { Button } from '@/components/ui/button'
@@ -73,6 +74,12 @@ export default function PlatformLoginPage() {
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? 'Autenticando...' : 'Entrar'}
           </Button>
+
+          <p className="text-sm text-center">
+            <Link href="/forgot-password" className="text-slate-500 underline">
+              Esqueci minha senha
+            </Link>
+          </p>
         </form>
       </div>
     </div>

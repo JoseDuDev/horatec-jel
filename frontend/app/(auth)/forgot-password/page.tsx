@@ -4,11 +4,8 @@ import { Suspense, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { authApi } from '@/lib/api/auth'
-import { tenantsApi } from '@/lib/api/tenants'
-import { useAuthStore } from '@/store/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,17 +14,13 @@ import { useBrand } from '@/components/brand-provider'
 
 const schema = z.object({
   email: z.string().min(1, 'Email obrigatório').email('Email inválido'),
-  password: z.string().min(1, 'Senha obrigatória'),
-  tenantSlug: z.string().min(1, 'Slug do tenant obrigatório'),
 })
 
 type FormData = z.infer<typeof schema>
 
-function LoginForm() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { setAuth } = useAuthStore()
+function ForgotPasswordForm() {
   const [error, setError] = useState<string | null>(null)
+  const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -38,70 +31,63 @@ function LoginForm() {
     setError(null)
     setLoading(true)
     try {
-      document.cookie = `tenant_slug=${data.tenantSlug}; path=/`
-      const tokens = await authApi.login(data.email, data.password)
-      document.cookie = `access_token=${tokens.accessToken}; path=/; max-age=${60 * 60 * 24}`
-      const [user, tenant] = await Promise.all([authApi.me(), tenantsApi.me()])
-      setAuth(user, tokens, data.tenantSlug)
-
-      const needsOnboarding =
-        !tenant.isOnboardingCompleted &&
-        (user.role === 'TenantOwner' || user.role === 'TenantAdmin')
-
-      if (needsOnboarding) {
-        router.replace('/admin/onboarding')
-      } else {
-        const redirect = searchParams.get('redirect') ?? '/admin/dashboard'
-        router.replace(redirect)
-      }
+      await authApi.forgotPassword(data.email)
+      setSent(true)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro ao fazer login')
+      setError(err instanceof Error ? err.message : 'Erro ao solicitar redefinição de senha')
     } finally {
       setLoading(false)
     }
   }
 
+  if (sent) {
+    return (
+      <div className="space-y-4 text-center">
+        <p className="text-sm text-slate-600">
+          Se existir uma conta com este e-mail, enviamos um link para redefinir sua senha.
+        </p>
+        <Link href="/login" className="text-sm text-slate-500 underline">
+          Voltar para o login
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div>
-        <Label htmlFor="tenantSlug">Slug do Tenant</Label>
-        <Input id="tenantSlug" {...register('tenantSlug')} placeholder="meu-negocio" />
-        {errors.tenantSlug && <p className="text-sm text-red-500 mt-1">{errors.tenantSlug.message}</p>}
-      </div>
+      <p className="text-sm text-slate-500">
+        Informe seu e-mail e enviaremos um link para redefinir sua senha.
+      </p>
       <div>
         <Label htmlFor="email">Email</Label>
         <Input id="email" type="email" {...register('email')} />
         {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>}
       </div>
-      <div>
-        <Label htmlFor="password">Senha</Label>
-        <Input id="password" type="password" {...register('password')} />
-        {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password.message}</p>}
-      </div>
       {error && <p className="text-sm text-red-500">{error}</p>}
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Entrando...' : 'Entrar'}
+        {loading ? 'Enviando...' : 'Enviar link de redefinição'}
       </Button>
       <p className="text-sm text-center">
-        <Link href="/forgot-password" className="text-slate-500 underline">
-          Esqueci minha senha
+        <Link href="/login" className="text-slate-500 underline">
+          Voltar para o login
         </Link>
       </p>
     </form>
   )
 }
 
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
   const brand = useBrand()
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl text-center">{brand.name} Admin</CardTitle>
+          <CardTitle className="text-2xl text-center">{brand.name}</CardTitle>
+          <p className="text-sm text-center text-slate-500">Esqueci minha senha</p>
         </CardHeader>
         <CardContent>
           <Suspense fallback={<div className="h-48 flex items-center justify-center">Carregando...</div>}>
-            <LoginForm />
+            <ForgotPasswordForm />
           </Suspense>
         </CardContent>
       </Card>

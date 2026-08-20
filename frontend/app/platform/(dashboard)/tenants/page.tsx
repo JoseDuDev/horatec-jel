@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { usePlatformAdminStore } from '@/store/platform-admin'
@@ -8,7 +10,7 @@ import { platformApi } from '@/lib/api/platform'
 import type { TenantSummary, TenantPlan } from '@/lib/types/platform'
 import { hasCapability } from '@/lib/types/platform'
 import { EditTenantPackageDialog } from '@/components/platform/EditTenantPackageDialog'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 
@@ -27,6 +29,7 @@ const PLAN_COLOR: Record<string, string> = {
 }
 
 export default function PlatformTenantsPage() {
+  const router = useRouter()
   const { accessToken } = usePlatformAdminStore()
   const [tenants, setTenants] = useState<TenantSummary[]>([])
   const [loading, setLoading] = useState(true)
@@ -62,6 +65,19 @@ export default function PlatformTenantsPage() {
     }
   }
 
+  // Ponte para o painel do tenant: o painel /admin/* resolve o tenant pelo
+  // cookie `tenant_slug` e a autenticação pelo cookie `access_token` — ambos
+  // diferentes do que o painel /platform usa (`platform_access_token` em
+  // store próprio). Replicamos o JWT do superadmin (já aceito pelo backend —
+  // TenantBindingMiddleware isenta PlatformAdmin da checagem de tenant) nesses
+  // dois cookies antes de navegar.
+  const handleManage = (t: TenantSummary) => {
+    if (!accessToken) return
+    document.cookie = `tenant_slug=${t.slug}; path=/`
+    document.cookie = `access_token=${accessToken}; path=/; max-age=${60 * 60 * 24}`
+    router.push('/admin/servicos')
+  }
+
   const handleActivate = async (id: string) => {
     if (!accessToken) return
     setActionLoading(id)
@@ -87,12 +103,17 @@ export default function PlatformTenantsPage() {
           <h1 className="text-2xl font-bold text-slate-900">Tenants</h1>
           <p className="text-slate-500 text-sm">{tenants.length} estabelecimentos cadastrados</p>
         </div>
-        <Input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Buscar por nome ou slug..."
-          className="w-64"
-        />
+        <div className="flex items-center gap-3">
+          <Input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar por nome ou slug..."
+            className="w-64"
+          />
+          <Link href="/platform/tenants/new" className={buttonVariants()}>
+            Novo Tenant
+          </Link>
+        </div>
       </div>
 
       {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{error}</div>}
@@ -148,6 +169,9 @@ export default function PlatformTenantsPage() {
                       </td>
                       <td className="py-3">
                         <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={() => handleManage(t)}>
+                            Gerenciar cadastros
+                          </Button>
                           <Button size="sm" variant="outline" onClick={() => setEditing(t)}>
                             Pacote
                           </Button>

@@ -19,5 +19,6 @@
     <!-- AutoMapper removido temporariamente (vulnerabilidade GHSA-rvv3-g6hj-g44x em 13.0.1). -->
     <!-- Adicionar de volta quando houver versão segura disponível, ou usar Mapster como alternativa. -->
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.0" />
   </ItemGroup>
 </Project>

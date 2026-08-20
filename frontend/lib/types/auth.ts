@@ -8,6 +8,6 @@ export interface AdminUser {
   id: string
   name: string
   email: string
-  role: 'TenantOwner' | 'TenantAdmin'
+  role: 'TenantOwner' | 'TenantAdmin' | 'PlatformAdmin'
   avatarUrl?: string
 }

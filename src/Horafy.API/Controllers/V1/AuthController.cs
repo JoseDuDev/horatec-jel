@@ -1,14 +1,18 @@
 using Asp.Versioning;
 using Horafy.API.Controllers.Base;
+using Horafy.Application.Features.Auth.Commands.CreatePlatformAdmin;
+using Horafy.Application.Features.Auth.Commands.ForgotPassword;
 using Horafy.Application.Features.Auth.Commands.LoginWithApple;
 using Horafy.Application.Features.Auth.Commands.LoginWithEmail;
 using Horafy.Application.Features.Auth.Commands.LoginWithGoogle;
 using Horafy.Application.Features.Auth.Commands.RefreshToken;
+using Horafy.Application.Features.Auth.Commands.ResetPassword;
 using Horafy.Application.Features.Auth.Queries.GetCurrentUser;
 using Horafy.Application.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Horafy.API.Controllers.V1;
 
@@ -77,6 +81,51 @@ public sealed class AuthController(ISender sender) : ApiControllerBase(sender)
         return StatusCode(StatusCodes.Status201Created, result.Value);
     }
 
+    /// <summary>Solicita redefinição de senha — sempre responde com sucesso genérico (anti-enumeration).</summary>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting("auth-forgot-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ForgotPassword(
+        [FromBody] ForgotPasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(new ForgotPasswordCommand(request.Email), cancellationToken);
+        return ToActionResult(result);
+    }
+
+    /// <summary>Redefine a senha a partir do token recebido por e-mail.</summary>
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting("auth-forgot-password")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword(
+        [FromBody] ResetPasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new ResetPasswordCommand(request.Token, request.NewPassword), cancellationToken);
+        return ToActionResult(result);
+    }
+
+    /// <summary>Cria um novo PlatformAdmin (superadmin) — apenas outro PlatformAdmin pode.</summary>
+    [HttpPost("/api/v{version:apiVersion}/platform/admins")]
+    [Authorize(Roles = "PlatformAdmin")]
+    [ProducesResponseType(typeof(CreatePlatformAdminResult), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreatePlatformAdmin(
+        [FromBody] CreatePlatformAdminRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new CreatePlatformAdminCommand(request.Email, request.Password, request.Name),
+            cancellationToken);
+
+        if (result.IsFailure) return ToActionResult(result);
+        return StatusCode(StatusCodes.Status201Created, result.Value);
+    }
+
     /// <summary>Renova access token usando um refresh token válido.</summary>
     [HttpPost("refresh")]
     [AllowAnonymous]
@@ -110,3 +159,6 @@ public sealed record LoginWithAppleRequest(string IdentityToken, string? TenantS
 public sealed record LoginWithEmailRequest(string Email, string Password, string? TenantSlug);
 public sealed record RegisterWithEmailRequest(string Email, string Password, string Name, string? TenantSlug);
 public sealed record RefreshTokenRequest(string RefreshToken);
+public sealed record ForgotPasswordRequest(string Email);
+public sealed record ResetPasswordRequest(string Token, string NewPassword);
+public sealed record CreatePlatformAdminRequest(string Email, string Password, string Name);

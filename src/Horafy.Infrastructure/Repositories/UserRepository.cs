@@ -43,4 +43,11 @@ internal sealed class UserRepository(HorafyDbContext context)
             .AsNoTracking()
             .Where(u => u.TenantId == tenantId)
             .ToListAsync(cancellationToken);
+
+    public async Task<User?> GetByPasswordResetTokenHashAsync(
+        string tokenHash,
+        CancellationToken cancellationToken = default) =>
+        await DbSet
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.PasswordResetTokenHash == tokenHash, cancellationToken);
 }

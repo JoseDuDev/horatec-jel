@@ -29,6 +29,11 @@ public sealed class User : BaseEntity
     // ── Autenticação local ────────────────────────────────────────────
     public string? PasswordHash { get; private set; }
 
+    // ── Redefinição de senha ("esqueci minha senha") ───────────────────
+    /// <summary>Hash SHA-256 (hex) do token enviado por e-mail — nunca o token puro.</summary>
+    public string? PasswordResetTokenHash { get; private set; }
+    public DateTimeOffset? PasswordResetExpiresAt { get; private set; }
+
     // ── Tenant / Role ─────────────────────────────────────────────────
     /// <summary>Null para PlatformAdmin; obrigatório para os demais roles.</summary>
     public Guid? TenantId { get; private set; }
@@ -134,6 +139,22 @@ public sealed class User : BaseEntity
     {
         PasswordHash = passwordHash;
         UpdatedAt    = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>Registra o hash do token de redefinição de senha e sua expiração.</summary>
+    public void SetPasswordResetToken(string tokenHash, DateTimeOffset expiresAt)
+    {
+        PasswordResetTokenHash    = tokenHash;
+        PasswordResetExpiresAt    = expiresAt;
+        UpdatedAt                 = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>Invalida o token de redefinição de senha (uso único).</summary>
+    public void ClearPasswordResetToken()
+    {
+        PasswordResetTokenHash = null;
+        PasswordResetExpiresAt = null;
+        UpdatedAt              = DateTimeOffset.UtcNow;
     }
 
     public void VerifyEmail()
