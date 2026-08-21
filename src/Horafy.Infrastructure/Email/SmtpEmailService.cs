@@ -13,8 +13,19 @@ internal sealed class SmtpEmailService(
 {
     private readonly SmtpOptions _opts = options.Value;
 
+    private bool IsConfigured =>
+        !string.IsNullOrWhiteSpace(_opts.Host) && !string.IsNullOrWhiteSpace(_opts.FromAddress);
+
     public async Task SendAsync(string to, string subject, string htmlBody, CancellationToken ct = default)
     {
+        if (!IsConfigured)
+        {
+            logger.LogWarning(
+                "SMTP não configurado — e-mail NÃO enviado (dev). Para: {To} | Assunto: {Subject}\n{Body}",
+                to, subject, htmlBody);
+            return;
+        }
+
         var msg = new MimeMessage();
         msg.From.Add(new MailboxAddress(_opts.FromName, _opts.FromAddress));
         msg.To.Add(MailboxAddress.Parse(to));
