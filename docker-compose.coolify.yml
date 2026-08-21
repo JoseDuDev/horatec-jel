@@ -29,6 +29,7 @@
 #   MERCADOPAGO_ACCESS_TOKEN, GOOGLE_CLIENT_ID
 #   APP_HOST, APP_HOST_2, API_HOST  (para CORS e links de e-mail)
 #   PLATFORM_ADMIN_EMAIL, PLATFORM_ADMIN_PASSWORD (opcional — bootstrap do 1º superadmin)
+#   SMTP_HOST/PORT/USERNAME/PASSWORD/FROM_ADDRESS/FROM_NAME (opcional — e-mails transacionais)
 name: horafy
 
 services:
@@ -57,6 +58,10 @@ services:
       # subdomínio (cliente.agenda.mjml.com.br → "cliente").
       Platform__Domains__0: ${APP_HOST:-agenda.mjml.com.br}
       Platform__Domains__1: ${APP_HOST_2:-alugue.mjml.com.br}
+      # Domínio único usado para montar links de e-mail (ex.: reset de senha) —
+      # sem isso cai no default do appsettings.json (mjml.com.br, o site
+      # institucional), não no host do próprio app.
+      Platform__Domain: ${APP_HOST:-agenda.mjml.com.br}
 
       # CORS: as duas marcas batem nesta API.
       AllowedOrigins__0: https://${APP_HOST:-agenda.mjml.com.br}
@@ -65,6 +70,16 @@ services:
       # Bootstrap do primeiro PlatformAdmin (opcional — pulado se não definido).
       PLATFORM_ADMIN_EMAIL: ${PLATFORM_ADMIN_EMAIL:-}
       PLATFORM_ADMIN_PASSWORD: ${PLATFORM_ADMIN_PASSWORD:-}
+
+      # SMTP para e-mails transacionais (reset de senha, confirmações etc.).
+      # Vazio = não envia, só loga (ver SmtpEmailService.IsConfigured).
+      Smtp__Host: ${SMTP_HOST:-}
+      Smtp__Port: ${SMTP_PORT:-587}
+      Smtp__Username: ${SMTP_USERNAME:-}
+      Smtp__Password: ${SMTP_PASSWORD:-}
+      Smtp__FromAddress: ${SMTP_FROM_ADDRESS:-}
+      Smtp__FromName: ${SMTP_FROM_NAME:-Agenda}
+      Smtp__UseSsl: ${SMTP_USE_SSL:-true}
     healthcheck:
       # curl, não wget: a imagem aspnet instala só curl. E 127.0.0.1, não
       # localhost: dentro do container o localhost resolve ::1 primeiro e um
