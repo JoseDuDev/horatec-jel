@@ -2,11 +2,12 @@ import { apiFetch } from './client'
 import type { Booking, BookingStatus, AdminCreateBookingRequest } from '../types/booking'
 
 export const bookingsApi = {
-  list: (params: { resourceId?: string; from?: string; to?: string; status?: BookingStatus }) => {
+  list: async (params: { resourceId?: string; from?: string; to?: string; status?: BookingStatus }) => {
     const qs = new URLSearchParams(
       Object.entries(params).filter(([, v]) => v != null) as [string, string][]
     ).toString()
-    return apiFetch<Booking[]>(`/api/v1/bookings?${qs}`)
+    const page = await apiFetch<{ items: Booking[] }>(`/api/v1/bookings?${qs}`)
+    return page.items
   },
 
   confirm: (id: string) =>
