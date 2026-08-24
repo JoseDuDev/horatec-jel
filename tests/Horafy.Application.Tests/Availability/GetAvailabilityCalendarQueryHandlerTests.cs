@@ -3,6 +3,7 @@ using Horafy.Application.Features.Availability.Queries;
 using Horafy.Application.Interfaces;
 using Horafy.Domain.Entities.Availability;
 using Horafy.Domain.Entities.Bookings;
+using Horafy.Domain.Entities.Tenants;
 using Horafy.Domain.Interfaces.Repositories;
 using Moq;
 using Xunit;
@@ -82,8 +83,18 @@ public class GetAvailabilityCalendarQueryHandlerTests
         var clock = new Mock<IDateTimeProvider>();
         clock.Setup(c => c.UtcNow).Returns(FixedNow);
 
+        var tenant = Tenant.Create("Teste", "teste", TenantVertical.Other);
+        tenant.UpdateInfo(tenant.Name, null, null, null, null, null, null, timeZoneId: "UTC");
+        var tenantRepo = new Mock<ITenantRepository>();
+        tenantRepo.Setup(r => r.GetByIdAsync(tenant.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tenant);
+
+        var currentTenant = new Mock<ICurrentTenantService>();
+        currentTenant.Setup(c => c.TenantId).Returns(tenant.Id);
+
         var handler = new GetAvailabilityCalendarQueryHandler(
-            availRepo.Object, serviceRepo.Object, bookingRepo.Object, clock.Object);
+            availRepo.Object, serviceRepo.Object, bookingRepo.Object,
+            tenantRepo.Object, currentTenant.Object, clock.Object);
         return (handler, bookingRepo);
     }
 }

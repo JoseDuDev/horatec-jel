@@ -5,6 +5,7 @@ using Horafy.Domain.Entities.Availability;
 using Horafy.Domain.Entities.Bookings;
 using Horafy.Domain.Entities.Resources;
 using Horafy.Domain.Entities.Services;
+using Horafy.Domain.Entities.Tenants;
 using Horafy.Domain.Interfaces.Repositories;
 using Moq;
 using Xunit;
@@ -207,10 +208,35 @@ public class GetAvailableSlotsQueryHandlerTests
         result.Value[0].TimeOfDay.Should().Be(new TimeSpan(10, 0, 0));
     }
 
+    [Fact]
+    public async Task Handle_TenantInSaoPauloTimeZone_ConvertsWallClockToUtc()
+    {
+        // Negócio abre 09:00 em America/Sao_Paulo (UTC-3) → slot deve ser 12:00 UTC.
+        var rule = BuildRule(new TimeOnly(9, 0), new TimeOnly(10, 0), 60);
+        var (handler, availRepo, _, bookingRepo) = BuildHandler(timeZoneId: "America/Sao_Paulo");
+
+        availRepo.Setup(r => r.GetRuleAsync(ResourceId, TestDate.DayOfWeek, default))
+            .ReturnsAsync(rule);
+        availRepo.Setup(r => r.GetExceptionAsync(ResourceId, TestDate, default))
+            .ReturnsAsync((AvailabilityException?)null);
+        bookingRepo.Setup(r => r.GetByResourceAsync(ResourceId, It.IsAny<DateTimeOffset>(),
+            It.IsAny<DateTimeOffset>(), default))
+            .ReturnsAsync(new List<Booking>());
+
+        var result = await handler.Handle(
+            new GetAvailableSlotsQuery(ResourceId, TestDate, null), default);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().ContainSingle();
+        result.Value[0].Offset.Should().Be(TimeSpan.Zero);
+        result.Value[0].UtcDateTime.TimeOfDay.Should().Be(new TimeSpan(12, 0, 0));
+    }
+
     private static (GetAvailableSlotsQueryHandler handler,
         Mock<IAvailabilityRepository> availRepo,
         Mock<IServiceRepository> serviceRepo,
-        Mock<IBookingRepository> bookingRepo) BuildHandler(DateTimeOffset? now = null)
+        Mock<IBookingRepository> bookingRepo) BuildHandler(
+            DateTimeOffset? now = null, string timeZoneId = "UTC")
     {
         var availRepo   = new Mock<IAvailabilityRepository>();
         var serviceRepo = new Mock<IServiceRepository>();
@@ -219,8 +245,18 @@ public class GetAvailableSlotsQueryHandlerTests
         var clock = new Mock<IDateTimeProvider>();
         clock.Setup(c => c.UtcNow).Returns(now ?? DateTimeOffset.UtcNow);
 
+        var tenant = Tenant.Create("Teste", "teste", TenantVertical.Other);
+        tenant.UpdateInfo(tenant.Name, null, null, null, null, null, null, timeZoneId: timeZoneId);
+        var tenantRepo = new Mock<ITenantRepository>();
+        tenantRepo.Setup(r => r.GetByIdAsync(tenant.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tenant);
+
+        var currentTenant = new Mock<ICurrentTenantService>();
+        currentTenant.Setup(c => c.TenantId).Returns(tenant.Id);
+
         var handler = new GetAvailableSlotsQueryHandler(
-            availRepo.Object, serviceRepo.Object, bookingRepo.Object, clock.Object);
+            availRepo.Object, serviceRepo.Object, bookingRepo.Object,
+            tenantRepo.Object, currentTenant.Object, clock.Object);
         return (handler, availRepo, serviceRepo, bookingRepo);
     }
 }

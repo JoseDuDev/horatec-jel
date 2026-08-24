@@ -29,12 +29,17 @@ internal sealed class GetAvailabilityCalendarQueryHandler(
     IAvailabilityRepository availabilityRepository,
     IServiceRepository serviceRepository,
     IBookingRepository bookingRepository,
+    ITenantRepository tenantRepository,
+    ICurrentTenantService currentTenant,
     IDateTimeProvider dateTimeProvider)
     : IRequestHandler<GetAvailabilityCalendarQuery, Result<IReadOnlyList<DayAvailability>>>
 {
     public async Task<Result<IReadOnlyList<DayAvailability>>> Handle(
         GetAvailabilityCalendarQuery request, CancellationToken ct)
     {
+        var tenant = await tenantRepository.GetByIdAsync(currentTenant.TenantId!.Value, ct);
+        var tenantTimeZone = TimeZoneInfo.FindSystemTimeZoneById(tenant!.TimeZoneId);
+
         var daysInMonth = DateTime.DaysInMonth(request.Year, request.Month);
         var from = new DateOnly(request.Year, request.Month, 1);
         var to   = new DateOnly(request.Year, request.Month, daysInMonth);
@@ -57,10 +62,12 @@ internal sealed class GetAvailabilityCalendarQueryHandler(
         var businessHours = (await availabilityRepository.GetBusinessHoursAsync(ct) ?? [])
             .ToDictionary(b => b.DayOfWeek);
 
-        var monthStart = new DateTimeOffset(from.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
-        var monthEnd   = new DateTimeOffset(to.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
+        var monthStart = new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(
+            from.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified), tenantTimeZone), TimeSpan.Zero);
+        var monthEnd = new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(
+            to.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified), tenantTimeZone), TimeSpan.Zero);
         var bookingsByDate = (await bookingRepository.GetByResourceAsync(request.ResourceId, monthStart, monthEnd, ct))
-            .GroupBy(b => DateOnly.FromDateTime(b.ScheduledAt.UtcDateTime))
+            .GroupBy(b => DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(b.ScheduledAt.UtcDateTime, tenantTimeZone)))
             .ToDictionary(g => g.Key, g => (IReadOnlyList<Booking>)g.ToList());
 
         var now    = dateTimeProvider.UtcNow;
@@ -81,7 +88,7 @@ internal sealed class GetAvailabilityCalendarQueryHandler(
 
             var slots = SlotCalculator.ComputeAvailableSlots(
                 date, rule, blackouts.Contains(date), exception, serviceDuration,
-                dayBookings ?? Array.Empty<Booking>(), now);
+                dayBookings ?? Array.Empty<Booking>(), now, tenantTimeZone);
 
             result.Add(new DayAvailability(date, slots.Count));
         }

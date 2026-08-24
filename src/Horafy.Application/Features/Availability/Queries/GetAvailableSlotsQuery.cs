@@ -16,12 +16,17 @@ internal sealed class GetAvailableSlotsQueryHandler(
     IAvailabilityRepository availabilityRepository,
     IServiceRepository serviceRepository,
     IBookingRepository bookingRepository,
+    ITenantRepository tenantRepository,
+    ICurrentTenantService currentTenant,
     IDateTimeProvider dateTimeProvider)
     : IRequestHandler<GetAvailableSlotsQuery, Result<IReadOnlyList<DateTimeOffset>>>
 {
     public async Task<Result<IReadOnlyList<DateTimeOffset>>> Handle(
         GetAvailableSlotsQuery request, CancellationToken cancellationToken)
     {
+        var tenant = await tenantRepository.GetByIdAsync(currentTenant.TenantId!.Value, cancellationToken);
+        var tenantTimeZone = TimeZoneInfo.FindSystemTimeZoneById(tenant!.TimeZoneId);
+
         int? serviceDuration = null;
         if (request.ServiceId.HasValue)
         {
@@ -53,14 +58,16 @@ internal sealed class GetAvailableSlotsQueryHandler(
         if (exception?.IsBlocked is true)
             return Result.Success<IReadOnlyList<DateTimeOffset>>(Array.Empty<DateTimeOffset>());
 
-        var dayStart = new DateTimeOffset(request.Date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
-        var dayEnd   = new DateTimeOffset(request.Date.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
+        var dayStart = new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(
+            request.Date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified), tenantTimeZone), TimeSpan.Zero);
+        var dayEnd = new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(
+            request.Date.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Unspecified), tenantTimeZone), TimeSpan.Zero);
         var bookings = await bookingRepository.GetByResourceAsync(
             request.ResourceId, dayStart, dayEnd, cancellationToken);
 
         var slots = SlotCalculator.ComputeAvailableSlots(
             request.Date, rule, isBlackout: false, exception, serviceDuration,
-            bookings, dateTimeProvider.UtcNow);
+            bookings, dateTimeProvider.UtcNow, tenantTimeZone);
 
         return Result.Success(slots);
     }

@@ -12,7 +12,8 @@ public static class SlotCalculator
         AvailabilityException?  exception,
         int?                    serviceDurationMinutes,
         IReadOnlyList<Booking>  dayBookings,
-        DateTimeOffset          now)
+        DateTimeOffset          now,
+        TimeZoneInfo            tenantTimeZone)
     {
         if (rule is null) return Array.Empty<DateTimeOffset>();
         if (isBlackout) return Array.Empty<DateTimeOffset>();
@@ -24,11 +25,14 @@ public static class SlotCalculator
         var slotDuration = serviceDurationMinutes ?? rule.SlotDurationMinutes;
         var step         = slotDuration + rule.BreakAfterMinutes;
 
+        // StartTime/EndTime são hora de parede do fuso do tenant, não UTC.
         var allSlots = new List<DateTimeOffset>();
         var current  = windowStart;
         while (current.Add(TimeSpan.FromMinutes(slotDuration)) <= windowEnd)
         {
-            allSlots.Add(new DateTimeOffset(date.ToDateTime(current, DateTimeKind.Utc)));
+            var localDateTime = date.ToDateTime(current, DateTimeKind.Unspecified);
+            var utcDateTime   = TimeZoneInfo.ConvertTimeToUtc(localDateTime, tenantTimeZone);
+            allSlots.Add(new DateTimeOffset(utcDateTime, TimeSpan.Zero));
             current = current.Add(TimeSpan.FromMinutes(step));
         }
         if (allSlots.Count == 0) return Array.Empty<DateTimeOffset>();
