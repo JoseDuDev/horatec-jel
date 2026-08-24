@@ -1,5 +1,6 @@
 using FluentValidation;
 using Horafy.Application.Interfaces;
+using Horafy.Domain.Entities.Availability;
 using Horafy.Domain.Entities.Bookings;
 using Horafy.Domain.Interfaces.Repositories;
 using Horafy.Shared;
@@ -60,6 +61,10 @@ internal sealed class GetAvailableDaysQueryHandler(
             serviceDuration = service?.DurationMinutes;
         }
 
+        // Recurso sem grade própria usa os horários globais do negócio.
+        var businessHours = (await availabilityRepository.GetBusinessHoursAsync(ct) ?? [])
+            .ToDictionary(b => b.DayOfWeek);
+
         var rangeStart = new DateTimeOffset(request.From.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
         var rangeEnd   = new DateTimeOffset(request.To.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
         var bookingsByDate = (await bookingRepository.GetByResourceAsync(request.ResourceId, rangeStart, rangeEnd, ct))
@@ -71,6 +76,13 @@ internal sealed class GetAvailableDaysQueryHandler(
         for (var date = request.From; date <= request.To; date = date.AddDays(1))
         {
             rules.TryGetValue(date.DayOfWeek, out var rule);
+            if (rule is null && businessHours.TryGetValue(date.DayOfWeek, out var hours) && hours.IsOpen)
+            {
+                rule = AvailabilityRule.Create(
+                    request.ResourceId, date.DayOfWeek,
+                    hours.OpenTime, hours.CloseTime,
+                    slotDurationMinutes: serviceDuration ?? 30);
+            }
             exceptions.TryGetValue(date, out var exception);
             bookingsByDate.TryGetValue(date, out var dayBookings);
 
