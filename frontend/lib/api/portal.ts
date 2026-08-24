@@ -77,8 +77,12 @@ export const portalApi = {
     return portalFetch<string[]>(`/api/v1/availability/resources/${resourceId}/slots?${qs}`, slug)
   },
 
-  reviews: (slug: string, resourceId: string) =>
-    portalFetch<PortalReview[]>(`/api/v1/reviews/resources/${resourceId}`, slug),
+  reviews: async (slug: string, resourceId: string) => {
+    const result = await portalFetch<{ page: { items: PortalReview[] } }>(
+      `/api/v1/reviews/resources/${resourceId}`, slug
+    )
+    return result.page.items
+  },
 
   profile: (slug: string, token: string) =>
     portalFetch<CustomerProfile>('/api/v1/customers/me', slug, {}, token),
