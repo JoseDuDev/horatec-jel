@@ -7,11 +7,45 @@ function getApiUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000'
 }
 
+// Deduplica renovações concorrentes: várias chamadas 401 ao mesmo tempo devem
+// esperar UMA renovação, não disparar uma pra cada.
+let refreshPromise: Promise<string | null> | null = null
+
+// O refresh token do cliente final tem validade longa (ver
+// CustomerRefreshTokenExpirationDays no backend) — na prática a sessão nunca
+// deve expirar enquanto o navegador guardar esse token.
+async function refreshCustomerToken(): Promise<string | null> {
+  if (typeof window === 'undefined') return null
+
+  // Import dinâmico evita ciclo com store/portal-auth (que não depende deste módulo hoje,
+  // mas mantém portalFetch livre de acoplamento no topo do arquivo).
+  const { usePortalAuthStore } = await import('@/store/portal-auth')
+  const { refreshToken, customer } = usePortalAuthStore.getState()
+  if (!refreshToken || !customer) return null
+
+  try {
+    const res = await fetch(`${getApiUrl()}/api/v1/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    })
+    if (!res.ok) return null
+
+    const tokens = (await res.json()) as { accessToken: string; refreshToken: string }
+    usePortalAuthStore.getState().setCustomerAuth(customer, tokens.accessToken, tokens.refreshToken)
+    document.cookie = `portal_access_token=${tokens.accessToken}; path=/; max-age=${60 * 60 * 24 * 365}`
+    return tokens.accessToken
+  } catch {
+    return null
+  }
+}
+
 async function portalFetch<T>(
   path: string,
   tenantSlug: string,
   options: RequestInit = {},
-  customerToken?: string
+  customerToken?: string,
+  isRetry = false
 ): Promise<T> {
   const res = await fetch(`${getApiUrl()}${path}`, {
     ...options,
@@ -22,6 +56,12 @@ async function portalFetch<T>(
       ...options.headers,
     },
   })
+
+  if (res.status === 401 && customerToken && !isRetry) {
+    refreshPromise ??= refreshCustomerToken().finally(() => { refreshPromise = null })
+    const newToken = await refreshPromise
+    if (newToken) return portalFetch<T>(path, tenantSlug, options, newToken, true)
+  }
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ title: res.statusText }))

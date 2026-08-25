@@ -38,8 +38,13 @@ internal sealed class JwtTokenService(IOptions<JwtOptions> options) : ITokenServ
 
         var accessToken = handler.WriteToken(handler.CreateToken(accessDescriptor));
 
-        // ── Refresh token (stateless, 7 dias) ─────────────────────────
-        var refreshExpires = now.AddDays(_opts.RefreshTokenExpirationDays);
+        // ── Refresh token (stateless) ──────────────────────────────────
+        // Customer tem validade bem mais longa: o cliente final não deve
+        // perceber a sessão expirando, só o admin precisa logar de novo.
+        var refreshDays = user.Role == UserRole.Customer
+            ? _opts.CustomerRefreshTokenExpirationDays
+            : _opts.RefreshTokenExpirationDays;
+        var refreshExpires = now.AddDays(refreshDays);
         var refreshClaims  = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),

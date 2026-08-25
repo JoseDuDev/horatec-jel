@@ -25,8 +25,10 @@ function SignIn({ slug, onSuccess }: Props) {
         try {
           const tokens = await portalApi.loginWithGoogle(slug, idToken)
           const profile = await portalApi.profile(slug, tokens.accessToken)
-          setCustomerAuth(profile, tokens.accessToken)
-          document.cookie = `portal_access_token=${tokens.accessToken}; path=/; max-age=${60 * 60 * 24}`
+          setCustomerAuth(profile, tokens.accessToken, tokens.refreshToken)
+          // Validade longa (ver CustomerRefreshTokenExpirationDays no backend) — o
+          // cliente final não deve perceber a sessão expirando.
+          document.cookie = `portal_access_token=${tokens.accessToken}; path=/; max-age=${60 * 60 * 24 * 365}`
           onSuccess?.()
         } catch {
           console.error('Login failed')

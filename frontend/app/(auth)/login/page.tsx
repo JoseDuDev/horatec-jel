@@ -27,7 +27,9 @@ function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { setAuth } = useAuthStore()
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(
+    searchParams.get('sessionExpired') ? 'Sua sessão expirou. Faça login novamente.' : null
+  )
   const [loading, setLoading] = useState(false)
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -40,7 +42,9 @@ function LoginForm() {
     try {
       document.cookie = `tenant_slug=${data.tenantSlug}; path=/`
       const tokens = await authApi.login(data.email, data.password)
-      document.cookie = `access_token=${tokens.accessToken}; path=/; max-age=${60 * 60 * 24}`
+      // Mesma validade do refresh token — o interceptor de 401 renova o access
+      // token sozinho enquanto o cookie existir (ver lib/api/client.ts).
+      document.cookie = `access_token=${tokens.accessToken}; path=/; max-age=${60 * 60 * 24 * 7}`
       const [user, tenant] = await Promise.all([authApi.me(), tenantsApi.me()])
       setAuth(user, tokens, data.tenantSlug)
 

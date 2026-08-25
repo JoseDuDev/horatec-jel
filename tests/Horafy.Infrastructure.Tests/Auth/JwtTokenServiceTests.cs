@@ -107,6 +107,20 @@ public class JwtTokenServiceTests
         principal.Should().BeNull();
     }
 
+    // ── Validade do refresh token por role ─────────────────────────────
+    [Fact]
+    public void GenerateTokens_CustomerRole_GetsLongerRefreshTokenThanAdminRole()
+    {
+        var customer = User.CreateWithEmail("cliente@gmail.com", "hash", "Cliente", null, UserRole.Customer);
+        var owner    = User.CreateWithEmail("dono@gmail.com", "hash", "Dono", Guid.NewGuid(), UserRole.TenantOwner);
+        var service  = CreateService();
+
+        var customerTokens = service.GenerateTokens(customer);
+        var ownerTokens    = service.GenerateTokens(owner);
+
+        customerTokens.RefreshTokenExpiresAt.Should().BeAfter(ownerTokens.RefreshTokenExpiresAt);
+    }
+
     // ── Claims do access token ────────────────────────────────────────
     [Fact]
     public void GenerateTokens_AccessToken_ContainsTenantIdClaim()
