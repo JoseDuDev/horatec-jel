@@ -11,7 +11,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { GoogleSignInButton } from '@/components/portal/GoogleSignInButton'
 import { cn } from '@/lib/utils'
 import { HeartOff } from 'lucide-react'
 import { ReviewForm } from '@/components/portal/ReviewForm'
@@ -84,8 +83,13 @@ export default function MinhaContaPage({ params }: Props) {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <h1 className="text-2xl font-bold mb-4">Minha Conta</h1>
-        <p className="text-slate-500 mb-6">Entre com sua conta Google para ver seus agendamentos.</p>
-        <GoogleSignInButton slug={slug} />
+        <p className="text-slate-500 mb-6">Entre na sua conta para ver seus agendamentos.</p>
+        <Link
+          href={`/${slug}/entrar?next=${encodeURIComponent(`/${slug}/minha-conta`)}`}
+          className={cn(buttonVariants())}
+        >
+          Entrar
+        </Link>
       </div>
     )
   }

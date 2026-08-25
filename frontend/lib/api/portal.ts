@@ -200,4 +200,45 @@ export const portalApi = {
         body: JSON.stringify({ idToken, tenantSlug: slug }),
       }
     ),
+
+  // ── Login/cadastro com e-mail ou celular + senha ───────────────────────────
+  // POST /auth/email aceita e-mail OU celular no campo `email`; sem '@' o backend
+  // trata como telefone e usa o tenantSlug para achar o usuário do tenant.
+  // Resposta: TokenPair { accessToken, refreshToken, accessTokenExpiresAt, refreshTokenExpiresAt }.
+  loginWithEmail: (slug: string, identifier: string, password: string) =>
+    portalFetch<{ accessToken: string; refreshToken: string }>(
+      '/api/v1/auth/email', slug, {
+        method: 'POST',
+        body: JSON.stringify({ email: identifier, password, tenantSlug: slug }),
+      }
+    ),
+
+  registerWithEmail: (
+    slug: string,
+    data: { name: string; email: string; phone?: string; password: string }
+  ) =>
+    portalFetch<{ accessToken: string; refreshToken: string }>(
+      '/api/v1/auth/register', slug, {
+        method: 'POST',
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          name: data.name,
+          tenantSlug: slug,
+          phone: data.phone || undefined,
+        }),
+      }
+    ),
+
+  // Fallback de perfil para usuários autenticados que NÃO têm role Customer
+  // (ex.: admin entrando no portal): GET /customers/me exige role Customer,
+  // mas GET /auth/me aceita qualquer role.
+  me: (slug: string, token: string) =>
+    portalFetch<{
+      id: string
+      email: string
+      name?: string | null
+      avatarUrl?: string | null
+      role: string
+    }>('/api/v1/auth/me', slug, {}, token),
 }

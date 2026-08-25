@@ -36,6 +36,17 @@ internal sealed class UserRepository(HorafyDbContext context)
         await DbSet
             .AnyAsync(u => u.Email == email.ToLowerInvariant(), cancellationToken);
 
+    public async Task<IReadOnlyList<User>> GetByPhoneAsync(
+        IReadOnlyCollection<string> phoneCandidates,
+        Guid tenantId,
+        CancellationToken cancellationToken = default) =>
+        await DbSet
+            .AsNoTracking()
+            .Where(u => u.TenantId == tenantId
+                        && u.Phone != null
+                        && phoneCandidates.Contains(u.Phone))
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyList<User>> GetByTenantAsync(
         Guid tenantId,
         CancellationToken cancellationToken = default) =>

@@ -47,7 +47,10 @@ public sealed class AuthController(ISender sender) : ApiControllerBase(sender)
         return ToActionResult(result);
     }
 
-    /// <summary>Login com e-mail e senha.</summary>
+    /// <summary>
+    /// Login com e-mail OU celular + senha. Valores sem '@' são tratados como
+    /// celular e exigem TenantSlug (telefone só é único dentro do tenant).
+    /// </summary>
     [HttpPost("email")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(TokenPair), StatusCodes.Status200OK)]
@@ -74,7 +77,7 @@ public sealed class AuthController(ISender sender) : ApiControllerBase(sender)
     {
         var result = await Sender.Send(
             new Application.Features.Auth.Commands.RegisterWithEmail.RegisterWithEmailCommand(
-                request.Email, request.Password, request.Name, request.TenantSlug),
+                request.Email, request.Password, request.Name, request.TenantSlug, request.Phone),
             cancellationToken);
 
         if (result.IsFailure) return ToActionResult(result);
@@ -157,7 +160,8 @@ public sealed class AuthController(ISender sender) : ApiControllerBase(sender)
 public sealed record LoginWithGoogleRequest(string IdToken, string? TenantSlug);
 public sealed record LoginWithAppleRequest(string IdentityToken, string? TenantSlug);
 public sealed record LoginWithEmailRequest(string Email, string Password, string? TenantSlug);
-public sealed record RegisterWithEmailRequest(string Email, string Password, string Name, string? TenantSlug);
+public sealed record RegisterWithEmailRequest(
+    string Email, string Password, string Name, string? TenantSlug, string? Phone = null);
 public sealed record RefreshTokenRequest(string RefreshToken);
 public sealed record ForgotPasswordRequest(string Email);
 public sealed record ResetPasswordRequest(string Token, string NewPassword);

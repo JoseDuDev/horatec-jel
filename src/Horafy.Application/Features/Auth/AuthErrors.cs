@@ -25,6 +25,11 @@ public static class AuthErrors
         "Este e-mail já está cadastrado.",
         ErrorType.Conflict);
 
+    public static readonly Error PhoneAlreadyRegistered = new(
+        "Auth.PhoneAlreadyRegistered",
+        "Este celular já está cadastrado neste estabelecimento.",
+        ErrorType.Conflict);
+
     public static readonly Error TenantNotFound = new(
         "Auth.TenantNotFound",
         "Estabelecimento não encontrado.",

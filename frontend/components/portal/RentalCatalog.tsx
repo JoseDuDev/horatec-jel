@@ -58,7 +58,9 @@ export function RentalCatalog({ slug, items }: Props) {
   const reserve = async () => {
     if (!selected || !validPeriod) return
     if (!customer || !accessToken) {
-      setError('Você precisa entrar para reservar.')
+      // Deslogado: manda para a página de login do portal e volta para cá depois.
+      const current = window.location.pathname + window.location.search
+      router.push(`/${slug}/entrar?next=${encodeURIComponent(current)}`)
       return
     }
     setSubmitting(true); setError(null)

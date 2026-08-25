@@ -13,6 +13,7 @@ public sealed record RegisterWithEmailCommand(
     string Password,
     string Name,
     string? TenantSlug,
+    string? Phone = null,
     UserRole Role = UserRole.Customer) : IRequest<Result<TokenPair>>;
 
 public sealed class RegisterWithEmailCommandValidator : AbstractValidator<RegisterWithEmailCommand>
@@ -32,6 +33,12 @@ public sealed class RegisterWithEmailCommandValidator : AbstractValidator<Regist
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Nome é obrigatório.")
             .MaximumLength(150);
+
+        // Celular opcional: validado sobre a forma normalizada (dígitos-somente).
+        RuleFor(x => x.Phone)
+            .Must(p => PhoneNumber.IsValid(PhoneNumber.Normalize(p)))
+            .When(x => !string.IsNullOrWhiteSpace(x.Phone))
+            .WithMessage("Celular inválido. Informe DDD + número (10 a 13 dígitos).");
     }
 }
 
@@ -60,10 +67,25 @@ internal sealed class RegisterWithEmailCommandHandler(
             tenantId = tenant.Id;
         }
 
+        // Celular opcional, guardado normalizado (dígitos-somente). Deve ser único
+        // dentro do tenant — considerando as variantes com/sem o prefixo 55, para
+        // não criar ambiguidade no login por celular.
+        var phone = PhoneNumber.Normalize(request.Phone);
+        if (phone.Length > 0 && tenantId.HasValue)
+        {
+            var samePhone = await userRepository.GetByPhoneAsync(
+                PhoneNumber.BuildCandidates(phone), tenantId.Value, cancellationToken);
+            if (samePhone.Count > 0)
+                return Result.Failure<TokenPair>(AuthErrors.PhoneAlreadyRegistered);
+        }
+
         var passwordHash = passwordHasher.Hash(request.Password);
 
         var user = User.CreateWithEmail(
             request.Email, passwordHash, request.Name, tenantId, request.Role);
+
+        if (phone.Length > 0)
+            user.SetPhone(phone);
 
         userRepository.Add(user);
         await unitOfWork.SaveChangesAsync(cancellationToken);

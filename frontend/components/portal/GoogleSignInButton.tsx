@@ -2,7 +2,7 @@
 
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 import { portalApi } from '@/lib/api/portal'
-import { usePortalAuthStore } from '@/store/portal-auth'
+import { completePortalLogin } from '@/lib/portal-session'
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? ''
 
@@ -12,8 +12,6 @@ interface Props {
 }
 
 function SignIn({ slug, onSuccess }: Props) {
-  const { setCustomerAuth } = usePortalAuthStore()
-
   return (
     // O GIS (<GoogleLogin>) devolve um ID token (JWT) em `credential` — é exatamente o
     // que o backend valida (GoogleJsonWebSignature.ValidateAsync). NÃO usar useGoogleLogin,
@@ -24,11 +22,9 @@ function SignIn({ slug, onSuccess }: Props) {
         if (!idToken) return
         try {
           const tokens = await portalApi.loginWithGoogle(slug, idToken)
-          const profile = await portalApi.profile(slug, tokens.accessToken)
-          setCustomerAuth(profile, tokens.accessToken, tokens.refreshToken)
-          // Validade longa (ver CustomerRefreshTokenExpirationDays no backend) — o
-          // cliente final não deve perceber a sessão expirando.
-          document.cookie = `portal_access_token=${tokens.accessToken}; path=/; max-age=${60 * 60 * 24 * 365}`
+          // Persistência de tokens/perfil + cookie compartilhada com o login
+          // por e-mail/celular (lib/portal-session.ts).
+          await completePortalLogin(slug, tokens)
           onSuccess?.()
         } catch {
           console.error('Login failed')

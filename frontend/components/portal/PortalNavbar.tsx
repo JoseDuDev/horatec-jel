@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePortalAuthStore } from '@/store/portal-auth'
-import { GoogleSignInButton } from './GoogleSignInButton'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useRouter } from 'next/navigation'
 import { hasCapability } from '@/lib/types/platform'
@@ -75,7 +75,9 @@ export function PortalNavbar({ slug, tenantName, logoUrl, capabilities }: Props)
               <Button variant="ghost" size="sm" onClick={handleLogout}>Sair</Button>
             </>
           ) : (
-            <GoogleSignInButton slug={slug} />
+            <Link href={`/${slug}/entrar`} className={cn(buttonVariants({ size: 'sm' }))}>
+              Entrar
+            </Link>
           )}
         </div>
       </div>

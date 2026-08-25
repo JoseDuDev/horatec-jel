@@ -68,7 +68,9 @@ export function BookingWizard({ slug, services, resources, initialServiceId }: P
   const handleConfirm = async (opts: CheckoutOptions) => {
     if (!serviceId || !resourceId || !selectedSlot) return
     if (!customer || !accessToken) {
-      alert('Você precisa entrar com Google para agendar.')
+      // Deslogado: manda para a página de login do portal e volta para cá depois.
+      const current = window.location.pathname + window.location.search
+      router.push(`/${slug}/entrar?next=${encodeURIComponent(current)}`)
       return
     }
     setSubmitting(true)

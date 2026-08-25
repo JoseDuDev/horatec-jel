@@ -29,6 +29,12 @@ internal sealed class UserEntityConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Phone)
             .HasMaxLength(20);
 
+        // Não-único: o mesmo número pode existir em tenants diferentes (a
+        // unicidade por tenant é garantida na aplicação). Suporta o lookup
+        // do login por celular.
+        builder.HasIndex(u => u.Phone)
+            .HasDatabaseName("ix_users_phone");
+
         builder.Property(u => u.GoogleId)
             .HasMaxLength(128);
 
