@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Rebuild manual: as NEXT_PUBLIC_* ficam assadas na imagem do frontend em
+  # tempo de build, então trocar um secret/variable exige rebuildar — sem isto
+  # a única forma seria um commit vazio.
+  workflow_dispatch:
 
 jobs:
   # ── Backend .NET ──────────────────────────────────────────────────────────
@@ -57,12 +61,12 @@ jobs:
           NEXT_PUBLIC_API_URL: http://localhost:5000
           NEXT_PUBLIC_GOOGLE_CLIENT_ID: mock-client-id
 
-  # ── Docker build (apenas em push para main) ────────────────────────────────
+  # ── Docker build (push para main ou rebuild manual) ────────────────────────
   docker:
     name: Docker — build images
     runs-on: ubuntu-latest
     needs: [backend, frontend]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     permissions:
       contents: read
       packages: write
