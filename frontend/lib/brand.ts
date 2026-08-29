@@ -16,7 +16,7 @@ export type BrandModule = 'Appointments' | 'Rentals'
 export interface Brand {
   /** Chave estável da marca. */
   id: string
-  /** Nome exibido (topo do admin, títulos, "Powered by ..."). */
+  /** Nome exibido (topo do admin, títulos, rodapé da landing). */
   name: string
   /** Frase curta usada em metadata e no hero do portal. */
   tagline: string

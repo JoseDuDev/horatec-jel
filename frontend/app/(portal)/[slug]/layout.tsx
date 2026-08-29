@@ -1,6 +1,5 @@
 import { PortalNavbar } from '@/components/portal/PortalNavbar'
 import { portalApi } from '@/lib/api/portal'
-import { getActiveBrand } from '@/lib/brand.server'
 
 interface Props {
   children: React.ReactNode
@@ -9,7 +8,6 @@ interface Props {
 
 export default async function PortalLayout({ children, params }: Props) {
   const { slug } = await params
-  const brand = await getActiveBrand()
   let tenantName = slug
   let logoUrl: string | undefined
   let capabilities = ''
@@ -29,7 +27,15 @@ export default async function PortalLayout({ children, params }: Props) {
       <main>{children}</main>
       <footer className="border-t mt-16 py-8">
         <p className="text-center text-sm text-slate-400">
-          Powered by <span className="font-semibold">{brand.name}</span>
+          Um produto{' '}
+          <a
+            href="https://mjml.com.br"
+            target="_blank"
+            rel="noreferrer"
+            className="font-semibold underline-offset-4 hover:underline"
+          >
+            MJML
+          </a>
         </p>
       </footer>
     </div>
