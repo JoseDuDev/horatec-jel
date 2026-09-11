@@ -143,6 +143,27 @@ services:
       - traefik.http.routers.horafy-fe-http.middlewares=horafy-https
       - traefik.http.routers.horafy-fe-http.service=horafy-fe
 
+      # ---- Marca Alugue (alugue.mjml.com.br) ----
+      # Mesma imagem e MESMO serviço: a marca é resolvida pelo Host da
+      # requisição (frontend/lib/brand.ts), não por um segundo container.
+      # Roteador separado de propósito — se o desafio DNS-01 do alugue falhar,
+      # o certificado do agenda (já emitido e em uso) não é afetado.
+      - 'traefik.http.routers.horafy-fe-alugue.rule=Host(`alugue.mjml.com.br`) || HostRegexp(`^.+\.alugue\.mjml\.com\.br$$`)'
+      - traefik.http.routers.horafy-fe-alugue.entrypoints=https
+      - traefik.http.routers.horafy-fe-alugue.tls=true
+      # Para validar no staging do Let's Encrypt antes de queimar cota (5
+      # certificados duplicados por semana), troque SÓ esta linha para um
+      # segundo resolver (ex.: `cfstg`) com storage próprio no proxy. Nunca
+      # aponte o resolver `cf` para o staging: ele renova o cert do agenda.
+      - traefik.http.routers.horafy-fe-alugue.tls.certresolver=cf
+      - traefik.http.routers.horafy-fe-alugue.tls.domains[0].main=alugue.mjml.com.br
+      - 'traefik.http.routers.horafy-fe-alugue.tls.domains[0].sans=*.alugue.mjml.com.br'
+      - traefik.http.routers.horafy-fe-alugue.service=horafy-fe
+      - 'traefik.http.routers.horafy-fe-alugue-http.rule=Host(`alugue.mjml.com.br`) || HostRegexp(`^.+\.alugue\.mjml\.com\.br$$`)'
+      - traefik.http.routers.horafy-fe-alugue-http.entrypoints=http
+      - traefik.http.routers.horafy-fe-alugue-http.middlewares=horafy-https
+      - traefik.http.routers.horafy-fe-alugue-http.service=horafy-fe
+
 networks:
   horafy-net:
     driver: bridge
