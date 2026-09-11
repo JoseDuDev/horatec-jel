@@ -30,6 +30,8 @@
 #   APP_HOST, APP_HOST_2, API_HOST  (para CORS e links de e-mail)
 #   PLATFORM_ADMIN_EMAIL, PLATFORM_ADMIN_PASSWORD (opcional — bootstrap do 1º superadmin)
 #   SMTP_HOST/PORT/USERNAME/PASSWORD/FROM_ADDRESS/FROM_NAME (opcional — e-mails transacionais)
+#   EVOLUTION_BASE_URL/API_KEY/INSTANCE (opcional — WhatsApp; sem elas nenhum
+#     lembrete de agendamento ou de devolução de locação é enviado)
 name: horafy
 
 services:
@@ -80,6 +82,19 @@ services:
       Smtp__FromAddress: ${SMTP_FROM_ADDRESS:-}
       Smtp__FromName: ${SMTP_FROM_NAME:-Agenda}
       Smtp__UseSsl: ${SMTP_USE_SSL:-true}
+
+      # WhatsApp (Evolution API): lembrete de agendamento, lembrete de devolução
+      # de locação (D-1) e aviso de atraso. Vazio = não envia, só loga (ver
+      # EvolutionApiWhatsAppService.IsConfigured) — era o estado até 11/09/2026,
+      # quando nenhuma destas envs existia aqui e NENHUMA notificação de WhatsApp
+      # saía do AGENDA.
+      #
+      # A instância é PRÓPRIA do Horafy, separada da do ATENDE: na Evolution cada
+      # instância corresponde a um número de WhatsApp conectado. BaseUrl é a URL
+      # interna do serviço no Coolify, não a pública.
+      EvolutionApi__BaseUrl: ${EVOLUTION_BASE_URL:-}
+      EvolutionApi__ApiKey: ${EVOLUTION_API_KEY:-}
+      EvolutionApi__InstanceName: ${EVOLUTION_INSTANCE:-horafy}
     healthcheck:
       # curl, não wget: a imagem aspnet instala só curl. E 127.0.0.1, não
       # localhost: dentro do container o localhost resolve ::1 primeiro e um
