@@ -1,3 +1,4 @@
+import { parseJsonBody } from './json'
 import type {
   WalletResult,
   VoucherSummary,
@@ -30,8 +31,7 @@ async function apiFetch<T>(
     throw new Error(error.title ?? `HTTP ${res.status}`)
   }
 
-  if (res.status === 204) return undefined as T
-  return res.json() as Promise<T>
+  return parseJsonBody<T>(res)
 }
 
 // Admin-scoped wallet operations (uses admin JWT)

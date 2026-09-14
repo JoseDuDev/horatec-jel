@@ -1,3 +1,5 @@
+import { parseJsonBody } from './json'
+
 // Server components run inside Docker — use internal hostname.
 // Client components run in the browser — use the public-facing URL.
 function getApiUrl(): string {
@@ -68,8 +70,7 @@ async function portalFetch<T>(
     throw new Error(error.title ?? `HTTP ${res.status}`)
   }
 
-  if (res.status === 204) return undefined as T
-  return res.json() as Promise<T>
+  return parseJsonBody<T>(res)
 }
 
 import type {

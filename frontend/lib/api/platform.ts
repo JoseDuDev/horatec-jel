@@ -1,3 +1,4 @@
+import { parseJsonBody } from './json'
 import type { TenantSummary, TenantPlan, TenantVertical, PlanConfig } from '../types/platform'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000'
@@ -21,8 +22,7 @@ async function platformFetch<T>(
     throw new Error(error.title ?? `HTTP ${res.status}`)
   }
 
-  if (res.status === 204) return undefined as T
-  return res.json() as Promise<T>
+  return parseJsonBody<T>(res)
 }
 
 export interface LoginResult {
