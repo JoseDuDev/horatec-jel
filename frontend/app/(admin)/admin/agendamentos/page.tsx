@@ -3,7 +3,12 @@
 import { useEffect, useState, useCallback } from 'react'
 import { format, subDays } from 'date-fns'
 import { bookingsApi } from '@/lib/api/bookings'
-import { BookingTable } from '@/components/bookings/BookingTable'
+import { performBookingAction } from '@/lib/bookings/actions'
+import {
+  BookingTable,
+  type BookingAction,
+  type BookingActionOptions,
+} from '@/components/bookings/BookingTable'
 import { AdminBookingModal } from '@/components/bookings/AdminBookingModal'
 import type { Booking, BookingStatus } from '@/lib/types/booking'
 import { Button } from '@/components/ui/button'
@@ -48,23 +53,12 @@ export default function AgendamentosPage() {
   useEffect(() => { load() }, [load])
 
   const handleAction = async (
-    action: 'confirm' | 'cancel' | 'complete' | 'noshow' | 'pickup' | 'return',
+    action: BookingAction,
     id: string,
-    opts?: { refundToGateway?: boolean }
+    opts?: BookingActionOptions
   ) => {
-    if (action === 'confirm')       await bookingsApi.confirm(id)
-    else if (action === 'cancel')   await bookingsApi.cancel(id)
-    else if (action === 'complete') await bookingsApi.complete(id)
-    else if (action === 'noshow')   await bookingsApi.noShow(id)
-    else if (action === 'pickup')   await bookingsApi.rentalPickup(id)
-    else if (action === 'return') {
-      const r = await bookingsApi.rentalReturn(id, opts?.refundToGateway ?? false)
-      const dest = r.destination === 'Gateway' ? 'no cartão/PIX original' : 'na carteira'
-      const fee = r.lateFee > 0 ? ` Multa por atraso: R$ ${r.lateFee.toFixed(2)}.` : ''
-      alert(
-        `Devolução registrada. Caução de R$ ${r.depositRefunded.toFixed(2)} estornada ${dest}.${fee}`
-      )
-    }
+    const message = await performBookingAction(action, id, opts)
+    if (message) alert(message)
     load()
   }
 
