@@ -124,8 +124,9 @@ public static class DependencyInjection
         services.AddScoped<IGoogleOAuthService, GoogleOAuthService>();
         services.AddScoped<IAppleOAuthService, AppleOAuthService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IPlatformUrlService, PlatformUrlService>();
 
-        // IHttpContextAccessor (necessário para CurrentUserService)
+        // IHttpContextAccessor (necessário para CurrentUserService e PlatformUrlService)
         services.AddHttpContextAccessor();
 
         // HttpClient para buscar JWKS da Apple

@@ -4,7 +4,6 @@ using Horafy.Domain.Interfaces;
 using Horafy.Domain.Interfaces.Repositories;
 using Horafy.Shared;
 using MediatR;
-using Microsoft.Extensions.Configuration;
 
 namespace Horafy.Application.Features.Auth.Commands.ForgotPassword;
 
@@ -27,7 +26,7 @@ public sealed class ForgotPasswordCommandValidator : AbstractValidator<ForgotPas
 internal sealed class ForgotPasswordCommandHandler(
     IUserRepository userRepository,
     IEmailService emailService,
-    IConfiguration configuration,
+    IPlatformUrlService platformUrl,
     IUnitOfWork unitOfWork) : IRequestHandler<ForgotPasswordCommand, Result>
 {
     private static readonly TimeSpan TokenLifetime = TimeSpan.FromHours(1);
@@ -50,8 +49,10 @@ internal sealed class ForgotPasswordCommandHandler(
         userRepository.Update(user);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var domain = configuration["Platform:Domain"];
-        var link   = $"https://{domain}/reset-password?token={rawToken}";
+        // O host sai da requisição, não da configuração: o mesmo backend serve
+        // AGENDA e ALUGUE, e um host fixo mandaria o admin de uma locadora para a
+        // marca errada.
+        var link = platformUrl.BuildUrl($"/reset-password?token={rawToken}");
 
         await emailService.SendAsync(
             user.Email,
