@@ -26,7 +26,7 @@ internal sealed class RentalReturnReminderConsumer(
         if (!string.IsNullOrEmpty(msg.CustomerPhone))
         {
             var text = TemplateRenderer.Render(DefaultTemplates.WhatsApp.RentalReturnReminder, vars);
-            await logger.SendAndLogAsync(
+            await logger.TrySendAndLogAsync(
                 () => whatsAppService.SendTextAsync(msg.CustomerPhone, text, ct),
                 NotificationEventType.RentalReturnReminder, NotificationChannel.WhatsApp,
                 msg.CustomerPhone, msg.TenantSlug, ct);

@@ -25,7 +25,7 @@ internal sealed class PaymentConfirmedConsumer(
         if (!string.IsNullOrEmpty(msg.CustomerPhone))
         {
             var text = TemplateRenderer.Render(DefaultTemplates.WhatsApp.PaymentConfirmed, vars);
-            await logger.SendAndLogAsync(
+            await logger.TrySendAndLogAsync(
                 () => whatsAppService.SendTextAsync(msg.CustomerPhone, text, ct),
                 NotificationEventType.PaymentConfirmed, NotificationChannel.WhatsApp,
                 msg.CustomerPhone, msg.TenantSlug, ct);

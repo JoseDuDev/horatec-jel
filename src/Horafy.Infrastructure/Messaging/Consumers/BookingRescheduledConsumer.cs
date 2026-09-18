@@ -28,7 +28,7 @@ internal sealed class BookingRescheduledConsumer(
         if (!string.IsNullOrEmpty(msg.CustomerPhone))
         {
             var text = TemplateRenderer.Render(DefaultTemplates.WhatsApp.BookingRescheduled, vars);
-            await logger.SendAndLogAsync(
+            await logger.TrySendAndLogAsync(
                 () => whatsAppService.SendTextAsync(msg.CustomerPhone, text, ct),
                 NotificationEventType.BookingConfirmed, NotificationChannel.WhatsApp,
                 msg.CustomerPhone, msg.TenantSlug, ct);

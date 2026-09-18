@@ -27,7 +27,7 @@ internal sealed class BookingCancelledConsumer(
         if (!string.IsNullOrEmpty(msg.CustomerPhone))
         {
             var text = TemplateRenderer.Render(DefaultTemplates.WhatsApp.BookingCancelled, vars);
-            await logger.SendAndLogAsync(
+            await logger.TrySendAndLogAsync(
                 () => whatsAppService.SendTextAsync(msg.CustomerPhone, text, ct),
                 NotificationEventType.BookingCancelled, NotificationChannel.WhatsApp,
                 msg.CustomerPhone, msg.TenantSlug, ct);

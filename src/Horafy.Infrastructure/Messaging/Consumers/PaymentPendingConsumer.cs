@@ -26,7 +26,7 @@ internal sealed class PaymentPendingConsumer(
         if (!string.IsNullOrEmpty(msg.CustomerPhone))
         {
             var text = TemplateRenderer.Render(DefaultTemplates.WhatsApp.PaymentPending, vars);
-            await logger.SendAndLogAsync(
+            await logger.TrySendAndLogAsync(
                 () => whatsAppService.SendTextAsync(msg.CustomerPhone, text, ct),
                 NotificationEventType.PaymentPending, NotificationChannel.WhatsApp,
                 msg.CustomerPhone, msg.TenantSlug, ct);
