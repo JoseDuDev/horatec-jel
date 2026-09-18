@@ -49,6 +49,26 @@ internal sealed class CreatePaymentCommandHandler(
         var booking = await bookingRepository.GetByIdAsync(request.BookingId, cancellationToken);
         if (booking is null) return Result.Failure<CreatePaymentResult>(BookingErrors.NotFound);
 
+        // Locação só vai ao gateway se a locadora tiver ligado a cobrança.
+        //
+        // O gateway do Mercado Pago é global — um único AccessToken da plataforma,
+        // não há credencial por tenant. Cobrar por padrão faria a diária e a caução
+        // do cliente da locadora caírem na conta DA PLATAFORMA, com repasse manual.
+        // Enquanto não houver credencial por tenant, o padrão é registrar a reserva
+        // e receber por fora (pix/dinheiro/maquininha da locadora).
+        //
+        // Sai antes de qualquer escrita: nenhum Payment é criado e a reserva não vai
+        // para PaymentPending. O portal trata a falha seguindo para a tela de status.
+        if (booking.Kind == BookingKind.Rental)
+        {
+            var rentalTenant = currentTenant.TenantId.HasValue
+                ? await tenantRepository.GetByIdAsync(currentTenant.TenantId.Value, cancellationToken)
+                : null;
+
+            if (rentalTenant?.PaymentSettings.RequiresPayment is not true)
+                return Result.Failure<CreatePaymentResult>(PaymentErrors.NotRequired);
+        }
+
         // --- Desconto de voucher ---
         decimal voucherDiscount = 0;
         Voucher? voucher = null;

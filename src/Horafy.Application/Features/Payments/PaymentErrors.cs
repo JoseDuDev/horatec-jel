@@ -15,4 +15,11 @@ public static class PaymentErrors
 
     public static readonly Error NotApproved =
         new("Payment.NotApproved", "Apenas pagamentos aprovados podem ser estornados.", ErrorType.Validation);
+
+    /// <summary>
+    /// A reserva fica registrada, mas o tenant não cobra pelo portal — não há
+    /// cobrança a criar. Ver a guarda de locação em CreatePaymentCommandHandler.
+    /// </summary>
+    public static readonly Error NotRequired =
+        new("Payment.NotRequired", "Este estabelecimento não cobra pelo portal.", ErrorType.Validation);
 }
