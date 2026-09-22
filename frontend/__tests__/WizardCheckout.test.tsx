@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { vi } from 'vitest'
 
 vi.mock('next/navigation', () => ({
@@ -13,32 +13,6 @@ vi.mock('@/store/portal-auth', () => ({
   }),
 }))
 
-vi.mock('@/lib/api/wallet', () => ({
-  portalWalletApi: {
-    getWallet: vi.fn().mockResolvedValue({ walletId: 'w1', balance: 50, transactions: [] }),
-    validateVoucher: vi.fn().mockResolvedValue({
-      code: 'PROMO10',
-      discountType: 'Percentage',
-      discountValue: 10,
-      discountAmount: 10,
-      finalPrice: 90,
-      description: null,
-    }),
-  },
-}))
-
-vi.mock('@/lib/api/portal', () => ({
-  portalApi: {
-    createBooking: vi.fn().mockResolvedValue({
-      id: 'b1', scheduledAt: '2026-07-01T10:00:00Z', status: 'Pending',
-    }),
-    createPayment: vi.fn().mockResolvedValue({
-      paymentId: 'p1', preferenceId: 'pref1', paymentUrl: undefined,
-    }),
-    slots: vi.fn().mockResolvedValue([]),
-  },
-}))
-
 import { WizardStepConfirm } from '@/components/portal/WizardStepConfirm'
 
 const mockService = {
@@ -51,51 +25,54 @@ const mockResource = {
   tenantId: 't1',
 }
 
-describe('WizardStepConfirm', () => {
-  it('renders price and shows wallet balance after loading', async () => {
-    render(
-      <WizardStepConfirm
-        service={mockService as any}
-        resource={mockResource as any}
-        slot="2026-07-01T10:00:00Z"
-        notes=""
-        onNotesChange={() => {}}
-        onConfirm={() => {}}
-        loading={false}
-      />
-    )
-    await waitFor(() => {
-      expect(screen.getAllByText(/R\$ 100/).length).toBeGreaterThan(0)
-      expect(screen.getByText(/Saldo disponível/)).toBeInTheDocument()
-    })
+function renderStep(onConfirm = vi.fn(), loading = false) {
+  render(
+    <WizardStepConfirm
+      slug="barbearia"
+      service={mockService as any}
+      resource={mockResource as any}
+      slot="2026-07-01T10:00:00Z"
+      notes=""
+      onNotesChange={vi.fn()}
+      onConfirm={onConfirm}
+      loading={loading}
+    />
+  )
+  return onConfirm
+}
+
+describe('WizardStepConfirm — sem cobrança online', () => {
+  it('mostra o valor do serviço e avisa que o pagamento é no local', () => {
+    renderStep()
+
+    expect(screen.getByText('R$ 100,00')).toBeInTheDocument()
+    expect(screen.getByText(/pagamento é feito no local/i)).toBeInTheDocument()
   })
 
-  it('calls onConfirm with voucher code when applied', async () => {
-    const onConfirm = vi.fn()
-    render(
-      <WizardStepConfirm
-        service={mockService as any}
-        resource={mockResource as any}
-        slot="2026-07-01T10:00:00Z"
-        notes=""
-        onNotesChange={() => {}}
-        onConfirm={onConfirm}
-        loading={false}
-      />
-    )
+  // O portal não cobra: o gateway do Mercado Pago é global e o dinheiro cairia na
+  // conta da plataforma, não na do lojista. Sem cobrança, cupom e créditos da
+  // carteira não têm no que ser aplicados — por isso saíram da tela.
+  it('não oferece cupom nem créditos da carteira', () => {
+    renderStep()
 
-    const input = screen.getByPlaceholderText(/CÓDIGO DO VOUCHER/i)
-    fireEvent.change(input, { target: { value: 'PROMO10' } })
-    fireEvent.click(screen.getByText('Aplicar'))
+    expect(screen.queryByPlaceholderText(/CÓDIGO DO VOUCHER/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/créditos da carteira/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/total a pagar/i)).not.toBeInTheDocument()
+  })
 
-    await waitFor(() => {
-      expect(screen.getByText('PROMO10')).toBeInTheDocument()
-    })
+  it('o botão confirma sem falar em pagar', () => {
+    const onConfirm = renderStep()
 
-    fireEvent.click(screen.getByRole('button', { name: /confirmar/i }))
+    const botao = screen.getByRole('button', { name: 'Confirmar agendamento' })
+    expect(botao).toBeInTheDocument()
 
-    expect(onConfirm).toHaveBeenCalledWith(
-      expect.objectContaining({ voucherCode: 'PROMO10' })
-    )
+    fireEvent.click(botao)
+    expect(onConfirm).toHaveBeenCalledTimes(1)
+  })
+
+  it('desabilita o botão enquanto confirma', () => {
+    renderStep(vi.fn(), true)
+
+    expect(screen.getByRole('button', { name: 'Confirmando...' })).toBeDisabled()
   })
 })

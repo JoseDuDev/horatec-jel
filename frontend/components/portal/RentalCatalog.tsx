@@ -70,23 +70,10 @@ export function RentalCatalog({ slug, items }: Props) {
         startDate, endDate,
       })
 
-      // Cobra diárias + caução (a caução é estornada na devolução, descontada a multa).
-      const backUrl = `${window.location.origin}/${slug}/agendar/${booking.id}/status`
-      try {
-        const payment = await portalApi.createPayment(slug, accessToken, {
-          bookingId: booking.id,
-          amount: payableTotal,
-          method: 'Pix',
-          backUrl,
-        })
-        if (payment.paymentUrl) {
-          window.location.href = payment.paymentUrl
-          return
-        }
-      } catch {
-        // pagamento falhou — segue para o status mesmo assim
-      }
-
+      // Sem cobrança online: a reserva fica registrada e a diária e a caução são
+      // acertadas na retirada. O gateway do Mercado Pago é global (um único
+      // AccessToken da plataforma), então cobrar aqui levaria o dinheiro do cliente
+      // da locadora para a conta da plataforma.
       router.push(`/${slug}/agendar/${booking.id}/status`)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erro ao reservar.')

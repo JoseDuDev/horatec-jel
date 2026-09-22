@@ -30,20 +30,49 @@ export default function BookingStatusPage({ params }: Props) {
   const { accessToken } = usePortalAuthStore()
   const [booking, setBooking] = useState<CustomerBooking | null>(null)
   const [loading, setLoading] = useState(true)
+  // Separa "a busca falhou" de "a busca funcionou e não achou". Antes os dois
+  // caíam na mesma mensagem, então sessão expirada, erro de rede e id inexistente
+  // eram indistinguíveis — para o cliente e para quem fosse investigar.
+  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
-    if (!accessToken) { setLoading(false); return }
+    // Sem token ainda (o store é persistido e hidrata de forma assíncrona):
+    // segue carregando, porque o efeito roda de novo quando o token chega.
+    if (!accessToken) return
+
+    let active = true
+    setLoading(true)
+    setFailed(false)
+
     portalApi.myBookings(slug, accessToken)
-      .then(bookings => setBooking(bookings.find(b => b.id === bookingId) ?? null))
-      .finally(() => setLoading(false))
+      .then(bookings => {
+        if (!active) return
+        setBooking(bookings.find(b => b.id === bookingId) ?? null)
+      })
+      .catch(() => { if (active) setFailed(true) })
+      .finally(() => { if (active) setLoading(false) })
+
+    return () => { active = false }
   }, [slug, bookingId, accessToken])
 
   if (loading) return <div className="max-w-lg mx-auto px-4 py-20 text-center text-slate-500">Carregando...</div>
 
+  if (failed) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-20 text-center">
+        <p className="text-slate-500 mb-2">Não foi possível carregar seu agendamento agora.</p>
+        <p className="text-xs text-slate-400 mb-4">
+          Ele foi registrado — tente novamente em instantes ou veja em “Meus agendamentos”.
+        </p>
+        <Link href={`/${slug}`} className={cn(buttonVariants({ variant: 'outline' }))}>Voltar ao início</Link>
+      </div>
+    )
+  }
+
   if (!booking) {
     return (
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
-        <p className="text-slate-500 mb-4">Agendamento não encontrado ou sessão expirada.</p>
+        <p className="text-slate-500 mb-4">Agendamento não encontrado.</p>
         <Link href={`/${slug}`} className={cn(buttonVariants({ variant: 'outline' }))}>Voltar ao início</Link>
       </div>
     )

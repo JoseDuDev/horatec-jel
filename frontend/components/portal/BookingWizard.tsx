@@ -8,7 +8,7 @@ import type { Resource } from '@/lib/types/resource'
 import { WizardStepService } from './WizardStepService'
 import { WizardStepResource } from './WizardStepResource'
 import { WizardStepSlot } from './WizardStepSlot'
-import { WizardStepConfirm, type CheckoutOptions } from './WizardStepConfirm'
+import { WizardStepConfirm } from './WizardStepConfirm'
 import { portalApi } from '@/lib/api/portal'
 import { usePortalAuthStore } from '@/store/portal-auth'
 import { Button } from '@/components/ui/button'
@@ -65,7 +65,7 @@ export function BookingWizard({ slug, services, resources, initialServiceId }: P
     if (step < STEPS.length - 1) setStep(s => s + 1)
   }
 
-  const handleConfirm = async (opts: CheckoutOptions) => {
+  const handleConfirm = async () => {
     if (!serviceId || !resourceId || !selectedSlot) return
     if (!customer || !accessToken) {
       // Deslogado: manda para a página de login do portal e volta para cá depois.
@@ -82,27 +82,9 @@ export function BookingWizard({ slug, services, resources, initialServiceId }: P
         notes: notes || undefined,
       })
 
-      const service = activeServices.find(s => s.id === serviceId)
-      if (service) {
-        const backUrl = `${window.location.origin}/${slug}/agendar/${booking.id}/status`
-        try {
-          const payment = await portalApi.createPayment(slug, accessToken, {
-            bookingId: booking.id,
-            amount: service.price,
-            method: 'Pix',
-            backUrl,
-            voucherCode: opts.voucherCode,
-            useWalletCredits: opts.useWalletCredits,
-          })
-          if (payment.paymentUrl) {
-            window.location.href = payment.paymentUrl
-            return
-          }
-        } catch {
-          // pagamento falhou — vai para status de qualquer forma
-        }
-      }
-
+      // Sem cobrança online: a reserva é registrada e o acerto acontece no balcão.
+      // O gateway do Mercado Pago é global (um único AccessToken da plataforma), então
+      // cobrar aqui levaria o dinheiro do cliente do lojista para a conta da plataforma.
       router.push(`/${slug}/agendar/${booking.id}/status`)
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Erro ao criar agendamento.')
