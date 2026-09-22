@@ -5,6 +5,7 @@ export interface Service {
   durationMinutes: number
   price: number
   categoryId?: string
+  imageUrl?: string
   isActive: boolean
 }
 
@@ -14,5 +15,6 @@ export interface UpsertServiceRequest {
   durationMinutes: number
   price: number
   categoryId?: string
+  imageUrl?: string
   isActive?: boolean
 }

@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Horafy.Infrastructure.Auth;
 using Horafy.Infrastructure.MultiTenancy;
 using Horafy.Infrastructure.Persistence;
+using Horafy.Infrastructure.Storage;
+using Microsoft.Extensions.FileProviders;
 using Horafy.API.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
@@ -196,6 +198,27 @@ try
     app.UseExceptionHandlingMiddleware();
     app.UseCors("HorafyCors");
     app.UseHttpsRedirection();
+
+    // ── Imagens enviadas pelos clientes (fotos de item e de serviço)
+    // Servidas antes da autenticação: a vitrine do tenant é pública, e a foto
+    // precisa carregar para quem ainda não entrou. O nome do arquivo é um GUID,
+    // então nunca muda de conteúdo — daí o cache longo.
+    var imageStorageOptions = builder.Configuration
+        .GetSection(ImageStorageOptions.SectionName).Get<ImageStorageOptions>()
+        ?? new ImageStorageOptions();
+
+    Directory.CreateDirectory(imageStorageOptions.RootPath);
+
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(Path.GetFullPath(imageStorageOptions.RootPath)),
+        RequestPath  = imageStorageOptions.RequestPath,
+        OnPrepareResponse = ctx =>
+        {
+            ctx.Context.Response.Headers.CacheControl = "public,max-age=31536000,immutable";
+            ctx.Context.Response.Headers.XContentTypeOptions = "nosniff";
+        }
+    });
     app.UseAuthentication();
     app.UseRateLimiter();
     app.UseMiddleware<TenantMiddleware>();
@@ -212,6 +235,7 @@ try
         if (!app.Environment.IsProduction())
             await db.Database.MigrateAsync();
         await GlobalMigrations.RunAsync(db, logger);
+        await TenantGlobalMigrations.RunAsync(db, logger);
 
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
         await PlatformAdminSeeder.RunAsync(db, passwordHasher, builder.Configuration, logger);

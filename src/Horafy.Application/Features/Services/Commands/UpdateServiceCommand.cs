@@ -11,7 +11,8 @@ public sealed record UpdateServiceCommand(
     int DurationMinutes,
     decimal Price,
     string? Description,
-    string? Category) : IRequest<Result>;
+    string? Category,
+    string? ImageUrl = null) : IRequest<Result>;
 
 internal sealed class UpdateServiceCommandHandler(
     IServiceRepository serviceRepository,
@@ -24,7 +25,7 @@ internal sealed class UpdateServiceCommandHandler(
         if (service is null) return Result.Failure(ServiceErrors.NotFound);
 
         service.Update(request.Name, request.DurationMinutes, request.Price,
-            request.Description, request.Category);
+            request.Description, request.Category, request.ImageUrl);
 
         serviceRepository.Update(service);
         await unitOfWork.SaveChangesAsync(cancellationToken);

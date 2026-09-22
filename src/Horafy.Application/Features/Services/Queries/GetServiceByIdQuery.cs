@@ -17,6 +17,6 @@ internal sealed class GetServiceByIdQueryHandler(
 
         return Result.Success(new ServiceResult(
             service.Id, service.Name, service.Description,
-            service.DurationMinutes, service.Price, service.Category, service.IsActive));
+            service.DurationMinutes, service.Price, service.Category, service.ImageUrl, service.IsActive));
     }
 }

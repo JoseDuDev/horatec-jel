@@ -17,9 +17,20 @@ export default function ServicosPage() {
   const load = () => servicesApi.list().then(setServices)
   useEffect(() => { load() }, [])
 
-  const handleSubmit = async (data: UpsertServiceRequest) => {
-    if (editing === 'new') await servicesApi.create(data)
-    else if (editing) await servicesApi.update(editing.id, data)
+  const handleSubmit = async (data: UpsertServiceRequest, photo: File | null) => {
+    if (editing === 'new') {
+      // A foto só tem para onde ir depois que a API devolve o id do serviço; na
+      // edição ela já foi enviada dentro do próprio formulário.
+      const id = await servicesApi.create(data)
+      try {
+        if (photo) await servicesApi.setImage(id, photo)
+      } catch (e) {
+        // O serviço já foi criado: avisa e deixa a foto para o Editar.
+        alert(e instanceof Error ? e.message : 'Serviço criado, mas a foto não subiu.')
+      }
+    } else if (editing) {
+      await servicesApi.update(editing.id, data)
+    }
     setEditing(null)
     load()
   }
@@ -41,7 +52,11 @@ export default function ServicosPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {services.map(s => (
-          <Card key={s.id}>
+          <Card key={s.id} className={s.imageUrl ? 'overflow-hidden pt-0' : undefined}>
+            {s.imageUrl && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={s.imageUrl} alt={s.name} className="h-32 w-full object-cover" />
+            )}
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">{s.name}</CardTitle>

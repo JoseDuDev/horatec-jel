@@ -101,6 +101,11 @@ services:
       Smtp__FromAddress: "${SMTP_FROM_ADDRESS:-no-reply@horafy.local}"
       Smtp__FromName: "${SMTP_FROM_NAME:-Agenda}"
       Smtp__UseSsl: "${SMTP_USE_SSL:-false}"
+      # Fotos de item e de serviço. PublicBaseUrl vazio = a URL sai do host da
+      # requisição, que em dev é o localhost:8083 mapeado abaixo.
+      Storage__Images__RootPath: /app/uploads
+    volumes:
+      - uploads_data:/app/uploads
     ports:
       - "8083:8080"
       - "8443:8443"
@@ -119,6 +124,7 @@ volumes:
   redis_data:
   rabbitmq_data:
   seq_data:
+  uploads_data:
 
 networks:
   horafy-net:

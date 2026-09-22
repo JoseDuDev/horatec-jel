@@ -20,6 +20,10 @@ public sealed class Service : BaseEntity
     public decimal Price { get; private set; }
 
     public string? Category { get; private set; }
+
+    /// <summary>Foto do serviço exibida na vitrine e no fluxo de agendamento.</summary>
+    public string? ImageUrl { get; private set; }
+
     public bool IsActive { get; private set; } = true;
 
     public static Service Create(
@@ -27,7 +31,8 @@ public sealed class Service : BaseEntity
         int durationMinutes,
         decimal price,
         string? description = null,
-        string? category = null)
+        string? category = null,
+        string? imageUrl = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
@@ -43,19 +48,28 @@ public sealed class Service : BaseEntity
             DurationMinutes = durationMinutes,
             Price           = price,
             Description     = description?.Trim(),
-            Category        = category?.Trim()
+            Category        = category?.Trim(),
+            ImageUrl        = string.IsNullOrWhiteSpace(imageUrl) ? null : imageUrl.Trim()
         };
     }
 
     public void Update(string name, int durationMinutes, decimal price,
-        string? description, string? category)
+        string? description, string? category, string? imageUrl = null)
     {
         Name            = name.Trim();
         DurationMinutes = durationMinutes;
         Price           = price;
         Description     = description?.Trim();
         Category        = category?.Trim();
+        ImageUrl        = string.IsNullOrWhiteSpace(imageUrl) ? null : imageUrl.Trim();
         UpdatedAt       = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>Define (ou remove, com <c>null</c>) a foto do serviço.</summary>
+    public void SetImage(string? imageUrl)
+    {
+        ImageUrl  = string.IsNullOrWhiteSpace(imageUrl) ? null : imageUrl.Trim();
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     public void Activate()   { IsActive = true;  UpdatedAt = DateTimeOffset.UtcNow; }

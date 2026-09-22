@@ -9,6 +9,7 @@ using Horafy.Infrastructure.MultiTenancy;
 using Horafy.Infrastructure.Persistence;
 using Horafy.Infrastructure.Persistence.Interceptors;
 using Horafy.Infrastructure.Repositories;
+using Horafy.Infrastructure.Storage;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -165,6 +166,11 @@ public static class DependencyInjection
             client.DefaultRequestHeaders.Add("apikey",
                 configuration[$"{EvolutionApiOptions.SectionName}:ApiKey"] ?? string.Empty);
         });
+
+        // Armazenamento de imagens enviadas pelos clientes (fotos de item e de serviço)
+        services.Configure<ImageStorageOptions>(
+            configuration.GetSection(ImageStorageOptions.SectionName));
+        services.AddScoped<IImageStorage, LocalDiskImageStorage>();
 
         // SMTP e-mail
         services.Configure<SmtpOptions>(configuration.GetSection(SmtpOptions.SectionName));

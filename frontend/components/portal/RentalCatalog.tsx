@@ -26,6 +26,7 @@ export function RentalCatalog({ slug, items }: Props) {
   const { accessToken, customer } = usePortalAuthStore()
 
   const [selected, setSelected] = useState<RentableItem | null>(null)
+  const [activePhoto, setActivePhoto] = useState(0)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [quantity, setQuantity] = useState(1)
@@ -37,6 +38,7 @@ export function RentalCatalog({ slug, items }: Props) {
   const open = (item: RentableItem) => {
     setSelected(item)
     setStartDate(''); setEndDate(''); setQuantity(1); setAvailability(null); setError(null)
+    setActivePhoto(0)
   }
 
   const days = daysBetween(startDate, endDate)
@@ -93,7 +95,20 @@ export function RentalCatalog({ slug, items }: Props) {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map(item => (
-          <Card key={item.id}>
+          <Card key={item.id} className="overflow-hidden pt-0">
+            {item.imageUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={item.imageUrl}
+                alt={item.name}
+                loading="lazy"
+                className="h-44 w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-44 w-full items-center justify-center bg-slate-100 text-xs text-slate-400">
+                Sem foto
+              </div>
+            )}
             <CardHeader className="pb-2">
               <CardTitle className="text-base">{item.name}</CardTitle>
             </CardHeader>
@@ -116,6 +131,41 @@ export function RentalCatalog({ slug, items }: Props) {
           </DialogHeader>
 
           <div className="space-y-4">
+            {selected && selected.images.length > 0 && (
+              <div className="space-y-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={selected.images[activePhoto]?.url ?? selected.images[0].url}
+                  alt={selected.name}
+                  className="max-h-64 w-full rounded-md object-contain bg-slate-50"
+                />
+
+                {selected.images.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto">
+                    {selected.images.map((photo, index) => (
+                      <button
+                        key={photo.id}
+                        type="button"
+                        onClick={() => setActivePhoto(index)}
+                        className={
+                          'shrink-0 overflow-hidden rounded border-2 ' +
+                          (index === activePhoto ? 'border-slate-900' : 'border-transparent')
+                        }
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={photo.url}
+                          alt={`${selected.name} — foto ${index + 1}`}
+                          loading="lazy"
+                          className="h-14 w-14 object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="startDate">Retirada</Label>

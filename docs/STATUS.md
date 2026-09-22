@@ -26,6 +26,8 @@
 | — | **E2E Playwright** (fluxos críticos via API + UI) | ✅ |
 | — | **UI: Selects exibem rótulo** (mapeamento valor→rótulo; antes mostravam o valor cru/GUID) | ✅ |
 | Locação 0–6 | **Módulo de Locação** (item alugável, estoque, diária, caução, ciclo de vida, financeiro, notificações) | ✅ |
+| — | **Fotos de item e de serviço** (galeria de até 6 no ALUGUE, foto única no AGENDA, upload em disco atrás de `IImageStorage`) | ✅ |
+| — | **Edição do item de locação** (`PUT items/{id}` + ativar/desativar; antes só existia o POST) | ✅ |
 | Planos 0–4 | **Capacidades + Limites por plano** (módulos por tenant + quotas editáveis; pacotes vendáveis) | ✅ |
 
 **Módulo de Locação (`docs/rental-plan.md`) — concluído (Fases 0–6):**

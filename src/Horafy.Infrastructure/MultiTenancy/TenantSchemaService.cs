@@ -577,6 +577,31 @@ internal sealed class TenantSchemaService(
         CREATE UNIQUE INDEX IF NOT EXISTS uq_tenant_blackout_dates_date
             ON {s}.tenant_blackout_dates (date)
             WHERE is_deleted = FALSE;
+
+        -- ── Fotos do item de locação (galeria) ──────────────────────────────
+        CREATE TABLE IF NOT EXISTS {s}.rentable_item_images (
+            id               UUID          NOT NULL DEFAULT gen_random_uuid(),
+            rentable_item_id UUID          NOT NULL,
+            url              VARCHAR(2000) NOT NULL,
+            sort_order       INT           NOT NULL DEFAULT 0,
+            created_at       TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+            updated_at       TIMESTAMPTZ,
+            created_by       VARCHAR(256),
+            updated_by       VARCHAR(256),
+            is_deleted       BOOLEAN       NOT NULL DEFAULT FALSE,
+            deleted_at       TIMESTAMPTZ,
+            deleted_by       VARCHAR(256),
+            CONSTRAINT pk_rentable_item_images PRIMARY KEY (id),
+            CONSTRAINT fk_rentable_item_images_rentable_items
+                FOREIGN KEY (rentable_item_id) REFERENCES {s}.rentable_items (id) ON DELETE CASCADE
+        );
+
+        CREATE INDEX IF NOT EXISTS ix_rentable_item_images_item_sort
+            ON {s}.rentable_item_images (rentable_item_id, sort_order);
+
+        -- ── Foto do serviço ─────────────────────────────────────────────────
+        ALTER TABLE {s}.services
+            ADD COLUMN IF NOT EXISTS image_url VARCHAR(2000);
         """;
     }
 }

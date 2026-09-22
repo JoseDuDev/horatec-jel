@@ -23,7 +23,10 @@ describe('ServiceForm', () => {
     fireEvent.click(screen.getByRole('button', { name: /salvar/i }))
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'Corte de Cabelo', durationMinutes: 30, price: 50 })
+        expect.objectContaining({ name: 'Corte de Cabelo', durationMinutes: 30, price: 50 }),
+        // 2º argumento: a foto escolhida. No cadastro ela sobe depois, com o id
+        // do serviço em mãos; aqui nenhuma foi escolhida.
+        null
       )
     })
   })

@@ -13,6 +13,7 @@ public sealed record ServiceResult(
     int DurationMinutes,
     decimal Price,
     string? Category,
+    string? ImageUrl,
     bool IsActive);
 
 internal sealed class GetServicesQueryHandler(
@@ -27,7 +28,7 @@ internal sealed class GetServicesQueryHandler(
 
         var result = services
             .Select(s => new ServiceResult(s.Id, s.Name, s.Description,
-                s.DurationMinutes, s.Price, s.Category, s.IsActive))
+                s.DurationMinutes, s.Price, s.Category, s.ImageUrl, s.IsActive))
             .ToList();
 
         return Result.Success<IReadOnlyList<ServiceResult>>(result);

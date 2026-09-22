@@ -13,6 +13,7 @@ internal sealed class RentableItemRepository(TenantDbContext context)
         CancellationToken cancellationToken = default) =>
         await DbSet
             .AsNoTracking()
+            .Include(i => i.Images)
             .Where(i => i.IsActive)
             .OrderBy(i => i.Name)
             .ToListAsync(cancellationToken);
@@ -23,7 +24,22 @@ internal sealed class RentableItemRepository(TenantDbContext context)
         var idList = ids.ToList();
         return await DbSet
             .AsNoTracking()
+            .Include(i => i.Images)
             .Where(i => idList.Contains(i.Id))
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<RentableItem?> GetByIdWithImagesAsync(
+        Guid id, CancellationToken cancellationToken = default) =>
+        await DbSet
+            .Include(i => i.Images)
+            .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
+
+    public override async Task<IReadOnlyList<RentableItem>> GetAllAsync(
+        CancellationToken cancellationToken = default) =>
+        await DbSet
+            .AsNoTracking()
+            .Include(i => i.Images)
+            .OrderBy(i => i.Name)
+            .ToListAsync(cancellationToken);
 }

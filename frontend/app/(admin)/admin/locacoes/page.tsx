@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { addDays, format, subDays } from 'date-fns'
-import { Plus } from 'lucide-react'
+import { Pencil, Plus } from 'lucide-react'
 
-import { rentalsApi } from '@/lib/api/rentals'
+import { MAX_ITEM_IMAGES, rentalsApi } from '@/lib/api/rentals'
 import { bookingsApi } from '@/lib/api/bookings'
 import { performBookingAction } from '@/lib/bookings/actions'
 import { RentableItemForm } from '@/components/rentals/RentableItemForm'
@@ -13,7 +13,7 @@ import {
   type BookingAction,
   type BookingActionOptions,
 } from '@/components/bookings/BookingTable'
-import type { RentableItem, CreateRentableItemRequest } from '@/lib/types/rental'
+import type { RentableItem, UpdateRentableItemRequest } from '@/lib/types/rental'
 import type { Booking } from '@/lib/types/booking'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -120,15 +120,55 @@ function ReservasTab() {
 
 function ItensTab() {
   const [items, setItems] = useState<RentableItem[]>([])
-  const [creating, setCreating] = useState(false)
+  // 'new' = cadastro; um item = edição daquele item.
+  const [editing, setEditing] = useState<RentableItem | 'new' | null>(null)
 
   const load = () => rentalsApi.list().then(setItems).catch(() => setItems([]))
   useEffect(() => { load() }, [])
 
-  const handleSubmit = async (data: CreateRentableItemRequest) => {
-    await rentalsApi.create(data)
-    setCreating(false)
-    load()
+  const handleSubmit = async (data: UpdateRentableItemRequest, photos: File[]) => {
+    if (editing !== 'new') {
+      if (editing) await rentalsApi.update(editing.id, data)
+      setEditing(null)
+      load()
+      return
+    }
+
+    // A API devolve o id do item; só então as fotos têm dono. Em série para não
+    // estourar o limite de 6, que é conferido a cada envio.
+    // isActive fica de fora: item nasce ativo.
+    const itemId = await rentalsApi.create({
+      name: data.name,
+      quantity: data.quantity,
+      dailyRate: data.dailyRate,
+      securityDeposit: data.securityDeposit,
+      bufferDays: data.bufferDays,
+      description: data.description,
+      category: data.category,
+    })
+
+    try {
+      for (const photo of photos) {
+        await rentalsApi.addImage(itemId, photo)
+      }
+    } catch (e) {
+      // O item já existe — esconder o diálogo sem avisar faria a foto sumir sem
+      // explicação. As que faltarem entram pelo botão Editar do card.
+      alert(e instanceof Error ? e.message : 'Item criado, mas uma das fotos não subiu.')
+    } finally {
+      setEditing(null)
+      load()
+    }
+  }
+
+  // A galeria salva na hora, então o diálogo aberto precisa enxergar a lista
+  // recarregada — senão continuaria mostrando as fotos de antes do envio.
+  const reloadKeepingDialog = async () => {
+    const fresh = await rentalsApi.list().catch(() => null)
+    if (!fresh) return
+    setItems(fresh)
+    setEditing(current =>
+      current && current !== 'new' ? fresh.find(i => i.id === current.id) ?? null : current)
   }
 
   return (
@@ -137,7 +177,7 @@ function ItensTab() {
         <p className="text-sm text-slate-500">
           O catálogo que aparece no seu link público.
         </p>
-        <Button onClick={() => setCreating(true)}>
+        <Button onClick={() => setEditing('new')}>
           <Plus className="h-4 w-4 mr-2" /> Novo Item
         </Button>
       </div>
@@ -148,7 +188,19 @@ function ItensTab() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map(i => (
-          <Card key={i.id}>
+          <Card key={i.id} className="overflow-hidden pt-0">
+            {i.imageUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={i.imageUrl}
+                alt={i.name}
+                className="h-32 w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-32 w-full items-center justify-center bg-slate-100 text-xs text-slate-400">
+                Sem foto
+              </div>
+            )}
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">{i.name}</CardTitle>
@@ -165,17 +217,38 @@ function ItensTab() {
                 <p className="text-xs text-slate-400 mt-1">Buffer de {i.bufferDays} dia(s) entre locações</p>
               )}
               {i.description && <p className="text-xs text-slate-400 mt-1">{i.description}</p>}
+              <p className="text-xs text-slate-400 mt-1">
+                {i.images.length} de {MAX_ITEM_IMAGES} fotos
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3 w-full"
+                onClick={() => setEditing(i)}
+              >
+                <Pencil className="h-3 w-3 mr-1" /> Editar
+              </Button>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Dialog open={creating} onOpenChange={open => !open && setCreating(false)}>
+      <Dialog open={editing !== null} onOpenChange={open => !open && setEditing(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Novo Item de Locação</DialogTitle>
+            <DialogTitle>
+              {editing === 'new' ? 'Novo Item de Locação' : `Editar ${editing?.name ?? ''}`}
+            </DialogTitle>
           </DialogHeader>
-          <RentableItemForm onSubmit={handleSubmit} onCancel={() => setCreating(false)} />
+          <RentableItemForm
+            // Troca de item = formulário novo: sem a key, os campos do item anterior
+            // sobreviveriam. Recarregar a galeria não remonta, porque o id não muda.
+            key={editing === 'new' ? 'new' : editing?.id}
+            initial={editing !== 'new' && editing !== null ? editing : undefined}
+            onSubmit={handleSubmit}
+            onCancel={() => setEditing(null)}
+            onGalleryChange={reloadKeepingDialog}
+          />
         </DialogContent>
       </Dialog>
     </div>

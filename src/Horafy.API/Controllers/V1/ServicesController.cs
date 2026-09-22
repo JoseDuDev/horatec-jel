@@ -1,8 +1,11 @@
 using Asp.Versioning;
 using Horafy.API.Controllers.Base;
+using Horafy.API.Extensions;
+using Horafy.Application.Common.Images;
 using Horafy.Application.Features.Resources.Queries;
 using Horafy.Application.Features.Services.Commands;
 using Horafy.Application.Features.Services.Queries;
+using Horafy.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -52,7 +55,7 @@ public sealed class ServicesController(ISender sender) : ApiControllerBase(sende
     {
         var result = await Sender.Send(
             new CreateServiceCommand(request.Name, request.DurationMinutes, request.Price,
-                request.Description, request.Category), cancellationToken);
+                request.Description, request.Category, request.ImageUrl), cancellationToken);
 
         if (result.IsFailure) return ToActionResult(result);
         return CreatedAtRoute("GetServiceById", new { id = result.Value }, result.Value);
@@ -69,7 +72,7 @@ public sealed class ServicesController(ISender sender) : ApiControllerBase(sende
     {
         var result = await Sender.Send(
             new UpdateServiceCommand(id, request.Name, request.DurationMinutes, request.Price,
-                request.Description, request.Category), cancellationToken);
+                request.Description, request.Category, request.ImageUrl), cancellationToken);
 
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
@@ -83,10 +86,49 @@ public sealed class ServicesController(ISender sender) : ApiControllerBase(sende
         var result = await Sender.Send(new DeleteServiceCommand(id), cancellationToken);
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
+
+    // ── Foto do serviço ───────────────────────────────────────────────────────
+
+    [HttpPost("{id:guid}/image")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(ImageUploadPolicy.MaxBytes + 512 * 1024)]
+    [ProducesResponseType(typeof(ServiceImageResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetImage(
+        Guid id,
+        IFormFile? file,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return ToActionResult(Result.Failure<string>(ImageErrors.Empty));
+
+        var result = await Sender.Send(
+            new SetServiceImageCommand(id, file.ToImageUpload()), cancellationToken);
+
+        return result.IsFailure
+            ? ToActionResult(result)
+            : Ok(new ServiceImageResponse(result.Value));
+    }
+
+    [HttpDelete("{id:guid}/image")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoveImage(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(new RemoveServiceImageCommand(id), cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
 }
 
 public sealed record CreateServiceRequest(
-    string Name, int DurationMinutes, decimal Price, string? Description, string? Category);
+    string Name, int DurationMinutes, decimal Price, string? Description, string? Category,
+    string? ImageUrl = null);
 
 public sealed record UpdateServiceRequest(
-    string Name, int DurationMinutes, decimal Price, string? Description, string? Category);
+    string Name, int DurationMinutes, decimal Price, string? Description, string? Category,
+    string? ImageUrl = null);
+
+public sealed record ServiceImageResponse(string Url);

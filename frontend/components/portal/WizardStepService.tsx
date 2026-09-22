@@ -19,21 +19,33 @@ export function WizardStepService({ services, selectedId, onSelect }: Props) {
             type="button"
             onClick={() => onSelect(s.id)}
             className={cn(
-              'text-left border rounded-lg p-4 transition-all hover:border-indigo-400',
+              'text-left border rounded-lg overflow-hidden transition-all hover:border-indigo-400',
               selectedId === s.id
                 ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-300'
                 : 'border-slate-200'
             )}
           >
-            <p className="font-medium mb-1">{s.name}</p>
-            {s.description && <p className="text-xs text-slate-500 mb-2">{s.description}</p>}
-            <div className="flex gap-4 text-sm text-slate-600">
-              <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" /> {s.durationMinutes} min
-              </span>
-              <span className="flex items-center gap-1">
-                <DollarSign className="h-3 w-3" /> R$ {s.price.toFixed(2)}
-              </span>
+            {s.imageUrl && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={s.imageUrl}
+                alt={s.name}
+                loading="lazy"
+                className="h-32 w-full object-cover"
+              />
+            )}
+
+            <div className="p-4">
+              <p className="font-medium mb-1">{s.name}</p>
+              {s.description && <p className="text-xs text-slate-500 mb-2">{s.description}</p>}
+              <div className="flex gap-4 text-sm text-slate-600">
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> {s.durationMinutes} min
+                </span>
+                <span className="flex items-center gap-1">
+                  <DollarSign className="h-3 w-3" /> R$ {s.price.toFixed(2)}
+                </span>
+              </div>
             </div>
           </button>
         ))}

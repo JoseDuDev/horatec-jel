@@ -39,6 +39,7 @@ public sealed class TenantDbContext : DbContext
     public DbSet<WalletTransaction>     WalletTransactions     => Set<WalletTransaction>();
     public DbSet<Voucher>               Vouchers               => Set<Voucher>();
     public DbSet<RentableItem>          RentableItems          => Set<RentableItem>();
+    public DbSet<RentableItemImage>     RentableItemImages     => Set<RentableItemImage>();
 
     public TenantDbContext(
         DbContextOptions<TenantDbContext> options,

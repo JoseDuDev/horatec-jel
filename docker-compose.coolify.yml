@@ -95,6 +95,16 @@ services:
       EvolutionApi__BaseUrl: ${EVOLUTION_BASE_URL:-}
       EvolutionApi__ApiKey: ${EVOLUTION_API_KEY:-}
       EvolutionApi__InstanceName: ${EVOLUTION_INSTANCE:-horafy}
+
+      # Fotos de itens de locação e de serviços. O RootPath aponta para o volume
+      # abaixo: sem ele, o deploy seguinte apaga as imagens que os clientes
+      # subiram. O PublicBaseUrl é o host pela qual o browser vai buscar o
+      # arquivo (/uploads é servido pela própria API).
+      Storage__Images__RootPath: /app/uploads
+      Storage__Images__PublicBaseUrl: https://${API_HOST:-api.mjml.com.br}
+    volumes:
+      # Named volume, não bind: sobrevive a redeploy e a troca de imagem.
+      - horafy-uploads:/app/uploads
     healthcheck:
       # curl, não wget: a imagem aspnet instala só curl. E 127.0.0.1, não
       # localhost: dentro do container o localhost resolve ::1 primeiro e um
@@ -178,6 +188,11 @@ services:
       - traefik.http.routers.horafy-fe-alugue-http.entrypoints=http
       - traefik.http.routers.horafy-fe-alugue-http.middlewares=horafy-https
       - traefik.http.routers.horafy-fe-alugue-http.service=horafy-fe
+
+volumes:
+  # Imagens enviadas pelos clientes. Fica no disco do host — entra no escopo
+  # do backup do servidor (Etapa 7) junto com o Postgres.
+  horafy-uploads:
 
 networks:
   horafy-net:

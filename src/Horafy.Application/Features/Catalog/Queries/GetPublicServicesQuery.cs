@@ -12,7 +12,8 @@ public sealed record PublicServiceResult(
     string? Description,
     int     DurationMinutes,
     decimal Price,
-    string? Category);
+    string? Category,
+    string? ImageUrl);
 
 internal sealed class GetPublicServicesQueryHandler(IServiceRepository serviceRepository)
     : IRequestHandler<GetPublicServicesQuery, Result<IReadOnlyList<PublicServiceResult>>>
@@ -24,7 +25,7 @@ internal sealed class GetPublicServicesQueryHandler(IServiceRepository serviceRe
 
         IReadOnlyList<PublicServiceResult> results = services
             .Select(s => new PublicServiceResult(
-                s.Id, s.Name, s.Description, s.DurationMinutes, s.Price, s.Category))
+                s.Id, s.Name, s.Description, s.DurationMinutes, s.Price, s.Category, s.ImageUrl))
             .ToList();
 
         return Result<IReadOnlyList<PublicServiceResult>>.Success(results);

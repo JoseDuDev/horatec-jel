@@ -14,7 +14,8 @@ public sealed record CreateServiceCommand(
     int DurationMinutes,
     decimal Price,
     string? Description,
-    string? Category) : IRequest<Result<Guid>>;
+    string? Category,
+    string? ImageUrl = null) : IRequest<Result<Guid>>;
 
 public sealed class CreateServiceCommandValidator : AbstractValidator<CreateServiceCommand>
 {
@@ -52,7 +53,7 @@ internal sealed class CreateServiceCommandHandler(
 
         var service = Service.Create(
             request.Name, request.DurationMinutes, request.Price,
-            request.Description, request.Category);
+            request.Description, request.Category, request.ImageUrl);
 
         serviceRepository.Add(service);
         await unitOfWork.SaveChangesAsync(cancellationToken);

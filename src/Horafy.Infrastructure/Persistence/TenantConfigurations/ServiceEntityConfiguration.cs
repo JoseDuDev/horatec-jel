@@ -17,6 +17,7 @@ internal sealed class ServiceEntityConfiguration : IEntityTypeConfiguration<Serv
         builder.Property(s => s.Description).HasMaxLength(1000);
         builder.Property(s => s.Price).HasColumnType("numeric(10,2)");
         builder.Property(s => s.Category).HasMaxLength(100);
+        builder.Property(s => s.ImageUrl).HasMaxLength(2000);
         builder.Property(s => s.IsActive);
 
         builder.HasIndex(s => s.Name).HasDatabaseName("ix_services_name");

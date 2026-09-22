@@ -1,7 +1,10 @@
 using Asp.Versioning;
 using Horafy.API.Controllers.Base;
+using Horafy.API.Extensions;
+using Horafy.Application.Common.Images;
 using Horafy.Application.Features.Rentals.Commands;
 using Horafy.Application.Features.Rentals.Queries;
+using Horafy.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -53,6 +56,75 @@ public sealed class RentalsController(ISender sender) : ApiControllerBase(sender
             : Created($"/api/v1/rentals/items/{result.Value}", result.Value);
     }
 
+    [HttpPut("items/{id:guid}")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateItem(
+        Guid id,
+        [FromBody] UpdateRentableItemRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(new UpdateRentableItemCommand(
+            id, request.Name, request.Quantity, request.DailyRate, request.SecurityDeposit,
+            request.BufferDays, request.Description, request.Category, request.IsActive),
+            cancellationToken);
+
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
+
+    // ── Galeria do item ───────────────────────────────────────────────────────
+
+    [HttpPost("items/{id:guid}/images")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(ImageUploadPolicy.MaxBytes + 512 * 1024)]
+    [ProducesResponseType(typeof(RentableItemImageResult), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AddItemImage(
+        Guid id,
+        IFormFile? file,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return ToActionResult(Result.Failure<RentableItemImageResult>(ImageErrors.Empty));
+
+        var result = await Sender.Send(
+            new AddRentableItemImageCommand(id, file.ToImageUpload()), cancellationToken);
+
+        return result.IsFailure
+            ? ToActionResult(result)
+            : Created($"/api/v1/rentals/items/{id}/images/{result.Value.Id}", result.Value);
+    }
+
+    [HttpDelete("items/{id:guid}/images/{imageId:guid}")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteItemImage(
+        Guid id, Guid imageId, CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new DeleteRentableItemImageCommand(id, imageId), cancellationToken);
+
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
+
+    [HttpPut("items/{id:guid}/images/{imageId:guid}/cover")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetItemCoverImage(
+        Guid id, Guid imageId, CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(
+            new SetRentableItemCoverImageCommand(id, imageId), cancellationToken);
+
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
+
     // ── Reserva de locação ────────────────────────────────────────────────────
 
     [HttpPost("bookings")]
@@ -100,6 +172,10 @@ public sealed class RentalsController(ISender sender) : ApiControllerBase(sender
 public sealed record CreateRentableItemRequest(
     string Name, int Quantity, decimal DailyRate, decimal SecurityDeposit,
     int BufferDays, string? Description, string? Category, string? ImageUrl);
+
+public sealed record UpdateRentableItemRequest(
+    string Name, int Quantity, decimal DailyRate, decimal SecurityDeposit,
+    int BufferDays, string? Description, string? Category, bool IsActive);
 
 public sealed record CreateRentalBookingRequest(
     IReadOnlyList<RentalItemLine> Items, DateOnly StartDate, DateOnly EndDate, string? Notes);
