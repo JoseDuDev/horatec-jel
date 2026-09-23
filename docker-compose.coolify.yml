@@ -148,6 +148,18 @@ services:
       BRAND_CONFIG: ${BRAND_CONFIG:-}
     depends_on:
       - api
+    healthcheck:
+      # wget, não curl: a imagem é node:20-alpine e não traz curl. E 127.0.0.1,
+      # não localhost, pelo mesmo motivo do api acima.
+      #
+      # Aponta para /api/health, que não consulta a API — um healthcheck que
+      # dependesse dela faria o Traefik tirar TAMBÉM o frontend do roteamento
+      # quando a API caísse, transformando uma falha em duas.
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     networks:
       - horafy-net
       - coolify
