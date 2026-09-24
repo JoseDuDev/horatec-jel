@@ -91,8 +91,10 @@ export async function apiFetch<T>(
   }
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ title: res.statusText }))
-    throw new Error(error.title ?? `HTTP ${res.status}`)
+    // `detail` primeiro: no ProblemDetails da API o `title` é o código do erro
+    // ("Plan.RentalsNotEnabled") e o `detail` é a frase que o cliente entende.
+    const error = await res.json().catch(() => ({} as { detail?: string; title?: string }))
+    throw new Error(error.detail ?? error.title ?? res.statusText ?? `HTTP ${res.status}`)
   }
 
   return parseJsonBody<T>(res)
@@ -125,8 +127,10 @@ export async function apiDownload(path: string, fallbackName: string, isRetry = 
   }
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ title: res.statusText }))
-    throw new Error(error.title ?? `HTTP ${res.status}`)
+    // `detail` primeiro: no ProblemDetails da API o `title` é o código do erro
+    // ("Plan.RentalsNotEnabled") e o `detail` é a frase que o cliente entende.
+    const error = await res.json().catch(() => ({} as { detail?: string; title?: string }))
+    throw new Error(error.detail ?? error.title ?? res.statusText ?? `HTTP ${res.status}`)
   }
 
   const blob = await res.blob()

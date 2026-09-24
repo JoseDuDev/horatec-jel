@@ -18,21 +18,27 @@ export default function ServicosPage() {
   useEffect(() => { load() }, [])
 
   const handleSubmit = async (data: UpsertServiceRequest, photo: File | null) => {
-    if (editing === 'new') {
-      // A foto só tem para onde ir depois que a API devolve o id do serviço; na
-      // edição ela já foi enviada dentro do próprio formulário.
-      const id = await servicesApi.create(data)
-      try {
-        if (photo) await servicesApi.setImage(id, photo)
-      } catch (e) {
-        // O serviço já foi criado: avisa e deixa a foto para o Editar.
-        alert(e instanceof Error ? e.message : 'Serviço criado, mas a foto não subiu.')
+    try {
+      if (editing === 'new') {
+        // A foto só tem para onde ir depois que a API devolve o id do serviço; na
+        // edição ela já foi enviada dentro do próprio formulário.
+        const id = await servicesApi.create(data)
+        try {
+          if (photo) await servicesApi.setImage(id, photo)
+        } catch (e) {
+          // O serviço já foi criado: avisa e deixa a foto para o Editar.
+          alert(e instanceof Error ? e.message : 'Serviço criado, mas a foto não subiu.')
+        }
+      } else if (editing) {
+        await servicesApi.update(editing.id, data)
       }
-    } else if (editing) {
-      await servicesApi.update(editing.id, data)
+      setEditing(null)
+      load()
+    } catch (e) {
+      // Recusa da API (nome duplicado, limite do plano): o diálogo fica aberto
+      // com o que foi digitado, em vez de não acontecer nada.
+      alert(e instanceof Error ? e.message : 'Não foi possível salvar o serviço.')
     }
-    setEditing(null)
-    load()
   }
 
   const handleDelete = async (id: string) => {

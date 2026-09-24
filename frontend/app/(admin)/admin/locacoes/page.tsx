@@ -127,37 +127,45 @@ function ItensTab() {
   useEffect(() => { load() }, [])
 
   const handleSubmit = async (data: UpdateRentableItemRequest, photos: File[]) => {
-    if (editing !== 'new') {
-      if (editing) await rentalsApi.update(editing.id, data)
-      setEditing(null)
-      load()
-      return
-    }
-
-    // A API devolve o id do item; só então as fotos têm dono. Em série para não
-    // estourar o limite de 6, que é conferido a cada envio.
-    // isActive fica de fora: item nasce ativo.
-    const itemId = await rentalsApi.create({
-      name: data.name,
-      quantity: data.quantity,
-      dailyRate: data.dailyRate,
-      securityDeposit: data.securityDeposit,
-      bufferDays: data.bufferDays,
-      description: data.description,
-      category: data.category,
-    })
-
     try {
-      for (const photo of photos) {
-        await rentalsApi.addImage(itemId, photo)
+      if (editing !== 'new') {
+        if (editing) await rentalsApi.update(editing.id, data)
+        setEditing(null)
+        load()
+        return
       }
-    } catch (e) {
-      // O item já existe — esconder o diálogo sem avisar faria a foto sumir sem
-      // explicação. As que faltarem entram pelo botão Editar do card.
-      alert(e instanceof Error ? e.message : 'Item criado, mas uma das fotos não subiu.')
-    } finally {
+
+      // A API devolve o id do item; só então as fotos têm dono. Em série para não
+      // estourar o limite de 6, que é conferido a cada envio.
+      // isActive fica de fora: item nasce ativo.
+      const itemId = await rentalsApi.create({
+        name: data.name,
+        quantity: data.quantity,
+        dailyRate: data.dailyRate,
+        securityDeposit: data.securityDeposit,
+        bufferDays: data.bufferDays,
+        description: data.description,
+        category: data.category,
+      })
+
+      try {
+        for (const photo of photos) {
+          await rentalsApi.addImage(itemId, photo)
+        }
+      } catch (e) {
+        // O item já existe — esconder o diálogo sem avisar faria a foto sumir sem
+        // explicação. As que faltarem entram pelo botão Editar do card.
+        alert(e instanceof Error ? e.message : 'Item criado, mas uma das fotos não subiu.')
+      }
+
       setEditing(null)
       load()
+    } catch (e) {
+      // Falha ao criar ou alterar o item: o diálogo FICA aberto, com o que foi
+      // digitado, para corrigir e tentar de novo. Antes disto o Salvar não fazia
+      // nada visível quando a API recusava — foi o que aconteceu em 23/09 com um
+      // tenant sem o módulo de locação no plano: clique, e silêncio.
+      alert(e instanceof Error ? e.message : 'Não foi possível salvar o item.')
     }
   }
 
