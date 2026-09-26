@@ -8,16 +8,28 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 
 export default function ServicosPage() {
   const [services, setServices] = useState<Service[]>([])
   const [editing, setEditing] = useState<Service | null | 'new'>(null)
+  // Erros na tela, não em alert() (congela a página até alguém clicar em OK).
+  // saveError aparece dentro do diálogo aberto; notice, depois que ele fechou.
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  const openDialog = (target: Service | null | 'new') => {
+    setSaveError(null)
+    setEditing(target)
+  }
 
   const load = () => servicesApi.list().then(setServices)
   useEffect(() => { load() }, [])
 
   const handleSubmit = async (data: UpsertServiceRequest, photo: File | null) => {
+    setSaveError(null)
+    setNotice(null)
     try {
       if (editing === 'new') {
         // A foto só tem para onde ir depois que a API devolve o id do serviço; na
@@ -27,7 +39,8 @@ export default function ServicosPage() {
           if (photo) await servicesApi.setImage(id, photo)
         } catch (e) {
           // O serviço já foi criado: avisa e deixa a foto para o Editar.
-          alert(e instanceof Error ? e.message : 'Serviço criado, mas a foto não subiu.')
+          const reason = e instanceof Error ? e.message : 'erro desconhecido'
+          setNotice(`O serviço foi criado, mas a foto não subiu (${reason}). Envie de novo pelo botão Editar.`)
         }
       } else if (editing) {
         await servicesApi.update(editing.id, data)
@@ -37,7 +50,7 @@ export default function ServicosPage() {
     } catch (e) {
       // Recusa da API (nome duplicado, limite do plano): o diálogo fica aberto
       // com o que foi digitado, em vez de não acontecer nada.
-      alert(e instanceof Error ? e.message : 'Não foi possível salvar o serviço.')
+      setSaveError(e instanceof Error ? e.message : 'Não foi possível salvar o serviço.')
     }
   }
 
@@ -51,10 +64,16 @@ export default function ServicosPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900">Serviços</h1>
-        <Button onClick={() => setEditing('new')}>
+        <Button onClick={() => openDialog('new')}>
           <Plus className="h-4 w-4 mr-2" /> Novo Serviço
         </Button>
       </div>
+
+      {notice && (
+        <Alert variant="destructive">
+          <AlertDescription>{notice}</AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {services.map(s => (
@@ -75,7 +94,7 @@ export default function ServicosPage() {
               <p className="text-sm text-slate-500">{s.durationMinutes} min · R$ {s.price.toFixed(2)}</p>
               {s.description && <p className="text-xs text-slate-400 mt-1">{s.description}</p>}
               <div className="flex gap-2 mt-4">
-                <Button size="sm" variant="outline" onClick={() => setEditing(s)}>
+                <Button size="sm" variant="outline" onClick={() => openDialog(s)}>
                   <Pencil className="h-3 w-3 mr-1" /> Editar
                 </Button>
                 <Button size="sm" variant="destructive" onClick={() => handleDelete(s.id)}>
@@ -87,15 +106,20 @@ export default function ServicosPage() {
         ))}
       </div>
 
-      <Dialog open={editing !== null} onOpenChange={open => !open && setEditing(null)}>
+      <Dialog open={editing !== null} onOpenChange={open => !open && openDialog(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editing === 'new' ? 'Novo Serviço' : 'Editar Serviço'}</DialogTitle>
           </DialogHeader>
+          {saveError && (
+            <Alert variant="destructive">
+              <AlertDescription>{saveError}</AlertDescription>
+            </Alert>
+          )}
           <ServiceForm
             initial={editing !== 'new' && editing !== null ? editing : undefined}
             onSubmit={handleSubmit}
-            onCancel={() => setEditing(null)}
+            onCancel={() => openDialog(null)}
           />
         </DialogContent>
       </Dialog>

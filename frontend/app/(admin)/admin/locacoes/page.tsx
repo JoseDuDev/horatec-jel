@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 /**
@@ -122,11 +123,24 @@ function ItensTab() {
   const [items, setItems] = useState<RentableItem[]>([])
   // 'new' = cadastro; um item = edição daquele item.
   const [editing, setEditing] = useState<RentableItem | 'new' | null>(null)
+  // Erros na tela, não em alert(): o alert nativo é um aviso cru do navegador e
+  // congela a página (e a automação do Chrome) até alguém clicar em OK.
+  // saveError: o Salvar falhou, aparece DENTRO do diálogo, que fica aberto.
+  // notice: o item foi criado mas uma foto não subiu — o diálogo já fechou.
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  const openDialog = (target: RentableItem | 'new' | null) => {
+    setSaveError(null)
+    setEditing(target)
+  }
 
   const load = () => rentalsApi.list().then(setItems).catch(() => setItems([]))
   useEffect(() => { load() }, [])
 
   const handleSubmit = async (data: UpdateRentableItemRequest, photos: File[]) => {
+    setSaveError(null)
+    setNotice(null)
     try {
       if (editing !== 'new') {
         if (editing) await rentalsApi.update(editing.id, data)
@@ -155,7 +169,8 @@ function ItensTab() {
       } catch (e) {
         // O item já existe — esconder o diálogo sem avisar faria a foto sumir sem
         // explicação. As que faltarem entram pelo botão Editar do card.
-        alert(e instanceof Error ? e.message : 'Item criado, mas uma das fotos não subiu.')
+        const reason = e instanceof Error ? e.message : 'erro desconhecido'
+        setNotice(`O item foi criado, mas uma das fotos não subiu (${reason}). Envie as que faltaram pelo botão Editar.`)
       }
 
       setEditing(null)
@@ -165,7 +180,7 @@ function ItensTab() {
       // digitado, para corrigir e tentar de novo. Antes disto o Salvar não fazia
       // nada visível quando a API recusava — foi o que aconteceu em 23/09 com um
       // tenant sem o módulo de locação no plano: clique, e silêncio.
-      alert(e instanceof Error ? e.message : 'Não foi possível salvar o item.')
+      setSaveError(e instanceof Error ? e.message : 'Não foi possível salvar o item.')
     }
   }
 
@@ -185,10 +200,16 @@ function ItensTab() {
         <p className="text-sm text-slate-500">
           O catálogo que aparece no seu link público.
         </p>
-        <Button onClick={() => setEditing('new')}>
+        <Button onClick={() => openDialog('new')}>
           <Plus className="h-4 w-4 mr-2" /> Novo Item
         </Button>
       </div>
+
+      {notice && (
+        <Alert variant="destructive">
+          <AlertDescription>{notice}</AlertDescription>
+        </Alert>
+      )}
 
       {items.length === 0 && (
         <p className="text-sm text-slate-500">Nenhum item de locação cadastrado.</p>
@@ -232,7 +253,7 @@ function ItensTab() {
                 variant="outline"
                 size="sm"
                 className="mt-3 w-full"
-                onClick={() => setEditing(i)}
+                onClick={() => openDialog(i)}
               >
                 <Pencil className="h-3 w-3 mr-1" /> Editar
               </Button>
@@ -241,20 +262,25 @@ function ItensTab() {
         ))}
       </div>
 
-      <Dialog open={editing !== null} onOpenChange={open => !open && setEditing(null)}>
+      <Dialog open={editing !== null} onOpenChange={open => !open && openDialog(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
               {editing === 'new' ? 'Novo Item de Locação' : `Editar ${editing?.name ?? ''}`}
             </DialogTitle>
           </DialogHeader>
+          {saveError && (
+            <Alert variant="destructive">
+              <AlertDescription>{saveError}</AlertDescription>
+            </Alert>
+          )}
           <RentableItemForm
             // Troca de item = formulário novo: sem a key, os campos do item anterior
             // sobreviveriam. Recarregar a galeria não remonta, porque o id não muda.
             key={editing === 'new' ? 'new' : editing?.id}
             initial={editing !== 'new' && editing !== null ? editing : undefined}
             onSubmit={handleSubmit}
-            onCancel={() => setEditing(null)}
+            onCancel={() => openDialog(null)}
             onGalleryChange={reloadKeepingDialog}
           />
         </DialogContent>
