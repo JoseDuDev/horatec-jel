@@ -26,8 +26,14 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
-# Usuário não-root por segurança
-RUN adduser --disabled-password --gecos "" appuser && chown -R appuser /app
+# Usuário não-root por segurança.
+# /app/uploads precisa existir NA IMAGEM e ser do appuser: o volume horafy-uploads
+# é montado ali, e o Docker só copia o dono da pasta para um volume vazio se a
+# pasta existir na imagem. Sem isso o volume nasce do root e todo upload de foto
+# falha com "Access to the path '/app/uploads/...' is denied" (26/09/2026).
+RUN adduser --disabled-password --gecos "" appuser \
+    && mkdir -p /app/uploads \
+    && chown -R appuser /app
 USER appuser
 
 COPY --from=publish /app/publish .
