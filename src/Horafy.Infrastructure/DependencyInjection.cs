@@ -73,19 +73,11 @@ public static class DependencyInjection
         {
             var tenantSvc   = sp.GetRequiredService<ICurrentTenantService>();
             var searchPath  = tenantSvc.SchemaName is { } s ? $"{s},public" : "public";
-            var tenantConn  = new Npgsql.NpgsqlConnectionStringBuilder(connectionString)
-            {
-                SearchPath = searchPath
-            }.ConnectionString;
 
-            var options = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<TenantDbContext>()
-                .UseNpgsql(tenantConn, npgsql =>
-                {
-                    npgsql.SetPostgresVersion(16, 0);
-                    npgsql.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), null);
-                })
-                .UseSnakeCaseNamingConvention()
-                .Options;
+            // Auditoria (CreatedAt/CreatedBy/UpdatedAt) vem do interceptor — sem ele
+            // as linhas do tenant saíam com created_at 0001-01-01. Ver BuildOptions.
+            var options = TenantDbContext.BuildOptions(
+                connectionString, searchPath, sp.GetRequiredService<AuditableEntityInterceptor>());
 
             return new TenantDbContext(options, sp.GetService<MediatR.IPublisher>());
         });

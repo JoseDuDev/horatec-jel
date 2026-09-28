@@ -20,6 +20,34 @@ public sealed class TenantDbContext : DbContext
 {
     private readonly IPublisher? _publisher;
 
+    /// <summary>
+    /// Opções do contexto de tenant, com o interceptor de auditoria OBRIGATÓRIO no
+    /// parâmetro. Até 28/09/2026 o registro no DI montava as opções à mão e esqueceu o
+    /// interceptor: toda linha dos schemas de tenant saía com created_at 0001-01-01
+    /// (o EF manda o valor, o DEFAULT NOW() do DDL nunca vale). Usado pelo DI e pelos
+    /// testes, para que os dois montem o contexto do mesmo jeito.
+    /// </summary>
+    public static DbContextOptions<TenantDbContext> BuildOptions(
+        string connectionString,
+        string searchPath,
+        Interceptors.AuditableEntityInterceptor auditInterceptor)
+    {
+        var tenantConn = new Npgsql.NpgsqlConnectionStringBuilder(connectionString)
+        {
+            SearchPath = searchPath
+        }.ConnectionString;
+
+        return new DbContextOptionsBuilder<TenantDbContext>()
+            .UseNpgsql(tenantConn, npgsql =>
+            {
+                npgsql.SetPostgresVersion(16, 0);
+                npgsql.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), null);
+            })
+            .UseSnakeCaseNamingConvention()
+            .AddInterceptors(auditInterceptor)
+            .Options;
+    }
+
     public DbSet<Service>               Services               => Set<Service>();
     public DbSet<Resource>              Resources              => Set<Resource>();
     public DbSet<ResourceService>       ResourceServices       => Set<ResourceService>();
