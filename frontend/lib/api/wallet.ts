@@ -27,8 +27,11 @@ async function apiFetch<T>(
   })
 
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ title: res.statusText }))
-    throw new Error(error.title ?? `HTTP ${res.status}`)
+    // `detail` primeiro (é a frase para o cliente), e `||` no fim: um 401/403 vem sem
+    // corpo e, em HTTP/2, sem statusText — com `??` a mensagem saía vazia e a tela
+    // não mostrava nada.
+    const error = await res.json().catch(() => ({} as { detail?: string; title?: string }))
+    throw new Error(error.detail || error.title || res.statusText || `HTTP ${res.status}`)
   }
 
   return parseJsonBody<T>(res)
