@@ -10,6 +10,11 @@ internal sealed class WalletTransactionEntityConfiguration : IEntityTypeConfigur
     {
         builder.ToTable("wallet_transactions");
         builder.HasKey(t => t.Id);
+
+        // Id nasce no construtor (BaseEntity): sem isto o EF toma a transação nova de
+        // uma carteira já rastreada por existente e emite UPDATE em vez de INSERT.
+        // Mesmo motivo de BookingService e RentableItemImage. Ver WalletPersistenceTests.
+        builder.Property(t => t.Id).ValueGeneratedNever();
         builder.Property(t => t.Amount).HasColumnType("numeric(12,2)");
         builder.Property(t => t.Type).HasConversion<string>().HasMaxLength(32);
         builder.Property(t => t.Description).IsRequired().HasMaxLength(255);

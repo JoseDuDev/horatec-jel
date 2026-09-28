@@ -44,6 +44,20 @@ public abstract class BaseRepository<T, TContext>(TContext context) : IRepositor
             : await DbSet.CountAsync(predicate, cancellationToken);
 
     public void Add(T entity)    => DbSet.Add(entity);
-    public void Update(T entity) => DbSet.Update(entity);
+
+    /// <summary>
+    /// Só anexa entidade DESTACADA (as buscas acima são AsNoTracking). Se o contexto
+    /// já rastreia a entidade, o change tracker detecta sozinho o que mudou — e o
+    /// DbSet.Update atrapalharia: marca como Modified todo filho novo do grafo que já
+    /// tem Id (os Ids nascem no construtor), e o SaveChanges emite UPDATE de linha
+    /// que não existe (0 linhas, DbUpdateConcurrencyException). Era o que quebrava
+    /// todo movimento de carteira (ver WalletPersistenceTests).
+    /// </summary>
+    public void Update(T entity)
+    {
+        if (Context.Entry(entity).State == EntityState.Detached)
+            DbSet.Update(entity);
+    }
+
     public void Remove(T entity) => DbSet.Remove(entity);
 }
