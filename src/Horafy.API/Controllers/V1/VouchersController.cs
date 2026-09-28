@@ -15,7 +15,7 @@ namespace Horafy.API.Controllers.V1;
 public sealed class VouchersController(ISender sender) : ApiControllerBase(sender)
 {
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(typeof(IReadOnlyList<VoucherSummary>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAll(CancellationToken ct) =>
@@ -33,7 +33,7 @@ public sealed class VouchersController(ISender sender) : ApiControllerBase(sende
         ToActionResult(await Sender.Send(new ValidateVoucherQuery(code, totalPrice), ct));
 
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -52,7 +52,7 @@ public sealed class VouchersController(ISender sender) : ApiControllerBase(sende
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Deactivate(Guid id, CancellationToken ct) =>

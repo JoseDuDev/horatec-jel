@@ -19,7 +19,7 @@ public sealed class WalletController(ISender sender) : ApiControllerBase(sender)
         ToActionResult(await Sender.Send(new GetWalletQuery(), ct));
 
     [HttpPost("users/{userId:guid}/credits")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
