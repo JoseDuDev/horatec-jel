@@ -23,6 +23,8 @@ export default function RecursosPage() {
   const [resources, setResources] = useState<Resource[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [editing, setEditing] = useState<Resource | null | 'new'>(null)
+  // saveError aparece dentro do diálogo aberto; notice, depois que ele fechou.
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
   const load = () =>
@@ -33,38 +35,59 @@ export default function RecursosPage() {
 
   useEffect(() => { load() }, [])
 
+  const openDialog = (target: Resource | null | 'new') => {
+    setSaveError(null)
+    setEditing(target)
+  }
+
   const handleSubmit = async (data: UpsertResourceRequest, photo: File | null) => {
+    setSaveError(null)
     setNotice(null)
-    let resourceId: string
+    let resourceId: string | null = null
     const currentIds = editing !== 'new' && editing !== null ? editing.serviceIds : []
 
-    if (editing === 'new') {
-      resourceId = await resourcesApi.create(data)
-      // A foto só tem para onde ir depois que a API devolve o id; na edição ela
-      // já foi enviada dentro do próprio formulário.
-      if (photo) {
-        try {
-          await resourcesApi.setImage(resourceId, photo)
-        } catch (e) {
-          const reason = e instanceof Error ? e.message : 'erro desconhecido'
-          setNotice(`O recurso foi criado, mas a foto não subiu (${reason}). Envie de novo pelo botão Editar.`)
+    try {
+      if (editing === 'new') {
+        resourceId = await resourcesApi.create(data)
+        // A foto só tem para onde ir depois que a API devolve o id; na edição ela
+        // já foi enviada dentro do próprio formulário.
+        if (photo) {
+          try {
+            await resourcesApi.setImage(resourceId, photo)
+          } catch (e) {
+            const reason = e instanceof Error ? e.message : 'erro desconhecido'
+            setNotice(`O recurso foi criado, mas a foto não subiu (${reason}). Envie de novo pelo botão Editar.`)
+          }
         }
+      } else if (editing) {
+        await resourcesApi.update(editing.id, data)
+        resourceId = editing.id
+      } else return
+
+      const id = resourceId
+      const toAdd = data.serviceIds.filter(sId => !currentIds.includes(sId))
+      const toRemove = currentIds.filter(sId => !data.serviceIds.includes(sId))
+
+      await Promise.all([
+        ...toAdd.map(sId => resourcesApi.addService(id, sId)),
+        ...toRemove.map(sId => resourcesApi.removeService(id, sId)),
+      ])
+
+      setEditing(null)
+      load()
+    } catch (e) {
+      const reason = e instanceof Error ? e.message : 'Não foi possível salvar o recurso.'
+      if (editing === 'new' && resourceId) {
+        // O recurso já existe: manter o diálogo de "novo" aberto faria o reenvio duplicá-lo.
+        setNotice(`O recurso foi criado, mas não deu para vincular os serviços (${reason}). Ajuste pelo botão Editar.`)
+        setEditing(null)
+        load()
+      } else {
+        // Recusa da API (limite do plano, nome duplicado): o diálogo fica aberto
+        // com o que foi digitado, em vez de não acontecer nada.
+        setSaveError(reason)
       }
-    } else if (editing) {
-      await resourcesApi.update(editing.id, data)
-      resourceId = editing.id
-    } else return
-
-    const toAdd = data.serviceIds.filter(id => !currentIds.includes(id))
-    const toRemove = currentIds.filter(id => !data.serviceIds.includes(id))
-
-    await Promise.all([
-      ...toAdd.map(sId => resourcesApi.addService(resourceId, sId)),
-      ...toRemove.map(sId => resourcesApi.removeService(resourceId, sId)),
-    ])
-
-    setEditing(null)
-    load()
+    }
   }
 
   const handleDelete = async (id: string) => {
@@ -80,7 +103,7 @@ export default function RecursosPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-slate-900">Recursos</h1>
-        <Button onClick={() => setEditing('new')}>
+        <Button onClick={() => openDialog('new')}>
           <Plus className="h-4 w-4 mr-2" /> Novo Recurso
         </Button>
       </div>
@@ -111,7 +134,7 @@ export default function RecursosPage() {
                 </p>
               )}
               <div className="flex gap-2 mt-4">
-                <Button size="sm" variant="outline" onClick={() => setEditing(r)}>
+                <Button size="sm" variant="outline" onClick={() => openDialog(r)}>
                   <Pencil className="h-3 w-3 mr-1" /> Editar
                 </Button>
                 <Button size="sm" variant="destructive" onClick={() => handleDelete(r.id)}>
@@ -123,16 +146,21 @@ export default function RecursosPage() {
         ))}
       </div>
 
-      <Dialog open={editing !== null} onOpenChange={open => !open && setEditing(null)}>
+      <Dialog open={editing !== null} onOpenChange={open => !open && openDialog(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editing === 'new' ? 'Novo Recurso' : 'Editar Recurso'}</DialogTitle>
           </DialogHeader>
+          {saveError && (
+            <Alert variant="destructive">
+              <AlertDescription>{saveError}</AlertDescription>
+            </Alert>
+          )}
           <ResourceForm
             initial={editing !== 'new' && editing !== null ? editing : undefined}
             services={services}
             onSubmit={handleSubmit}
-            onCancel={() => setEditing(null)}
+            onCancel={() => openDialog(null)}
           />
         </DialogContent>
       </Dialog>
