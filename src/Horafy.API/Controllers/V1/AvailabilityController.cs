@@ -54,13 +54,13 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
             new GetAvailabilityCalendarQuery(resourceId, year, month, serviceId), cancellationToken));
 
     [HttpGet("business-hours")]
-    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(typeof(IReadOnlyList<BusinessHoursResult>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetBusinessHours(CancellationToken cancellationToken) =>
         ToActionResult(await Sender.Send(new GetBusinessHoursQuery(), cancellationToken));
 
     [HttpPut("business-hours")]
-    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> SetBusinessHours(
         [FromBody] SetBusinessHoursRequest request,
@@ -74,7 +74,7 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
     }
 
     [HttpPut("resources/{resourceId:guid}/rules")]
-    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SetRule(
@@ -91,14 +91,14 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
     }
 
     [HttpGet("resources/{resourceId:guid}/rules")]
-    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(typeof(IReadOnlyList<AvailabilityRuleResult>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetResourceRules(
         Guid resourceId, CancellationToken cancellationToken) =>
         ToActionResult(await Sender.Send(new GetResourceRulesQuery(resourceId), cancellationToken));
 
     [HttpPut("resources/{resourceId:guid}/exceptions")]
-    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SetException(
@@ -115,7 +115,7 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
     }
 
     [HttpGet("resources/{resourceId:guid}/exceptions")]
-    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(typeof(IReadOnlyList<AvailabilityExceptionResult>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetResourceExceptions(
         Guid resourceId,
@@ -126,7 +126,7 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
             new GetResourceExceptionsQuery(resourceId, from, to), cancellationToken));
 
     [HttpDelete("resources/{resourceId:guid}/exceptions/{date}")]
-    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteException(
@@ -142,7 +142,7 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
     // ── Bloqueios globais por data (fecham todos os recursos) ────────────
 
     [HttpGet("blackouts")]
-    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(typeof(IReadOnlyList<BlackoutDateResult>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetBlackouts(
         [FromQuery] int? year = null,
@@ -150,7 +150,7 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
         ToActionResult(await Sender.Send(new GetBlackoutDatesQuery(year), cancellationToken));
 
     [HttpPost("blackouts")]
-    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(typeof(Guid), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateBlackout(
@@ -165,7 +165,7 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
     }
 
     [HttpDelete("blackouts/{date}")]
-    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteBlackout(
@@ -176,7 +176,7 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
     }
 
     [HttpPost("resources/{resourceId:guid}/services/{serviceId:guid}")]
-    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> AddService(
         Guid resourceId, Guid serviceId, CancellationToken cancellationToken)
@@ -187,7 +187,7 @@ public sealed class AvailabilityController(ISender sender) : ApiControllerBase(s
     }
 
     [HttpDelete("resources/{resourceId:guid}/services/{serviceId:guid}")]
-    [Authorize(Roles = "TenantOwner,TenantAdmin")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> RemoveService(
         Guid resourceId, Guid serviceId, CancellationToken cancellationToken)
