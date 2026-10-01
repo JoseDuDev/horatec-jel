@@ -2,10 +2,10 @@ import { apiFetch } from './client'
 import type { TokenPair, AdminUser } from '../types/auth'
 
 export const authApi = {
-  login: (email: string, password: string) =>
+  login: (email: string, password: string, tenantSlug?: string) =>
     apiFetch<TokenPair>('/api/v1/auth/email', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, tenantSlug }),
     }),
 
   me: () => apiFetch<AdminUser>('/api/v1/auth/me'),

@@ -83,21 +83,15 @@ public sealed class TenantMiddleware(
 
         var cacheKey = $"tenant_slug:{tenantSlug}";
 
-        var tenant = await cache.GetOrCreateAsync(cacheKey, async entry =>
-        {
-            entry.AbsoluteExpirationRelativeToNow = CacheDuration;
-            return await tenantRepository.GetBySlugAsync(tenantSlug);
-        });
+        // Só cacheia tenant ENCONTRADO: cachear "não existe" deixava um tenant
+        // recém-criado inacessível por até 5 minutos.
+        var tenant = await GetCachedAsync(cache, cacheKey, () => tenantRepository.GetBySlugAsync(tenantSlug));
 
         if (tenant is null)
         {
             // Tenta por domínio customizado
             var cacheKeyDomain = $"tenant_domain:{host}";
-            tenant = await cache.GetOrCreateAsync(cacheKeyDomain, async entry =>
-            {
-                entry.AbsoluteExpirationRelativeToNow = CacheDuration;
-                return await tenantRepository.GetByCustomDomainAsync(host);
-            });
+            tenant = await GetCachedAsync(cache, cacheKeyDomain, () => tenantRepository.GetByCustomDomainAsync(host));
         }
 
         if (tenant is null || tenant.IsDeleted)
@@ -123,6 +117,19 @@ public sealed class TenantMiddleware(
             tenant.SchemaName);
 
         await next(context);
+    }
+
+    private static async Task<Tenant?> GetCachedAsync(
+        IMemoryCache cache, string key, Func<Task<Tenant?>> load)
+    {
+        if (cache.TryGetValue(key, out Tenant? cached))
+            return cached;
+
+        var tenant = await load();
+        if (tenant is not null)
+            cache.Set(key, tenant, CacheDuration);
+
+        return tenant;
     }
 
     /// <summary>

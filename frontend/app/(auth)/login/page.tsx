@@ -40,13 +40,16 @@ function LoginForm() {
     setError(null)
     setLoading(true)
     try {
-      document.cookie = `tenant_slug=${data.tenantSlug}; path=/`
-      const tokens = await authApi.login(data.email, data.password)
+      const slug = data.tenantSlug.trim().toLowerCase()
+      document.cookie = `tenant_slug=${slug}; path=/`
+      // O slug vai no corpo para o backend validar já no login: slug inexistente
+      // vira "credenciais inválidas" aqui, em vez de 404 em /tenants/me depois.
+      const tokens = await authApi.login(data.email, data.password, slug)
       // Mesma validade do refresh token — o interceptor de 401 renova o access
       // token sozinho enquanto o cookie existir (ver lib/api/client.ts).
       document.cookie = `access_token=${tokens.accessToken}; path=/; max-age=${60 * 60 * 24 * 7}`
       const [user, tenant] = await Promise.all([authApi.me(), tenantsApi.me()])
-      setAuth(user, tokens, data.tenantSlug)
+      setAuth(user, tokens, slug)
 
       const needsOnboarding =
         !tenant.isOnboardingCompleted &&
