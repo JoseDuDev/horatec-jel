@@ -1,8 +1,11 @@
 using Asp.Versioning;
 using Horafy.API.Controllers.Base;
+using Horafy.API.Extensions;
+using Horafy.Application.Common.Images;
 using Horafy.Application.Features.Resources.Commands;
 using Horafy.Application.Features.Resources.Queries;
 using Horafy.Domain.Entities.Resources;
+using Horafy.Shared;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -70,7 +73,44 @@ public sealed class ResourcesController(ISender sender) : ApiControllerBase(send
         var result = await Sender.Send(new DeleteResourceCommand(id), cancellationToken);
         return result.IsSuccess ? NoContent() : ToActionResult(result);
     }
+
+    // ── Foto do recurso ───────────────────────────────────────────────────────
+
+    [HttpPost("{id:guid}/image")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(ImageUploadPolicy.MaxBytes + 512 * 1024)]
+    [ProducesResponseType(typeof(ResourceImageResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetImage(
+        Guid id,
+        IFormFile? file,
+        CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return ToActionResult(Result.Failure<string>(ImageErrors.Empty));
+
+        var result = await Sender.Send(
+            new SetResourceImageCommand(id, file.ToImageUpload()), cancellationToken);
+
+        return result.IsFailure
+            ? ToActionResult(result)
+            : Ok(new ResourceImageResponse(result.Value));
+    }
+
+    [HttpDelete("{id:guid}/image")]
+    [Authorize(Roles = "TenantOwner,TenantAdmin,PlatformAdmin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoveImage(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await Sender.Send(new RemoveResourceImageCommand(id), cancellationToken);
+        return result.IsSuccess ? NoContent() : ToActionResult(result);
+    }
 }
+
+public sealed record ResourceImageResponse(string Url);
 
 public sealed record CreateResourceRequest(
     string Name, ResourceType Type, string? Email, string? Phone,

@@ -8,6 +8,7 @@ import type { Resource, UpsertResourceRequest } from '@/lib/types/resource'
 import type { Service } from '@/lib/types/service'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 
@@ -22,6 +23,7 @@ export default function RecursosPage() {
   const [resources, setResources] = useState<Resource[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [editing, setEditing] = useState<Resource | null | 'new'>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const load = () =>
     Promise.all([resourcesApi.list(), servicesApi.list()]).then(([r, s]) => {
@@ -31,12 +33,23 @@ export default function RecursosPage() {
 
   useEffect(() => { load() }, [])
 
-  const handleSubmit = async (data: UpsertResourceRequest) => {
+  const handleSubmit = async (data: UpsertResourceRequest, photo: File | null) => {
+    setNotice(null)
     let resourceId: string
     const currentIds = editing !== 'new' && editing !== null ? editing.serviceIds : []
 
     if (editing === 'new') {
       resourceId = await resourcesApi.create(data)
+      // A foto só tem para onde ir depois que a API devolve o id; na edição ela
+      // já foi enviada dentro do próprio formulário.
+      if (photo) {
+        try {
+          await resourcesApi.setImage(resourceId, photo)
+        } catch (e) {
+          const reason = e instanceof Error ? e.message : 'erro desconhecido'
+          setNotice(`O recurso foi criado, mas a foto não subiu (${reason}). Envie de novo pelo botão Editar.`)
+        }
+      }
     } else if (editing) {
       await resourcesApi.update(editing.id, data)
       resourceId = editing.id
@@ -72,9 +85,19 @@ export default function RecursosPage() {
         </Button>
       </div>
 
+      {notice && (
+        <Alert variant="destructive">
+          <AlertDescription>{notice}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {resources.map(r => (
-          <Card key={r.id}>
+          <Card key={r.id} className={r.avatarUrl ? 'overflow-hidden pt-0' : undefined}>
+            {r.avatarUrl && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={r.avatarUrl} alt={r.name} className="h-32 w-full object-cover" />
+            )}
             <CardHeader className="pb-2">
               <CardTitle className="text-base">{r.name}</CardTitle>
             </CardHeader>

@@ -27,9 +27,14 @@ export function WizardStepResource({ resources, selectedId, onSelect }: Props) {
                   : 'border-slate-200'
               )}
             >
-              <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 shrink-0">
-                {r.name[0]}
-              </div>
+              {r.avatarUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={r.avatarUrl} alt={r.name} className="h-10 w-10 rounded-full object-cover shrink-0" />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 shrink-0">
+                  {r.name[0]}
+                </div>
+              )}
               <div>
                 <p className="font-medium">{r.name}</p>
                 <p className="text-xs text-slate-500">{r.type}</p>
