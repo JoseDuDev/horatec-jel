@@ -123,7 +123,7 @@ services:
     restart: unless-stopped
     environment:
       APP_HOST: ${APP_HOST}                     # ex.: agendafy.203-0-113-5.sslip.io
-      APP_HOST_2: "${APP_HOST_2:-}"             # 2ª marca (opcional): ex.: alugafy.203-0-113-5.sslip.io
+      APP_HOST_2: "${APP_HOST_2:-app2.localhost}" # 2ª marca (opcional): ex.: alugafy.203-0-113-5.sslip.io
       API_HOST: ${API_HOST}                     # ex.: api.203-0-113-5.sslip.io
       ACME_EMAIL: ${ACME_EMAIL}
     ports:
