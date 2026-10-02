@@ -53,6 +53,13 @@ public sealed class Resource : BaseEntity
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>Define (ou remove, com <c>null</c>) a foto do recurso.</summary>
+    public void SetAvatar(string? avatarUrl)
+    {
+        AvatarUrl = string.IsNullOrWhiteSpace(avatarUrl) ? null : avatarUrl.Trim();
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
     public void Activate()   { IsActive = true;  UpdatedAt = DateTimeOffset.UtcNow; }
     public void Deactivate() { IsActive = false; UpdatedAt = DateTimeOffset.UtcNow; }
 }

@@ -17,4 +17,10 @@ export interface UpsertResourceRequest {
   name: string
   type: ResourceType
   serviceIds: string[]
+  // Campos que o formulário não edita, mas que o PUT da API exige de volta.
+  email?: string
+  phone?: string
+  specialty?: string
+  bio?: string
+  avatarUrl?: string
 }
